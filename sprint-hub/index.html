@@ -1,0 +1,209 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tech Innovation Sprint Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-shape bg-shape-a"></div>
+  <div class="bg-shape bg-shape-b"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <h1>Tech Innovation Sprint Hub</h1>
+    </div>
+    <div class="topbar-actions">
+      <button id="projectsBtn" class="btn btn-ghost">Projects Files</button>
+      <button id="teamBtn" class="btn btn-ghost">Team</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero card">
+      <p class="eyebrow">Sprint Workspace</p>
+      <h2>Plan, Track, and Move Projects Across Sprints</h2>
+      <p class="hero-copy">Create topics, break them into items, check progress, and re-balance sprint scope with one click.</p>
+      <p id="syncStatus" class="sync-status">Mode: loading...</p>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="workspace">
+      <aside class="sprints-panel card">
+        <div class="panel-head">
+          <h3>Sprints</h3>
+          <button id="newSprintBtn" class="btn btn-primary">New Sprint</button>
+        </div>
+        <ul id="sprintsList" class="sprints-list"></ul>
+      </aside>
+
+      <section class="board card">
+        <div class="board-head">
+          <div>
+            <div class="board-title-row">
+              <h3 id="boardTitle">Sprint</h3>
+              <button id="editSprintBtn" class="btn btn-mini" type="button">Edit Sprint</button>
+            </div>
+            <p id="boardMeta" class="muted"></p>
+          </div>
+          <div class="board-actions">
+            <select id="responsibleFilter" aria-label="Filter by responsible"></select>
+            <label class="quick-filter">
+              <input id="highOnlyFilter" type="checkbox" />
+              High
+            </label>
+            <label class="quick-filter">
+              <input id="blockedOnlyFilter" type="checkbox" />
+              Blocked
+            </label>
+            <button id="newTopicBtn" class="btn btn-secondary">New Project</button>
+          </div>
+        </div>
+
+        <form id="topicForm" class="inline-form hidden">
+          <input id="topicTitleInput" type="text" placeholder="Project name (e.g., Web Assessor)" required />
+          <input id="topicDescInput" type="text" placeholder="Short description (optional)" />
+          <button type="submit" class="btn btn-primary">Add Project</button>
+          <button type="button" id="cancelTopicBtn" class="btn btn-ghost">Cancel</button>
+        </form>
+
+        <div id="topicsGrid" class="topics-grid"></div>
+      </section>
+    </section>
+  </main>
+
+  <template id="topicTemplate">
+    <article class="topic-card">
+      <div class="topic-head">
+        <div>
+          <h4 class="topic-title"></h4>
+          <p class="topic-desc muted"></p>
+        </div>
+        <button type="button" class="btn btn-mini topic-edit-btn">Edit Project</button>
+      </div>
+
+      <ul class="items-list"></ul>
+
+      <div class="item-form">
+        <button type="button" class="btn btn-mini add-item-btn">Add Task</button>
+      </div>
+    </article>
+  </template>
+
+  <div id="assigneeModal" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="modalTitle">Edit Task</h3>
+      <p class="muted">Update task text and responsibles.</p>
+      <input id="modalItemText" type="text" placeholder="Task text" />
+      <div class="task-meta-row">
+        <label class="copy-options">
+          <input id="modalHighPriorityCheck" type="checkbox" />
+          High Priority
+        </label>
+        <label class="copy-options">
+          <input id="modalBlockedCheck" type="checkbox" />
+          Blocked
+        </label>
+      </div>
+      <select id="modalAssigneeSelect" multiple size="8"></select>
+      <div class="modal-actions">
+        <button id="modalClearBtn" class="btn btn-ghost" type="button">Clear responsibles</button>
+        <button id="modalCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="modalSaveBtn" class="btn btn-primary" type="button">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="projectModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Edit Project</h3>
+      <p class="muted">Update project title and description.</p>
+      <input id="projectTitleInput" type="text" placeholder="Project title" />
+      <input id="projectDescInput" type="text" placeholder="Project description (optional)" />
+      <div class="modal-actions">
+        <button id="projectCopyBtn" class="btn btn-ghost modal-action-left" type="button">Copy to Sprint</button>
+        <button id="projectDeleteBtn" class="btn btn-danger" type="button">Remove</button>
+        <button id="projectCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="projectSaveBtn" class="btn btn-primary" type="button">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="copyTargetModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Select Target Sprint</h3>
+      <p class="muted">Choose where to copy this project.</p>
+      <div id="copyTargetList" class="copy-target-list"></div>
+      <label class="copy-options">
+        <input id="copyOnlyOpenTasks" type="checkbox" />
+        Copy only open tasks
+      </label>
+      <div class="modal-actions">
+        <button id="copyTargetCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sprintModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Edit Sprint</h3>
+      <p class="muted">Update sprint name/goal or copy this sprint.</p>
+      <input id="sprintNameInput" type="text" placeholder="Sprint name" />
+      <input id="sprintGoalInput" type="text" placeholder="Sprint goal (optional)" />
+      <div class="modal-actions">
+        <button id="sprintCopyBtn" class="btn btn-ghost modal-action-left" type="button">Copy Sprint</button>
+        <button id="sprintCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="sprintSaveBtn" class="btn btn-primary" type="button">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="projectsModal" class="modal hidden">
+    <div class="modal-card projects-modal-card">
+      <div class="panel-head">
+        <h3>Projects Files</h3>
+        <button id="projectsCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+      <div class="projects-layout">
+        <div class="projects-tree-wrap">
+          <p class="muted projects-path">Root: projects/</p>
+          <div class="projects-actions">
+            <button id="projectsNewBtn" class="btn btn-ghost" type="button">New...</button>
+          </div>
+          <div id="projectsTree" class="projects-tree"></div>
+        </div>
+        <div class="projects-editor-wrap">
+          <p id="projectsCurrentFile" class="muted projects-path">Select a file</p>
+          <textarea id="projectsEditor" class="projects-editor" spellcheck="false"></textarea>
+          <div class="modal-actions">
+            <button id="projectsDeleteBtn" class="btn btn-danger modal-action-left" type="button">Delete File</button>
+            <button id="projectsSaveBtn" class="btn btn-primary" type="button">Save File</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="createTypeModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Create New</h3>
+      <p class="muted">Select what you want to create.</p>
+      <div class="copy-target-list">
+        <button id="createFolderChoiceBtn" class="btn btn-ghost copy-target-btn" type="button">Folder</button>
+        <button id="createFileChoiceBtn" class="btn btn-ghost copy-target-btn" type="button">File (.md)</button>
+        <button id="createMeetingChoiceBtn" class="btn btn-ghost copy-target-btn" type="button">Meeting Note</button>
+      </div>
+      <div class="modal-actions">
+        <button id="createTypeCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

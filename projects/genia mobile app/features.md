@@ -1,0 +1,62 @@
+# Features
+
+- Clientes
+-- Pedidos
+--- Frequência
+--- Gastos
+--- Preferências
+--- Status
+-- ASP
+-- X Boletos
+-- Acordos
+--- Metas
+-- Comodato ?
+-- Consignado ?
+-- Interesses (Usabilidade do App)
+--- Banner
+--- Catálogo
+--- Genia
+-- Classificação
+-- Informações(Endereço, telefone, email, etc.)
+-- Insights **
+-- Relatório **
+-- Abrir ticket
+-- Tipos de entrega + prazo médio de entrega?
+
+- Roteiro
+-- Rotas
+-- Busca por localização
+-- Sugestão de visita próxima
+-- Endereço residencial / comercial
+
+- Pedido
+-- Criação de Cotação (Simulação**)
+-- Criação de Pedido
+-- Envio de Cotação e Pedido
+-- Campanhas
+-- Estoque (abertura automática de tickets)
+
+- Assistente
+-- Simulação de venda
+-- Tomador de notas (live listener)
+-- Adicionar notas para cliente
+-- Pitch Sniper (Recomendação de resposta)
+-- Envio de push / email / whats
+-- Lançamento de visita e metas
+-- Genia + Catálogo
+-- Conhecimento do Grupo Straumann e produtos
+-- Catálogo geral da Neo + Straumann
+
+- Assessor
+-- Prazo médio de pagamento
+-- ASP (average sales price)
+-- Status do pedido
+-- Gestão de Tickets
+-- Forecast
+-- Notificação Atenção!
+-- Assessores da MR
+-- Vídeos
+-- Catálogos
+-- Contatos + Hub
+-- Meta
+-- Lembretes
