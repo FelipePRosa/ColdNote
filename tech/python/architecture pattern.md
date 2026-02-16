@@ -13,38 +13,49 @@ neoapp_genia_voice
 src/
 |-- __init__.py
 |-- config.py                  # Project settings (keys, env vars, etc.)
-|-- lambda_handler.py          # Entry point for AWS Lambda or main execution
+|-- main.py                    # Entry point for AWS Lambda or main execution
+|
+|-- api/ 
+|   |-- __init__.py
+|   |-- main.py                # FastAPI app
+|   |-- utils.py               # APIs utils
+|   `-- routes/
+|       `-- __init__.py
 |
 |-- core/
-|   |-- database/
-|   |   |-- __init__.py
-|   |   |-- connection.py      # Database connection (singleton/pool)
-|   |   `-- migrations/        # Migration scripts
+|   |-- mew/
+|   |   |--generate.py
+|   |   |--jobs.py
+|   |   |--config.py
+|   |   |--core.py
+|   |   `--arbok                # Database connection (singleton/pool)
+|   |       |--odbc.py
+|   |       `--mongo.py
 |   |
-|   |-- services/
+|   |-- services/              # External services
 |   |   |-- __init__.py
 |   |   |-- openai_service.py
 |   |   `-- pagarme_service.py
 |   |
-|   `-- utils/
+|   `-- utils/                 # Helper functions
 |       |-- __init__.py
 |       |-- notations.py
 |       `-- helpers.py
 |
-|-- domain/
-|   |-- dao/
+|-- domain/                   # Business logic       
+|   |-- application/          #business/application logic
 |   |   |-- __init__.py
-|   |   |-- balance_operation_dao.py
-|   |   |-- payment_dao.py
-|   |   |-- notification_dao.py
-|   |   `-- installments_dao.py
+|   |   |-- balance_operation.py
+|   |   |-- payment.py
+|   |   |-- notification.py
+|   |   `-- installments.py
 |   |
-|   |-- models/
+|   |-- models/               # Domain models
 |   |   |-- __init__.py
 |   |   |-- payment_model.py
 |   |   `-- notification_model.py
 |   |
-|   `-- commands/
+|   `-- commands/             # Use-case commands
 |       |-- __init__.py
 |       |-- generate_notification.py
 |       |-- send_message.py
