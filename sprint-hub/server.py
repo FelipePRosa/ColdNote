@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlparse
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
 SPRINTS_DIR = ROOT_DIR / "tech" / "sprints"
+PJS_FILE = ROOT_DIR / "tech" / "pjs.md"
 PROJECTS_DIR = ROOT_DIR / "projects"
 HOST = "127.0.0.1"
 PORT = 8765
@@ -55,6 +56,18 @@ class Handler(SimpleHTTPRequestHandler):
   def do_GET(self):
     parsed_url = urlparse(self.path)
     parsed = parsed_url.path
+    if parsed == "/api/pjs":
+      PJS_FILE.parent.mkdir(parents=True, exist_ok=True)
+      if not PJS_FILE.exists():
+        PJS_FILE.write_text("# PJs\n", encoding="utf-8", newline="\n")
+      self._json(
+        200,
+        {
+          "path": "tech/pjs.md",
+          "content": PJS_FILE.read_text(encoding="utf-8", errors="ignore"),
+        },
+      )
+      return
     if parsed == "/api/sprint-files":
       SPRINTS_DIR.mkdir(parents=True, exist_ok=True)
       files = []
@@ -101,6 +114,18 @@ class Handler(SimpleHTTPRequestHandler):
 
   def do_POST(self):
     parsed = urlparse(self.path).path
+    if parsed == "/api/pjs/save":
+      try:
+        length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(length)
+        payload = json.loads(raw.decode("utf-8"))
+        content = str(payload.get("content", ""))
+        PJS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        PJS_FILE.write_text(content, encoding="utf-8", newline="\n")
+        self._json(200, {"ok": True, "path": "tech/pjs.md"})
+      except Exception as exc:
+        self._json(400, {"error": str(exc)})
+      return
     if parsed == "/api/sprint-files/save-all":
       try:
         length = int(self.headers.get("Content-Length", "0"))

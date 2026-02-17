@@ -3,7 +3,6 @@ const TEAM_STORAGE_KEY = "sprint_hub_team_v1";
 
 const el = {
   sprintsList: document.getElementById("sprintsList"),
-  stats: document.getElementById("stats"),
   boardTitle: document.getElementById("boardTitle"),
   boardMeta: document.getElementById("boardMeta"),
   responsibleFilter: document.getElementById("responsibleFilter"),
@@ -19,6 +18,7 @@ const el = {
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
+  pjsBtn: document.getElementById("pjsBtn"),
   teamBtn: document.getElementById("teamBtn"),
   assigneeModal: document.getElementById("assigneeModal"),
   modalTitle: document.getElementById("modalTitle"),
@@ -60,6 +60,11 @@ const el = {
   createFileChoiceBtn: document.getElementById("createFileChoiceBtn"),
   createMeetingChoiceBtn: document.getElementById("createMeetingChoiceBtn"),
   createTypeCancelBtn: document.getElementById("createTypeCancelBtn"),
+  pjsModal: document.getElementById("pjsModal"),
+  pjsRows: document.getElementById("pjsRows"),
+  pjsAddRowBtn: document.getElementById("pjsAddRowBtn"),
+  pjsSaveBtn: document.getElementById("pjsSaveBtn"),
+  pjsCloseBtn: document.getElementById("pjsCloseBtn"),
 };
 
 const uid = () =>
@@ -91,6 +96,7 @@ let currentProjectDir = "";
 let sprintModalOnSave = null;
 let sprintModalOnCopy = null;
 let dragTaskState = null;
+let pjsEntries = [];
 
 function setStatus(text) {
   el.syncStatus.textContent = `Mode: ${text}`;
@@ -141,7 +147,7 @@ function saveStateLocal() {
 }
 
 function loadTeamMembers() {
-  const fallback = ["Brunin", "Gui", "Guto", "Nu", "Rich", "Fel", "Vicco", "Andy", "Mkt", "Dani", "Maxo"];
+  const fallback = ["Brunin", "Gui", "Guto", "Nu", "Rich", "Fel", "Vicco", "Andy", "Mkt", "Dani", "Maxo", "Berg"];
   const raw = localStorage.getItem(TEAM_STORAGE_KEY);
   if (!raw) return fallback;
   try {
@@ -153,7 +159,7 @@ function loadTeamMembers() {
   }
 }
 
-function saveTeamTeamMembers() {
+function saveTeamMembers() {
   localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(teamMembers));
 }
 
@@ -395,6 +401,232 @@ async function deleteProjectFile(relPath) {
   throw new Error(clean || "Failed to delete file");
 }
 
+async function fetchPjsFile() {
+  const res = await fetch("/api/pjs");
+  if (!res.ok) throw new Error("Failed to load PJs file");
+  return res.json();
+}
+
+async function savePjsFile(content) {
+  const res = await fetch("/api/pjs/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || "Failed to save PJs file");
+  }
+}
+
+function currentPaymentMonth() {
+  return new Date().toISOString().slice(0, 7);
+}
+
+function createEmptyPjEntry() {
+  return {
+    supplierNumber: "",
+    orderNumber: "",
+    supplierName: "",
+    monthlyValue: "",
+    notes: "",
+    paidMonth: "",
+  };
+}
+
+function parseLegacyPjLine(line) {
+  const m = line.match(
+    /^(ok|x)\s*-\s*([0-9]+)\s*(?:-\s*([0-9]+)\s*)?:\s*([^=]+?)\s*=\s*([^(]+?)\s*(?:\((.*)\))?$/i
+  );
+  if (!m) return null;
+  const status = String(m[1] || "").trim().toLowerCase();
+  if (status === "x") return null;
+  return {
+    supplierNumber: (m[2] || "").trim(),
+    orderNumber: (m[3] || "").trim(),
+    supplierName: (m[4] || "").trim(),
+    monthlyValue: (m[5] || "").trim(),
+    notes: (m[6] || "").trim(),
+    paidMonth: "",
+  };
+}
+
+function parsePjsMarkdown(content) {
+  const lines = String(content || "").split(/\r?\n/);
+  const entries = [];
+  const monthKey = currentPaymentMonth();
+
+  lines.forEach((lineRaw) => {
+    const line = lineRaw.trim();
+    if (!line) return;
+
+    if (/^##\s+/i.test(line)) return;
+
+    if (line.startsWith("|")) {
+      if (/^\|\s*-/.test(line)) return;
+      const cells = line.split("|").slice(1, -1).map((x) => x.trim());
+      if (!cells.length) return;
+      if (/^status$/i.test(cells[0]) || /^n\./i.test(cells[0])) return;
+
+      // Old table format: Status | Fornecedor | Pedido | Nome | Valor | Observacoes
+      if (/^(ok|x)$/i.test(cells[0])) {
+        if (/^x$/i.test(cells[0])) return;
+        if (cells.length < 6) return;
+        entries.push({
+          supplierNumber: cells[1] || "",
+          orderNumber: cells[2] || "",
+          supplierName: cells[3] || "",
+          monthlyValue: cells[4] || "",
+          notes: cells[5] || "",
+          paidMonth: "",
+        });
+        return;
+      }
+
+      // New table format: Fornecedor | Pedido | Nome | Valor | Pago no mes | Observacoes
+      if (cells.length < 6) return;
+      const paidCell = String(cells[4] || "").trim().toLowerCase();
+      const isPaid =
+        paidCell === "sim" ||
+        paidCell === "yes" ||
+        paidCell === "true" ||
+        paidCell === "1" ||
+        paidCell === monthKey;
+      entries.push({
+        supplierNumber: cells[0] || "",
+        orderNumber: cells[1] || "",
+        supplierName: cells[2] || "",
+        monthlyValue: cells[3] || "",
+        paidMonth: isPaid ? monthKey : "",
+        notes: cells[5] || "",
+      });
+      return;
+    }
+
+    const legacy = parseLegacyPjLine(line);
+    if (legacy) entries.push(legacy);
+  });
+
+  return entries;
+}
+
+function pjsToMarkdown(entries) {
+  const monthKey = currentPaymentMonth();
+  const clean = entries
+    .map((entry) => ({
+      supplierNumber: String(entry.supplierNumber || "").trim(),
+      orderNumber: String(entry.orderNumber || "").trim(),
+      supplierName: String(entry.supplierName || "").trim(),
+      monthlyValue: String(entry.monthlyValue || "").trim(),
+      notes: String(entry.notes || "").trim(),
+      paidMonth: String(entry.paidMonth || "").trim(),
+    }))
+    .filter(
+      (entry) =>
+        entry.supplierNumber || entry.orderNumber || entry.supplierName || entry.monthlyValue || entry.notes
+    );
+
+  const tableHeader = [
+    `| N. Fornecedor | N. Pedido aberto | Nome Fornecedor | Valor Mensal | Pago (${monthKey}) | Observacoes |`,
+    "| --- | --- | --- | --- | --- | --- |",
+  ];
+  const toRow = (entry) =>
+    `| ${entry.supplierNumber} | ${entry.orderNumber} | ${entry.supplierName} | ${entry.monthlyValue} | ${entry.paidMonth === monthKey ? "SIM" : ""} | ${entry.notes} |`;
+  const lines = [
+    "# PJs",
+    "",
+    `Referencia de pagamento: ${monthKey}`,
+    "",
+    "## Ativos",
+    ...tableHeader,
+    ...clean.map(toRow),
+    "",
+  ];
+  return lines.join("\n");
+}
+
+function renderPjsRows() {
+  el.pjsRows.innerHTML = "";
+
+  pjsEntries.forEach((entry, idx) => {
+    const tr = document.createElement("tr");
+    const monthKey = currentPaymentMonth();
+
+    const fields = [
+      ["supplierNumber", "Fornecedor"],
+      ["orderNumber", "Pedido"],
+      ["supplierName", "Nome"],
+      ["monthlyValue", "R$ 0,00"],
+    ];
+
+    fields.forEach(([key, placeholder]) => {
+      const td = document.createElement("td");
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "pjs-input";
+      input.placeholder = placeholder;
+      input.value = entry[key] || "";
+      input.addEventListener("input", () => {
+        pjsEntries[idx][key] = input.value;
+      });
+      td.appendChild(input);
+      tr.appendChild(td);
+    });
+
+    const paidTd = document.createElement("td");
+    const paidInput = document.createElement("input");
+    paidInput.type = "checkbox";
+    paidInput.checked = entry.paidMonth === monthKey;
+    paidInput.addEventListener("change", () => {
+      pjsEntries[idx].paidMonth = paidInput.checked ? monthKey : "";
+    });
+    paidTd.appendChild(paidInput);
+    tr.appendChild(paidTd);
+
+    const notesTd = document.createElement("td");
+    const notesInput = document.createElement("input");
+    notesInput.type = "text";
+    notesInput.className = "pjs-input";
+    notesInput.placeholder = "Obs";
+    notesInput.value = entry.notes || "";
+    notesInput.addEventListener("input", () => {
+      pjsEntries[idx].notes = notesInput.value;
+    });
+    notesTd.appendChild(notesInput);
+    tr.appendChild(notesTd);
+
+    const actions = document.createElement("td");
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "btn btn-link";
+    remove.textContent = "Remove";
+    remove.addEventListener("click", () => {
+      pjsEntries.splice(idx, 1);
+      renderPjsRows();
+    });
+    actions.appendChild(remove);
+    tr.appendChild(actions);
+
+    el.pjsRows.appendChild(tr);
+  });
+}
+
+async function openPjsModal() {
+  try {
+    const payload = await fetchPjsFile();
+    pjsEntries = parsePjsMarkdown(payload.content || "");
+    if (!pjsEntries.length) pjsEntries = [createEmptyPjEntry()];
+    renderPjsRows();
+    el.pjsModal.classList.remove("hidden");
+  } catch (err) {
+    window.alert(`Failed to load PJs: ${err.message}`);
+  }
+}
+
+function closePjsModal() {
+  el.pjsModal.classList.add("hidden");
+}
+
 function nowIsoDate() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -498,17 +730,6 @@ async function saveAllToFiles() {
 function getActiveSprint() {
   const sprint = state.sprints.find((s) => s.id === state.activeSprintId);
   return sprint || state.sprints[0] || null;
-}
-
-function countStats() {
-  const allTopics = state.sprints.flatMap((s) => s.topics);
-  const allItems = allTopics.flatMap((t) => t.items);
-  return {
-    sprints: state.sprints.length,
-    topics: allTopics.length,
-    items: allItems.length,
-    doneItems: allItems.filter((i) => i.done).length,
-  };
 }
 
 function beginTaskDrag(topicId, itemId) {
@@ -810,22 +1031,6 @@ function closeCreateTypeModal() {
   el.createTypeModal.classList.add("hidden");
 }
 
-function renderStats() {
-  const stats = countStats();
-  const cards = [
-    [stats.sprints, "Sprints"],
-    [stats.topics, "Topics"],
-    [stats.items, "Items"],
-    [stats.doneItems, "Done"],
-  ];
-  el.stats.innerHTML = cards
-    .map(
-      ([value, label]) =>
-        `<article class="stat"><strong>${value}</strong><span>${label}</span></article>`
-    )
-    .join("");
-}
-
 function renderSprintsList() {
   el.sprintsList.innerHTML = "";
   [...state.sprints].reverse().forEach((sprint) => {
@@ -1097,7 +1302,6 @@ function renderTopics() {
 }
 
 function render() {
-  renderStats();
   renderSprintsList();
   renderResponsibleFilter();
   renderTopics();
@@ -1245,6 +1449,7 @@ el.editSprintBtn.addEventListener("click", () => {
     }
   );
 });
+el.pjsBtn.addEventListener("click", openPjsModal);
 el.projectsBtn.addEventListener("click", openProjectsModal);
 el.responsibleFilter.addEventListener("change", () => {
   selectedResponsible = el.responsibleFilter.value || "";
@@ -1417,6 +1622,26 @@ el.createTypeModal.addEventListener("click", (e) => {
 el.projectsModal.addEventListener("click", (e) => {
   if (e.target === el.projectsModal) closeProjectsModal();
 });
+el.pjsCloseBtn.addEventListener("click", closePjsModal);
+el.pjsAddRowBtn.addEventListener("click", () => {
+  pjsEntries.push(createEmptyPjEntry());
+  renderPjsRows();
+});
+el.pjsSaveBtn.addEventListener("click", async () => {
+  try {
+    const content = pjsToMarkdown(pjsEntries);
+    await savePjsFile(content);
+    pjsEntries = parsePjsMarkdown(content);
+    if (!pjsEntries.length) pjsEntries = [createEmptyPjEntry()];
+    renderPjsRows();
+    setStatus("file-based (`tech/pjs.md`) - saved");
+  } catch (err) {
+    window.alert(`Failed to save PJs: ${err.message}`);
+  }
+});
+el.pjsModal.addEventListener("click", (e) => {
+  if (e.target === el.pjsModal) closePjsModal();
+});
 
 el.cancelTopicBtn.addEventListener("click", () => {
   el.topicForm.classList.add("hidden");
@@ -1425,5 +1650,3 @@ el.cancelTopicBtn.addEventListener("click", () => {
 el.topicForm.addEventListener("submit", addTopic);
 
 loadFromFiles();
-
-

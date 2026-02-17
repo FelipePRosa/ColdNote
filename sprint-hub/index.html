@@ -19,6 +19,7 @@
       <h1>Tech Innovation Sprint Hub</h1>
     </div>
     <div class="topbar-actions">
+      <button id="pjsBtn" class="btn btn-ghost">PJs</button>
       <button id="projectsBtn" class="btn btn-ghost">Projects Files</button>
       <button id="teamBtn" class="btn btn-ghost">Team</button>
     </div>
@@ -30,7 +31,6 @@
       <h2>Plan, Track, and Move Projects Across Sprints</h2>
       <p class="hero-copy">Create topics, break them into items, check progress, and re-balance sprint scope with one click.</p>
       <p id="syncStatus" class="sync-status">Mode: loading...</p>
-      <div class="stats" id="stats"></div>
     </section>
 
     <section class="workspace">
@@ -200,6 +200,36 @@
       </div>
       <div class="modal-actions">
         <button id="createTypeCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pjsModal" class="modal hidden">
+    <div class="modal-card pjs-modal-card">
+      <div class="panel-head">
+        <h3>PJs</h3>
+        <button id="pjsCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+      <p class="muted">Controle mensal de pagamento dos fornecedores ativos.</p>
+      <div class="pjs-table-wrap">
+        <table class="pjs-table">
+          <thead>
+            <tr>
+              <th>N. Fornecedor</th>
+              <th>N. Pedido aberto</th>
+              <th>Nome Fornecedor</th>
+              <th>Valor Mensal</th>
+              <th>Pago (mes atual)</th>
+              <th>Observacoes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="pjsRows"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button id="pjsAddRowBtn" class="btn btn-ghost modal-action-left" type="button">Add Row</button>
+        <button id="pjsSaveBtn" class="btn btn-primary" type="button">Save PJs</button>
       </div>
     </div>
   </div>
