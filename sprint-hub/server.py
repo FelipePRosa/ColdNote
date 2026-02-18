@@ -8,6 +8,8 @@ from urllib.parse import parse_qs, urlparse
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
 SPRINTS_DIR = ROOT_DIR / "tech" / "sprints"
+TEAM_DIR = ROOT_DIR / "tech" / "team"
+TEAM_METRICS_FILE = ROOT_DIR / "tech" / "métricas.md"
 PJS_FILE = ROOT_DIR / "tech" / "pjs.md"
 PROJECTS_DIR = ROOT_DIR / "projects"
 HOST = "127.0.0.1"
@@ -38,6 +40,86 @@ def resolve_projects_file(rel: str) -> Path:
   if projects_resolved not in target.parents and target != projects_resolved:
     raise ValueError("Path escapes projects directory")
   return target
+
+
+def safe_rel_team_path(raw: str) -> str:
+  rel = str(raw or "").replace("\\", "/").strip().lstrip("/")
+  if not rel:
+    raise ValueError("Path is required")
+  if ".." in rel.split("/"):
+    raise ValueError("Invalid path")
+  if rel.startswith("."):
+    raise ValueError("Invalid path")
+  if "/" in rel:
+    raise ValueError("Team path must be a direct file name")
+  if not rel.lower().endswith(".md"):
+    raise ValueError("Only .md files are supported")
+  return rel
+
+
+def resolve_team_file(rel: str) -> Path:
+  target = (TEAM_DIR / rel).resolve()
+  team_resolved = TEAM_DIR.resolve()
+  if team_resolved not in target.parents and target != team_resolved:
+    raise ValueError("Path escapes team directory")
+  return target
+
+
+def parse_member_name_from_content(path: Path, content: str) -> str:
+  for raw in str(content or "").splitlines():
+    line = raw.strip()
+    if line.startswith("# "):
+      name = line[2:].strip()
+      if name:
+        return name
+  return path.stem
+
+
+def parse_nickname_from_content(content: str) -> str:
+  for raw in str(content or "").splitlines():
+    m = re.match(r"^\s*Nickname\s*:\s*(.*)$", raw, flags=re.IGNORECASE)
+    if m:
+      return (m.group(1) or "").strip()
+  return ""
+
+
+def replace_nickname_line(content: str, nickname: str) -> str:
+  lines = str(content or "").splitlines()
+  out = []
+  replaced = False
+  for raw in lines:
+    if re.match(r"^\s*Nickname\s*:\s*.*$", raw, flags=re.IGNORECASE):
+      out.append(f"Nickname: {nickname}".rstrip())
+      replaced = True
+    else:
+      out.append(raw)
+  if replaced:
+    return "\n".join(out).rstrip() + "\n"
+
+  insert_idx = 0
+  for i, raw in enumerate(out):
+    if raw.strip().startswith("# "):
+      insert_idx = i + 1
+      break
+  out.insert(insert_idx, "")
+  out.insert(insert_idx + 1, f"Nickname: {nickname}".rstrip())
+  return "\n".join(out).rstrip() + "\n"
+
+
+def list_team_members():
+  TEAM_DIR.mkdir(parents=True, exist_ok=True)
+  members = []
+  for path in sorted(TEAM_DIR.glob("*.md")):
+    content = path.read_text(encoding="utf-8", errors="ignore")
+    members.append(
+      {
+        "path": path.name,
+        "name": parse_member_name_from_content(path, content),
+        "nickname": parse_nickname_from_content(content),
+        "content": content,
+      }
+    )
+  return members
 
 
 def parse_sprint_code(name: str):
@@ -207,6 +289,43 @@ class Handler(SimpleHTTPRequestHandler):
         )
       self._json(200, {"files": files})
       return
+    if parsed == "/api/team-members":
+      members = list_team_members()
+      self._json(200, {"root": "tech/team", "members": members})
+      return
+    if parsed == "/api/team-metrics":
+      if not TEAM_METRICS_FILE.exists() or not TEAM_METRICS_FILE.is_file():
+        self._json(404, {"error": "Metrics file not found"})
+        return
+      self._json(
+        200,
+        {
+          "path": "tech/métricas.md",
+          "content": TEAM_METRICS_FILE.read_text(encoding="utf-8", errors="ignore"),
+        },
+      )
+      return
+    if parsed == "/api/team-member/file":
+      try:
+        query = parse_qs(parsed_url.query or "")
+        rel = safe_rel_team_path((query.get("path") or [""])[0])
+        file_path = resolve_team_file(rel)
+        if not file_path.exists() or not file_path.is_file():
+          self._json(404, {"error": "File not found"})
+          return
+        content = file_path.read_text(encoding="utf-8", errors="ignore")
+        self._json(
+          200,
+          {
+            "path": rel,
+            "name": parse_member_name_from_content(file_path, content),
+            "nickname": parse_nickname_from_content(content),
+            "content": content,
+          },
+        )
+      except Exception as exc:
+        self._json(400, {"error": str(exc)})
+      return
     if parsed == "/api/projects/tree":
       PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
       dirs = []
@@ -341,6 +460,75 @@ class Handler(SimpleHTTPRequestHandler):
       except Exception as exc:
         self._json(400, {"error": str(exc)})
       return
+    if parsed == "/api/team-members/save":
+      try:
+        length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(length)
+        payload = json.loads(raw.decode("utf-8"))
+        members = payload.get("members", [])
+        if not isinstance(members, list):
+          raise ValueError("Invalid members payload")
+        TEAM_DIR.mkdir(parents=True, exist_ok=True)
+
+        for item in members:
+          rel = safe_rel_team_path(str(item.get("path", "")))
+          nickname = str(item.get("nickname", "")).strip()
+          out = resolve_team_file(rel)
+          if not out.exists() or not out.is_file():
+            raise ValueError(f"Team member file not found: {rel}")
+          content = out.read_text(encoding="utf-8", errors="ignore")
+          updated = replace_nickname_line(content, nickname)
+          out.write_text(updated, encoding="utf-8", newline="\n")
+
+        self._json(200, {"ok": True, "saved": len(members)})
+      except Exception as exc:
+        self._json(400, {"error": str(exc)})
+      return
+    if parsed == "/api/team-member/file/save":
+      try:
+        length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(length)
+        payload = json.loads(raw.decode("utf-8"))
+        rel = safe_rel_team_path(str(payload.get("path", "")))
+        content = str(payload.get("content", ""))
+        out = resolve_team_file(rel)
+        if not out.exists() or not out.is_file():
+          raise ValueError("Team member file not found")
+        out.write_text(content, encoding="utf-8", newline="\n")
+        self._json(200, {"ok": True, "path": rel})
+      except Exception as exc:
+        self._json(400, {"error": str(exc)})
+      return
+    if parsed == "/api/team-member/file/create":
+      try:
+        length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(length)
+        payload = json.loads(raw.decode("utf-8"))
+        rel = safe_rel_team_path(str(payload.get("path", "")))
+        content = str(payload.get("content", ""))
+        out = resolve_team_file(rel)
+        if out.exists():
+          raise ValueError("Team member file already exists")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(content, encoding="utf-8", newline="\n")
+        self._json(200, {"ok": True, "path": rel})
+      except Exception as exc:
+        self._json(400, {"error": str(exc)})
+      return
+    if parsed == "/api/team-member/file/delete":
+      try:
+        length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(length)
+        payload = json.loads(raw.decode("utf-8"))
+        rel = safe_rel_team_path(str(payload.get("path", "")))
+        out = resolve_team_file(rel)
+        if not out.exists() or not out.is_file():
+          raise ValueError("Team member file not found")
+        out.unlink()
+        self._json(200, {"ok": True, "path": rel})
+      except Exception as exc:
+        self._json(400, {"error": str(exc)})
+      return
     if parsed != "/api/sprint-files/save-all":
       self._json(404, {"error": "Not found"})
       return
@@ -355,6 +543,18 @@ class Handler(SimpleHTTPRequestHandler):
         out = resolve_projects_file(rel)
         if not out.exists() or not out.is_file():
           raise ValueError("File not found")
+        out.unlink()
+        self._json(200, {"ok": True, "path": rel})
+      except Exception as exc:
+        self._json(400, {"error": str(exc)})
+      return
+    if parsed == "/api/team-member/file":
+      try:
+        query = parse_qs(parsed_url.query or "")
+        rel = safe_rel_team_path((query.get("path") or [""])[0])
+        out = resolve_team_file(rel)
+        if not out.exists() or not out.is_file():
+          raise ValueError("Team member file not found")
         out.unlink()
         self._json(200, {"ok": True, "path": rel})
       except Exception as exc:

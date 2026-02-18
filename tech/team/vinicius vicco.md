@@ -1,4 +1,7 @@
-# Vinicius
+# Vinicius Vicco
+
+Nickname: Vicco
+Ativo: Sim
 
 Placar Tech Innovation
 Qualidade de Código: 5

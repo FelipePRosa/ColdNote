@@ -19,6 +19,7 @@
       <h1>Tech Innovation Sprint Hub</h1>
     </div>
     <div class="topbar-actions">
+      <button id="viewModeBtn" class="btn btn-ghost">Projects View</button>
       <button id="pjsBtn" class="btn btn-ghost">PJs</button>
       <button id="projectsBtn" class="btn btn-ghost">Projects Files</button>
       <button id="teamBtn" class="btn btn-ghost">Team</button>
@@ -36,9 +37,10 @@
     <section class="workspace">
       <aside class="sprints-panel card">
         <div class="panel-head">
-          <h3>Sprints</h3>
+          <h3 id="leftPanelTitle">Sprints</h3>
           <button id="newSprintBtn" class="btn btn-primary">New Sprint</button>
         </div>
+        <input id="leftPanelSearch" class="hidden" type="text" placeholder="Search project..." />
         <ul id="sprintsList" class="sprints-list"></ul>
       </aside>
 
@@ -52,11 +54,6 @@
             <p id="boardMeta" class="muted"></p>
           </div>
           <div class="board-actions">
-            <select id="sprintScopeFilter" aria-label="Filter scope">
-              <option value="active">Current Sprint</option>
-              <option value="all">All Sprints</option>
-            </select>
-            <select id="projectFilter" aria-label="Filter by project"></select>
             <select id="responsibleFilter" aria-label="Filter by responsible"></select>
             <label class="quick-filter">
               <input id="highOnlyFilter" type="checkbox" />
@@ -242,6 +239,48 @@
       <div class="modal-actions">
         <button id="pjsAddRowBtn" class="btn btn-ghost modal-action-left" type="button">Add Row</button>
         <button id="pjsSaveBtn" class="btn btn-primary" type="button">Save PJs</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="teamModal" class="modal hidden">
+    <div class="modal-card team-modal-card">
+      <div class="panel-head">
+        <h3>Team</h3>
+        <button id="teamCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+      <p class="muted">Gestao de membros via arquivos em tech/team. Clique no membro para abrir e editar o .md completo.</p>
+      <div class="team-layout">
+        <div class="team-table-wrap">
+          <div class="projects-actions">
+            <button id="teamNewBtn" class="btn btn-ghost" type="button">New Member</button>
+            <button id="teamToggleInactiveBtn" class="btn btn-ghost" type="button">Show Inactive</button>
+            <button id="teamMetricsBtn" class="btn btn-ghost" type="button">Métricas</button>
+          </div>
+          <table class="team-table">
+            <colgroup>
+              <col class="team-col-member" />
+              <col class="team-col-nickname" />
+              <col class="team-col-average" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Nickname</th>
+                <th>Média</th>
+              </tr>
+            </thead>
+            <tbody id="teamRows"></tbody>
+          </table>
+        </div>
+        <div class="team-editor-wrap">
+          <p id="teamCurrentFile" class="muted projects-path">Select a member</p>
+          <textarea id="teamEditor" class="projects-editor" spellcheck="false"></textarea>
+          <div class="modal-actions">
+            <button id="teamDeleteBtn" class="btn btn-danger modal-action-left" type="button">Inativar Member</button>
+            <button id="teamSaveBtn" class="btn btn-primary" type="button">Save Member</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

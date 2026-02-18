@@ -1,4 +1,7 @@
-# Guilherme
+# Guilherme Coelho
+
+Nickname: Gui
+Ativo: Sim
 
 Placar Tech Innovation
 Qualidade de Código: 5

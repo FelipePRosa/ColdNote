@@ -1,5 +1,8 @@
 # Bruno Ruf
 
+Nickname: Bruf
+Ativo: Sim
+
 Placar Tech Innovation
 Qualidade de Código: 5
 Contribuição Técnica: 3

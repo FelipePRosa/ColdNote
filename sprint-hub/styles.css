@@ -241,11 +241,6 @@ main {
   max-width: 170px;
 }
 
-#projectFilter,
-#sprintScopeFilter {
-  min-width: 150px;
-}
-
 .quick-filter {
   display: inline-flex;
   align-items: center;
@@ -273,6 +268,10 @@ main {
   max-height: 62vh;
   overflow-y: auto;
   padding-right: 4px;
+}
+
+#leftPanelSearch {
+  margin-top: 10px;
 }
 
 .sprints-list button {
@@ -759,6 +758,94 @@ select:focus {
   min-height: 34px;
 }
 
+.team-modal-card {
+  width: min(1220px, 97vw);
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-layout {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 10px;
+  min-height: 660px;
+}
+
+.team-table-wrap {
+  border: 1px solid rgba(133, 157, 255, 0.34);
+  border-radius: 12px;
+  background: rgba(8, 14, 30, 0.66);
+  overflow: auto;
+  min-height: 0;
+}
+
+.team-editor-wrap {
+  border: 1px solid rgba(133, 157, 255, 0.34);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(8, 14, 30, 0.66);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 0;
+  table-layout: fixed;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+}
+
+.team-col-member {
+  width: 58%;
+}
+
+.team-col-nickname {
+  width: 26%;
+}
+
+.team-col-average {
+  width: 16%;
+}
+
+.team-table th,
+.team-table td {
+  border-bottom: 1px solid rgba(133, 157, 255, 0.22);
+  padding: 7px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.team-table th {
+  color: #8ea7ff;
+  position: sticky;
+  top: 0;
+  background: rgba(10, 16, 34, 0.95);
+}
+
+.team-row {
+  cursor: pointer;
+}
+
+.team-row.active td {
+  background: rgba(20, 45, 84, 0.58);
+}
+
+.team-row-inactive td {
+  color: #f1a8b8;
+}
+
+.team-inactive-note {
+  color: #ff7f97;
+  font-size: 0.75rem;
+  margin-left: 6px;
+}
+
 @media (max-width: 980px) {
   .workspace {
     grid-template-columns: 1fr;
@@ -788,5 +875,10 @@ select:focus {
 
   .pjs-modal-card {
     width: 98vw;
+  }
+
+  .team-layout {
+    grid-template-columns: 1fr;
+    min-height: 0;
   }
 }

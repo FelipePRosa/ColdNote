@@ -1,12 +1,11 @@
 ﻿const STORAGE_KEY = "sprint_hub_v1";
-const TEAM_STORAGE_KEY = "sprint_hub_team_v1";
 
 const el = {
   sprintsList: document.getElementById("sprintsList"),
+  leftPanelTitle: document.getElementById("leftPanelTitle"),
+  leftPanelSearch: document.getElementById("leftPanelSearch"),
   boardTitle: document.getElementById("boardTitle"),
   boardMeta: document.getElementById("boardMeta"),
-  sprintScopeFilter: document.getElementById("sprintScopeFilter"),
-  projectFilter: document.getElementById("projectFilter"),
   responsibleFilter: document.getElementById("responsibleFilter"),
   highOnlyFilter: document.getElementById("highOnlyFilter"),
   blockedOnlyFilter: document.getElementById("blockedOnlyFilter"),
@@ -21,6 +20,7 @@ const el = {
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
+  viewModeBtn: document.getElementById("viewModeBtn"),
   pjsBtn: document.getElementById("pjsBtn"),
   teamBtn: document.getElementById("teamBtn"),
   assigneeModal: document.getElementById("assigneeModal"),
@@ -69,10 +69,21 @@ const el = {
   pjsAddRowBtn: document.getElementById("pjsAddRowBtn"),
   pjsSaveBtn: document.getElementById("pjsSaveBtn"),
   pjsCloseBtn: document.getElementById("pjsCloseBtn"),
+  teamModal: document.getElementById("teamModal"),
+  teamRows: document.getElementById("teamRows"),
+  teamCurrentFile: document.getElementById("teamCurrentFile"),
+  teamEditor: document.getElementById("teamEditor"),
+  teamNewBtn: document.getElementById("teamNewBtn"),
+  teamToggleInactiveBtn: document.getElementById("teamToggleInactiveBtn"),
+  teamMetricsBtn: document.getElementById("teamMetricsBtn"),
+  teamDeleteBtn: document.getElementById("teamDeleteBtn"),
+  teamSaveBtn: document.getElementById("teamSaveBtn"),
+  teamCloseBtn: document.getElementById("teamCloseBtn"),
 };
 
 const uid = () =>
   `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+const TEAM_METRICS_VIRTUAL_PATH = "__team_metrics__";
 
 let state = {
   activeSprintId: null,
@@ -90,8 +101,9 @@ let copyTargetOnPick = null;
 let autoSaveTimer = null;
 let autoSaveInFlight = false;
 let autoSavePending = false;
-let sprintScope = "active";
+let boardView = "sprints";
 let selectedProjectKey = "";
+let projectSearchText = "";
 let selectedResponsible = "";
 let filterHighOnly = false;
 let filterBlockedOnly = false;
@@ -104,6 +116,9 @@ let sprintModalOnSave = null;
 let sprintModalOnCopy = null;
 let dragTaskState = null;
 let pjsEntries = [];
+let teamEntries = [];
+let currentTeamFile = "";
+let showInactiveTeamMembers = false;
 
 function setStatus(text) {
   el.syncStatus.textContent = `Mode: ${text}`;
@@ -163,20 +178,49 @@ function saveStateLocal() {
 }
 
 function loadTeamMembers() {
-  const fallback = ["Brunin", "Gui", "Guto", "Nu", "Rich", "Fel", "Vicco", "Andy", "Mkt", "Dani", "Maxo", "Berg"];
-  const raw = localStorage.getItem(TEAM_STORAGE_KEY);
-  if (!raw) return fallback;
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return fallback;
-    return parsed.map((x) => String(x).trim()).filter(Boolean);
-  } catch {
-    return fallback;
-  }
+  return ["Brunin", "Gui", "Guto", "Nu", "Rich", "Fel", "Vicco", "Andy", "Mkt", "Dani", "Maxo", "Berg"];
 }
 
-function saveTeamMembers() {
-  localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(teamMembers));
+function getAssignableMembers() {
+  return Array.from(new Set(teamMembers.map((x) => String(x || "").trim()).filter(Boolean)));
+}
+
+function parseTeamActiveFromContent(content) {
+  const lines = String(content || "").split(/\r?\n/);
+  for (const raw of lines) {
+    const m = raw.match(/^\s*Ativo\s*:\s*(.*)\s*$/i);
+    if (!m) continue;
+    const value = String(m[1] || "").trim().toLowerCase();
+    return value === "sim" || value === "yes" || value === "true" || value === "1";
+  }
+  return false;
+}
+
+function parseTeamAverageScore(content) {
+  const lines = String(content || "").split(/\r?\n/);
+  let inScoreBlock = false;
+  const scores = [];
+  for (const raw of lines) {
+    const line = String(raw || "").trim();
+    if (!line) continue;
+    if (/^placar tech innovation$/i.test(line)) {
+      inScoreBlock = true;
+      continue;
+    }
+    if (!inScoreBlock) continue;
+    if (/^#{1,6}\s+/.test(line)) break;
+    const m = line.match(/^[^:]+:\s*(-?\d+(?:[.,]\d+)?)\s*$/);
+    if (!m) continue;
+    const value = Number(String(m[1]).replace(",", "."));
+    if (!Number.isFinite(value)) continue;
+    scores.push(value);
+  }
+  if (!scores.length) return null;
+  return scores.reduce((sum, n) => sum + n, 0) / scores.length;
+}
+
+function isTeamMetricsFile(path) {
+  return String(path || "") === TEAM_METRICS_VIRTUAL_PATH;
 }
 
 function normalizeItem(item) {
@@ -512,6 +556,61 @@ async function savePjsFile(content) {
   }
 }
 
+async function fetchTeamMembersFile() {
+  const res = await fetch("/api/team-members");
+  if (!res.ok) throw new Error("Failed to load Team files");
+  return res.json();
+}
+
+async function fetchTeamMetricsFile() {
+  const res = await fetch("/api/team-metrics");
+  if (!res.ok) throw new Error("Failed to load Team metrics file");
+  return res.json();
+}
+
+async function fetchTeamMemberFile(path) {
+  const url = `/api/team-member/file?path=${encodeURIComponent(path)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to load Team member file");
+  return res.json();
+}
+
+async function saveTeamMemberFile(path, content) {
+  const res = await fetch("/api/team-member/file/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path, content }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || "Failed to save Team member file");
+  }
+}
+
+async function createTeamMemberFile(path, content) {
+  const res = await fetch("/api/team-member/file/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path, content }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || "Failed to create Team member file");
+  }
+}
+
+async function deleteTeamMemberFile(path) {
+  const res = await fetch("/api/team-member/file/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || "Failed to delete Team member file");
+  }
+}
+
 function currentPaymentMonth() {
   return new Date().toISOString().slice(0, 7);
 }
@@ -720,6 +819,183 @@ function closePjsModal() {
   el.pjsModal.classList.add("hidden");
 }
 
+function renderTeamRows() {
+  el.teamRows.innerHTML = "";
+  const sorted = [...teamEntries].sort((a, b) => {
+    if (a.active !== b.active) return a.active ? -1 : 1;
+    return String(a.name || "").localeCompare(String(b.name || ""));
+  });
+  const visible = showInactiveTeamMembers ? sorted : sorted.filter((entry) => entry.active);
+  visible.forEach((entry) => {
+    const tr = document.createElement("tr");
+    tr.className = `team-row ${entry.path === currentTeamFile ? "active" : ""} ${entry.active ? "" : "team-row-inactive"}`;
+    tr.addEventListener("click", async () => {
+      try {
+        await openTeamMember(entry.path);
+      } catch (err) {
+        window.alert(`Failed to open Team member: ${err.message}`);
+      }
+    });
+
+    const nameTd = document.createElement("td");
+    nameTd.textContent = entry.name || "";
+    tr.appendChild(nameTd);
+
+    const nickTd = document.createElement("td");
+    nickTd.textContent = entry.nickname || "";
+    tr.appendChild(nickTd);
+
+    const avgTd = document.createElement("td");
+    avgTd.textContent = Number.isFinite(entry.average) ? entry.average.toFixed(1) : "-";
+    tr.appendChild(avgTd);
+
+    el.teamRows.appendChild(tr);
+  });
+}
+
+async function loadTeamMembersFromFiles() {
+  const payload = await fetchTeamMembersFile();
+  const members = Array.isArray(payload.members) ? payload.members : [];
+  teamEntries = members.map((m) => ({
+    path: String(m.path || "").trim(),
+    name: String(m.name || "").trim(),
+    nickname: String(m.nickname || "").trim(),
+    content: String(m.content || ""),
+    active: parseTeamActiveFromContent(m.content || ""),
+    average: parseTeamAverageScore(m.content || ""),
+  }));
+  const fromFiles = Array.from(
+    new Set(teamEntries.filter((x) => x.active).map((x) => x.nickname).filter(Boolean))
+  );
+  if (fromFiles.length) teamMembers = fromFiles;
+}
+
+function teamTemplate(name, nickname) {
+  return [`# ${name}`, "", `Nickname: ${nickname}`, "Ativo: Sim", "", "Notes:", "- "].join("\n") + "\n";
+}
+
+function setTeamActiveLine(content, activeValue) {
+  const lines = String(content || "").split(/\r?\n/);
+  const activeLine = `Ativo: ${activeValue}`;
+  let replaced = false;
+  const out = lines.map((raw) => {
+    if (/^\s*Ativo\s*:\s*.*$/i.test(raw)) {
+      replaced = true;
+      return activeLine;
+    }
+    return raw;
+  });
+  if (!replaced) {
+    let insertAt = out.findIndex((line) => /^\s*Nickname\s*:/i.test(line));
+    if (insertAt >= 0) insertAt += 1;
+    else {
+      insertAt = out.findIndex((line) => /^\s*#\s+/.test(line));
+      insertAt = insertAt >= 0 ? insertAt + 1 : 0;
+    }
+    out.splice(insertAt, 0, activeLine);
+  }
+  return out.join("\n").replace(/\s+$/, "") + "\n";
+}
+
+async function refreshTeamModalData(preferredPath = "") {
+  await loadTeamMembersFromFiles();
+  const sorted = [...teamEntries].sort((a, b) => {
+    if (a.active !== b.active) return a.active ? -1 : 1;
+    return String(a.name || "").localeCompare(String(b.name || ""));
+  });
+  const visible = showInactiveTeamMembers ? sorted : sorted.filter((entry) => entry.active);
+  if (preferredPath && visible.some((x) => x.path === preferredPath)) {
+    currentTeamFile = preferredPath;
+  } else if (currentTeamFile && visible.some((x) => x.path === currentTeamFile)) {
+    // Keep current selection.
+  } else {
+    currentTeamFile = visible[0]?.path || "";
+  }
+  el.teamToggleInactiveBtn.textContent = showInactiveTeamMembers ? "Hide Inactive" : "Show Inactive";
+  renderTeamRows();
+  if (currentTeamFile) await openTeamMember(currentTeamFile);
+  else {
+    el.teamCurrentFile.textContent = "No team members found";
+    el.teamEditor.value = "";
+  }
+  renderResponsibleFilter();
+}
+
+async function openTeamMember(path) {
+  const payload = await fetchTeamMemberFile(path);
+  currentTeamFile = payload.path;
+  el.teamCurrentFile.textContent = `tech/team/${payload.path}`;
+  el.teamEditor.value = payload.content || "";
+  const metricsMode = isTeamMetricsFile(currentTeamFile);
+  el.teamEditor.readOnly = metricsMode;
+  el.teamSaveBtn.disabled = metricsMode;
+  el.teamDeleteBtn.disabled = metricsMode;
+  renderTeamRows();
+}
+
+async function openTeamMetrics() {
+  const payload = await fetchTeamMetricsFile();
+  currentTeamFile = TEAM_METRICS_VIRTUAL_PATH;
+  el.teamCurrentFile.textContent = payload.path || "tech/métricas.md";
+  el.teamEditor.value = payload.content || "";
+  el.teamEditor.readOnly = true;
+  el.teamSaveBtn.disabled = true;
+  el.teamDeleteBtn.disabled = true;
+  renderTeamRows();
+}
+
+async function createTeamMemberFlow() {
+  const rawName = window.prompt("Member full name", "");
+  if (!rawName || !rawName.trim()) return;
+  const name = rawName.trim();
+  const rawNickname = window.prompt("Nickname", "");
+  if (rawNickname === null) return;
+  const nickname = rawNickname.trim();
+  const suggestedFile = `${name.toLowerCase().replace(/[^a-z0-9 -]/gi, "").replace(/\s+/g, " ").trim()}.md`;
+  const rawPath = window.prompt("Member file name (.md)", suggestedFile);
+  if (!rawPath || !rawPath.trim()) return;
+  let fileName = rawPath.trim();
+  if (!fileName.toLowerCase().endsWith(".md")) fileName += ".md";
+  await createTeamMemberFile(fileName, teamTemplate(name, nickname));
+  await refreshTeamModalData(fileName);
+  setStatus("file-based (`tech/team/*.md`) - member created");
+}
+
+async function inactivateCurrentTeamMember() {
+  if (!currentTeamFile) return;
+  if (isTeamMetricsFile(currentTeamFile)) return;
+  const confirmed = window.confirm(`Inativar membro "tech/team/${currentTeamFile}" (Ativo: Não)?`);
+  if (!confirmed) return;
+  const updatedContent = setTeamActiveLine(el.teamEditor.value, "Não");
+  await saveTeamMemberFile(currentTeamFile, updatedContent);
+  await refreshTeamModalData(currentTeamFile);
+  setStatus(`file-based (\`tech/team/*.md\`) - member inactivated`);
+}
+
+async function saveCurrentTeamMember() {
+  if (!currentTeamFile) return;
+  if (isTeamMetricsFile(currentTeamFile)) return;
+  await saveTeamMemberFile(currentTeamFile, el.teamEditor.value);
+  await refreshTeamModalData(currentTeamFile);
+  setStatus("file-based (`tech/team/*.md`) - member saved");
+}
+
+async function openTeamModal() {
+  try {
+    await refreshTeamModalData();
+    el.teamModal.classList.remove("hidden");
+  } catch (err) {
+    window.alert(`Failed to load Team: ${err.message}`);
+  }
+}
+
+function closeTeamModal() {
+  el.teamModal.classList.add("hidden");
+  el.teamEditor.readOnly = false;
+  el.teamSaveBtn.disabled = false;
+  el.teamDeleteBtn.disabled = false;
+}
+
 function nowIsoDate() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -912,7 +1188,7 @@ function openTaskModal({ title, saveLabel, currentText, currentNames, onSave }) 
   el.modalBlockedCheck.checked = Boolean(currentText?.blocked);
   el.modalAssigneeSelect.innerHTML = "";
 
-  teamMembers.forEach((name) => {
+  getAssignableMembers().forEach((name) => {
     const option = document.createElement("option");
     option.value = name;
     option.textContent = name;
@@ -1143,6 +1419,45 @@ function renderSprintsList() {
   });
 }
 
+function renderProjectsList() {
+  el.sprintsList.innerHTML = "";
+  const search = projectSearchText.trim().toLowerCase();
+  const items = projectCatalog.filter((name) => !search || name.toLowerCase().includes(search));
+
+  if (!items.length) {
+    const li = document.createElement("li");
+    li.className = "muted";
+    li.textContent = "No projects found.";
+    el.sprintsList.appendChild(li);
+    return;
+  }
+
+  items.forEach((name) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = name === selectedProjectKey ? "active" : "";
+    const count = state.sprints.reduce(
+      (acc, sprint) => acc + sprint.topics.filter((t) => normalizeProjectKey(t.projectKey) === name).length,
+      0
+    );
+    btn.innerHTML = `<strong>${name}</strong><br><small class="muted">${count} topics across sprints</small>`;
+    btn.addEventListener("click", () => {
+      selectedProjectKey = name;
+      render();
+    });
+    el.sprintsList.appendChild(btn);
+  });
+}
+
+function renderLeftPanel() {
+  const projectsMode = boardView === "projects";
+  el.leftPanelTitle.textContent = projectsMode ? "Projects" : "Sprints";
+  el.newSprintBtn.classList.toggle("hidden", projectsMode);
+  el.leftPanelSearch.classList.toggle("hidden", !projectsMode);
+  if (projectsMode) renderProjectsList();
+  else renderSprintsList();
+}
+
 function renderResponsibleFilter() {
   const select = el.responsibleFilter;
   if (!select) return;
@@ -1155,41 +1470,16 @@ function renderResponsibleFilter() {
   allOpt.textContent = "Select All";
   select.appendChild(allOpt);
 
-  teamMembers.forEach((name) => {
+  const members = getAssignableMembers();
+  members.forEach((name) => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
     select.appendChild(opt);
   });
 
-  if (teamMembers.includes(current)) select.value = current;
+  if (members.includes(current)) select.value = current;
   else select.value = "";
-}
-
-function renderProjectFilter() {
-  const select = el.projectFilter;
-  if (!select) return;
-
-  const current = selectedProjectKey;
-  select.innerHTML = "";
-
-  const allOpt = document.createElement("option");
-  allOpt.value = "";
-  allOpt.textContent = "All projects";
-  select.appendChild(allOpt);
-
-  projectCatalog.forEach((name) => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-  });
-
-  if (projectCatalog.includes(current)) select.value = current;
-  else {
-    select.value = "";
-    selectedProjectKey = "";
-  }
 }
 
 function renderTopicProjectSelect() {
@@ -1236,7 +1526,7 @@ function renderProjectModalSelect(currentProjectKey = "") {
 }
 
 function visibleSprints() {
-  if (sprintScope === "all") return state.sprints;
+  if (boardView === "projects") return state.sprints;
   const active = getActiveSprint();
   return active ? [active] : [];
 }
@@ -1250,7 +1540,7 @@ function renderTopics() {
     return;
   }
 
-  if (sprintScope === "all") {
+  if (boardView === "projects") {
     el.boardTitle.textContent = "All sprints";
     el.boardMeta.textContent = selectedProjectKey
       ? `Project: ${selectedProjectKey}`
@@ -1261,14 +1551,14 @@ function renderTopics() {
   }
   el.topicsGrid.innerHTML = "";
   let renderedTopicCount = 0;
-  const multiSprintMode = sprintScope === "all";
+  const multiSprintMode = boardView === "projects";
   const canDrag = !multiSprintMode;
   const sprintsToRender = visibleSprints();
 
   sprintsToRender.forEach((sprint) => {
     sprint.topics.forEach((topic) => {
       normalizeTopic(topic);
-      if (selectedProjectKey && topic.projectKey !== selectedProjectKey) return;
+      if (boardView === "projects" && selectedProjectKey && topic.projectKey !== selectedProjectKey) return;
 
       const visibleItems = topic.items.filter((item) => {
         normalizeItem(item);
@@ -1497,19 +1787,22 @@ function renderTopics() {
 }
 
 function render() {
-  el.sprintScopeFilter.value = sprintScope;
-  renderSprintsList();
-  renderProjectFilter();
+  if (boardView === "projects" && selectedProjectKey && !projectCatalog.includes(selectedProjectKey)) {
+    selectedProjectKey = "";
+  }
+  el.leftPanelSearch.value = projectSearchText;
+  renderLeftPanel();
   renderTopicProjectSelect();
   renderResponsibleFilter();
   renderTopics();
-  const allMode = sprintScope === "all";
-  el.newTopicBtn.disabled = allMode;
-  el.editSprintBtn.disabled = allMode;
-  if (allMode) {
+  const projectsMode = boardView === "projects";
+  el.newTopicBtn.disabled = projectsMode;
+  el.editSprintBtn.disabled = projectsMode;
+  el.viewModeBtn.textContent = projectsMode ? "Sprints View" : "Projects View";
+  if (projectsMode) {
     el.topicForm.classList.add("hidden");
-    el.newTopicBtn.title = "Switch to Current Sprint to create projects";
-    el.editSprintBtn.title = "Switch to Current Sprint to edit sprint";
+    el.newTopicBtn.title = "Switch to Sprints View to create projects";
+    el.editSprintBtn.title = "Switch to Sprints View to edit sprint";
   } else {
     el.newTopicBtn.title = "";
     el.editSprintBtn.title = "";
@@ -1594,26 +1887,6 @@ function addTopic(e) {
   render();
 }
 
-function manageTeamMembers() {
-  const current = teamMembers.join(", ");
-  const input = window.prompt(
-    "Team members (comma-separated). Example: Bruf, Gui, Guto",
-    current
-  );
-  if (input === null) return;
-  const parsed = input
-    .split(",")
-    .map((x) => x.trim())
-    .filter(Boolean);
-  if (!parsed.length) {
-    window.alert("Team list cannot be empty.");
-    return;
-  }
-  teamMembers = Array.from(new Set(parsed));
-  saveTeamMembers();
-  render();
-}
-
 async function loadFromFiles() {
   try {
     const payload = await fetchSprintFiles();
@@ -1623,6 +1896,11 @@ async function loadFromFiles() {
       sprints: parsed,
     };
     await refreshProjectCatalog();
+    try {
+      await loadTeamMembersFromFiles();
+    } catch {
+      // Keep fallback team list if endpoint fails.
+    }
     normalizeAllTopics();
     dataMode = "files";
     setStatus("file-based (`tech/sprints/*.md`)");
@@ -1666,15 +1944,18 @@ el.editSprintBtn.addEventListener("click", () => {
 });
 el.pjsBtn.addEventListener("click", openPjsModal);
 el.projectsBtn.addEventListener("click", openProjectsModal);
-el.sprintScopeFilter.addEventListener("change", () => {
-  sprintScope = el.sprintScopeFilter.value === "all" ? "all" : "active";
-  if (sprintScope !== "all") selectedProjectKey = "";
+el.viewModeBtn.addEventListener("click", () => {
+  if (boardView === "projects") {
+    boardView = "sprints";
+    projectSearchText = "";
+  } else {
+    boardView = "projects";
+    if (!selectedProjectKey && projectCatalog.length) selectedProjectKey = projectCatalog[0];
+  }
   render();
 });
-el.projectFilter.addEventListener("change", () => {
-  selectedProjectKey = normalizeProjectKey(el.projectFilter.value);
-  if (selectedProjectKey) sprintScope = "all";
-  el.sprintScopeFilter.value = sprintScope;
+el.leftPanelSearch.addEventListener("input", () => {
+  projectSearchText = el.leftPanelSearch.value || "";
   render();
 });
 el.responsibleFilter.addEventListener("change", () => {
@@ -1689,10 +1970,10 @@ el.blockedOnlyFilter.addEventListener("change", () => {
   filterBlockedOnly = el.blockedOnlyFilter.checked;
   render();
 });
-el.teamBtn.addEventListener("click", manageTeamMembers);
+el.teamBtn.addEventListener("click", openTeamModal);
 
 el.newTopicBtn.addEventListener("click", () => {
-  if (sprintScope === "all") return;
+  if (boardView === "projects") return;
   el.topicForm.classList.remove("hidden");
   el.topicTitleInput.focus();
 });
@@ -1869,6 +2150,46 @@ el.pjsSaveBtn.addEventListener("click", async () => {
 });
 el.pjsModal.addEventListener("click", (e) => {
   if (e.target === el.pjsModal) closePjsModal();
+});
+el.teamCloseBtn.addEventListener("click", closeTeamModal);
+el.teamNewBtn.addEventListener("click", async () => {
+  try {
+    await createTeamMemberFlow();
+  } catch (err) {
+    window.alert(`Failed to create Team member: ${err.message}`);
+  }
+});
+el.teamToggleInactiveBtn.addEventListener("click", async () => {
+  try {
+    showInactiveTeamMembers = !showInactiveTeamMembers;
+    await refreshTeamModalData(currentTeamFile);
+  } catch (err) {
+    window.alert(`Failed to refresh Team list: ${err.message}`);
+  }
+});
+el.teamMetricsBtn.addEventListener("click", async () => {
+  try {
+    await openTeamMetrics();
+  } catch (err) {
+    window.alert(`Failed to open metrics file: ${err.message}`);
+  }
+});
+el.teamDeleteBtn.addEventListener("click", async () => {
+  try {
+    await inactivateCurrentTeamMember();
+  } catch (err) {
+    window.alert(`Failed to inactivate Team member: ${err.message}`);
+  }
+});
+el.teamSaveBtn.addEventListener("click", async () => {
+  try {
+    await saveCurrentTeamMember();
+  } catch (err) {
+    window.alert(`Failed to save Team member: ${err.message}`);
+  }
+});
+el.teamModal.addEventListener("click", (e) => {
+  if (e.target === el.teamModal) closeTeamModal();
 });
 
 el.cancelTopicBtn.addEventListener("click", () => {
