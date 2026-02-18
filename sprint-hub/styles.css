@@ -241,6 +241,11 @@ main {
   max-width: 170px;
 }
 
+#projectFilter,
+#sprintScopeFilter {
+  min-width: 150px;
+}
+
 .quick-filter {
   display: inline-flex;
   align-items: center;
@@ -299,7 +304,7 @@ main {
 .inline-form {
   margin-top: 12px;
   display: grid;
-  grid-template-columns: 1fr 1fr auto auto;
+  grid-template-columns: 1fr 240px 1fr auto auto;
   gap: 8px;
 }
 
@@ -338,6 +343,13 @@ main {
 .topic-desc {
   margin: 6px 0 0;
   font-size: 0.9rem;
+}
+
+.topic-project {
+  margin: 6px 0 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: #7dfbd8;
 }
 
 .items-list {

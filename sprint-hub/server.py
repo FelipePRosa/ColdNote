@@ -12,6 +12,7 @@ PJS_FILE = ROOT_DIR / "tech" / "pjs.md"
 PROJECTS_DIR = ROOT_DIR / "projects"
 HOST = "127.0.0.1"
 PORT = 8765
+PROJECT_SPRINTS_FROM = "26-01"
 
 
 def safe_name(name: str) -> str:
@@ -37,6 +38,132 @@ def resolve_projects_file(rel: str) -> Path:
   if projects_resolved not in target.parents and target != projects_resolved:
     raise ValueError("Path escapes projects directory")
   return target
+
+
+def parse_sprint_code(name: str):
+  m = re.match(r"^(\d{2})-(\d{2})$", str(name or "").strip())
+  if not m:
+    return None
+  return (int(m.group(1)), int(m.group(2)))
+
+
+def is_sprint_after_threshold(name: str, threshold: str = PROJECT_SPRINTS_FROM) -> bool:
+  left = parse_sprint_code(name)
+  right = parse_sprint_code(threshold)
+  if not left or not right:
+    return False
+  return left > right
+
+
+def sprint_sort_key(name: str):
+  code = parse_sprint_code(name)
+  if not code:
+    return (999, 999, str(name))
+  return (code[0], code[1], str(name))
+
+
+def parse_topic_heading(raw_heading: str):
+  raw = str(raw_heading or "").strip()
+  m = re.match(r"^(.*?)\s*\[project:([^\]]+)\]\s*$", raw, flags=re.IGNORECASE)
+  if not m:
+    return (raw, "")
+  title = (m.group(1) or "").strip() or raw
+  project_key = (m.group(2) or "").strip()
+  return (title, project_key)
+
+
+def parse_project_tasks_from_sprint_markdown(content: str):
+  tasks = []
+  current_topic = ""
+  current_project = ""
+  for raw_line in str(content or "").splitlines():
+    line = raw_line.strip()
+    if not line:
+      continue
+
+    topic_m = re.match(r"^##\s+(.+)$", line)
+    if topic_m:
+      current_topic, current_project = parse_topic_heading(topic_m.group(1))
+      continue
+
+    task_m = re.match(r"^- \[([ xX])\]\s+(.+)$", line)
+    if task_m:
+      if not current_project:
+        continue
+      done = str(task_m.group(1)).lower() == "x"
+      body = str(task_m.group(2) or "").strip()
+      if body:
+        tasks.append((current_project, current_topic or "Updates", done, body))
+      continue
+
+    bullet_m = re.match(r"^- (.+)$", line)
+    if bullet_m:
+      if not current_project:
+        continue
+      body = str(bullet_m.group(1) or "").strip()
+      if body:
+        tasks.append((current_project, current_topic or "Updates", False, body))
+  return tasks
+
+
+def build_project_sprints_markdown(project_name: str, sprint_topics: dict):
+  lines = [
+    f"# Sprints - {project_name}",
+    "",
+    f"Regra: inclui apenas sprints depois de {PROJECT_SPRINTS_FROM}.",
+    "",
+  ]
+  if not sprint_topics:
+    lines.extend(["_Sem tasks vinculadas neste periodo._", ""])
+    return "\n".join(lines)
+
+  for sprint_name in sorted(sprint_topics.keys(), key=sprint_sort_key):
+    lines.append(f"## Sprint {sprint_name}")
+    lines.append("")
+    topic_map = sprint_topics[sprint_name]
+    for topic_name in sorted(topic_map.keys(), key=lambda x: str(x).lower()):
+      lines.append(f"### {topic_name}")
+      for task_line in topic_map[topic_name]:
+        lines.append(task_line)
+      lines.append("")
+  return "\n".join(lines).rstrip() + "\n"
+
+
+def sync_project_sprints_files(files: list):
+  PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
+  sprint_topics_by_project = {}
+  dedupe_by_project = {}
+
+  for file_data in files:
+    sprint_name = safe_name(str(file_data.get("name", "")).replace(".md", ""))
+    if not is_sprint_after_threshold(sprint_name):
+      continue
+
+    content = str(file_data.get("content", ""))
+    for project_key, topic_name, done, body in parse_project_tasks_from_sprint_markdown(content):
+      project_name = str(project_key or "").strip()
+      if not project_name:
+        continue
+      task_line = f"- [{'x' if done else ' '}] {body}"
+      dedupe_key = (sprint_name, topic_name, task_line)
+      seen = dedupe_by_project.setdefault(project_name, set())
+      if dedupe_key in seen:
+        continue
+      seen.add(dedupe_key)
+      project_map = sprint_topics_by_project.setdefault(project_name, {})
+      sprint_map = project_map.setdefault(sprint_name, {})
+      sprint_map.setdefault(topic_name, []).append(task_line)
+
+  synced = 0
+  for path in sorted(PROJECTS_DIR.iterdir()):
+    if not path.is_dir():
+      continue
+    project_name = path.name
+    content = build_project_sprints_markdown(project_name, sprint_topics_by_project.get(project_name, {}))
+    out = path / "sprints.md"
+    out.write_text(content, encoding="utf-8", newline="\n")
+    synced += 1
+  return synced
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -142,7 +269,16 @@ class Handler(SimpleHTTPRequestHandler):
           out = SPRINTS_DIR / f"{name}.md"
           out.write_text(content, encoding="utf-8", newline="\n")
 
-        self._json(200, {"ok": True, "saved": len(files)})
+        synced_projects = sync_project_sprints_files(files)
+        self._json(
+          200,
+          {
+            "ok": True,
+            "saved": len(files),
+            "synced_project_sprints": synced_projects,
+            "project_sprints_after": PROJECT_SPRINTS_FROM,
+          },
+        )
       except Exception as exc:
         self._json(400, {"error": str(exc)})
       return
