@@ -3,9 +3,10 @@ const TEAM_STORAGE_KEY = "sprint_hub_team_v1";
 
 const el = {
   sprintsList: document.getElementById("sprintsList"),
-  stats: document.getElementById("stats"),
   boardTitle: document.getElementById("boardTitle"),
   boardMeta: document.getElementById("boardMeta"),
+  sprintScopeFilter: document.getElementById("sprintScopeFilter"),
+  projectFilter: document.getElementById("projectFilter"),
   responsibleFilter: document.getElementById("responsibleFilter"),
   highOnlyFilter: document.getElementById("highOnlyFilter"),
   blockedOnlyFilter: document.getElementById("blockedOnlyFilter"),
@@ -14,11 +15,13 @@ const el = {
   topicTemplate: document.getElementById("topicTemplate"),
   topicForm: document.getElementById("topicForm"),
   topicTitleInput: document.getElementById("topicTitleInput"),
+  topicProjectSelect: document.getElementById("topicProjectSelect"),
   topicDescInput: document.getElementById("topicDescInput"),
   newTopicBtn: document.getElementById("newTopicBtn"),
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
+  pjsBtn: document.getElementById("pjsBtn"),
   teamBtn: document.getElementById("teamBtn"),
   assigneeModal: document.getElementById("assigneeModal"),
   modalTitle: document.getElementById("modalTitle"),
@@ -31,6 +34,7 @@ const el = {
   modalSaveBtn: document.getElementById("modalSaveBtn"),
   projectModal: document.getElementById("projectModal"),
   projectTitleInput: document.getElementById("projectTitleInput"),
+  projectKeySelect: document.getElementById("projectKeySelect"),
   projectDescInput: document.getElementById("projectDescInput"),
   projectCopyBtn: document.getElementById("projectCopyBtn"),
   projectDeleteBtn: document.getElementById("projectDeleteBtn"),
@@ -60,6 +64,11 @@ const el = {
   createFileChoiceBtn: document.getElementById("createFileChoiceBtn"),
   createMeetingChoiceBtn: document.getElementById("createMeetingChoiceBtn"),
   createTypeCancelBtn: document.getElementById("createTypeCancelBtn"),
+  pjsModal: document.getElementById("pjsModal"),
+  pjsRows: document.getElementById("pjsRows"),
+  pjsAddRowBtn: document.getElementById("pjsAddRowBtn"),
+  pjsSaveBtn: document.getElementById("pjsSaveBtn"),
+  pjsCloseBtn: document.getElementById("pjsCloseBtn"),
 };
 
 const uid = () =>
@@ -81,9 +90,12 @@ let copyTargetOnPick = null;
 let autoSaveTimer = null;
 let autoSaveInFlight = false;
 let autoSavePending = false;
+let sprintScope = "active";
+let selectedProjectKey = "";
 let selectedResponsible = "";
 let filterHighOnly = false;
 let filterBlockedOnly = false;
+let projectCatalog = [];
 let projectsTreeDirs = [];
 let projectsTreeFiles = [];
 let currentProjectFile = "";
@@ -91,6 +103,7 @@ let currentProjectDir = "";
 let sprintModalOnSave = null;
 let sprintModalOnCopy = null;
 let dragTaskState = null;
+let pjsEntries = [];
 
 function setStatus(text) {
   el.syncStatus.textContent = `Mode: ${text}`;
@@ -109,6 +122,7 @@ function seedState() {
           {
             id: uid(),
             title: "Sales STG",
+            projectKey: "",
             description: "Delivery and quality improvements",
             items: [
               { id: uid(), text: "Finalize dashboard tasks", done: false, responsibles: [] },
@@ -130,6 +144,14 @@ function loadStateLocal() {
     if (!parsed.activeSprintId && parsed.sprints.length) {
       parsed.activeSprintId = parsed.sprints[parsed.sprints.length - 1].id;
     }
+    parsed.sprints = (parsed.sprints || []).map((sprint) => ({
+      ...sprint,
+      topics: (sprint.topics || []).map((topic) =>
+        normalizeTopic({
+          ...topic,
+        })
+      ),
+    }));
     return parsed;
   } catch {
     return seedState();
@@ -141,7 +163,7 @@ function saveStateLocal() {
 }
 
 function loadTeamMembers() {
-  const fallback = ["Brunin", "Gui", "Guto", "Nu", "Rich", "Fel", "Vicco", "Andy", "Mkt", "Dani", "Maxo"];
+  const fallback = ["Brunin", "Gui", "Guto", "Nu", "Rich", "Fel", "Vicco", "Andy", "Mkt", "Dani", "Maxo", "Berg"];
   const raw = localStorage.getItem(TEAM_STORAGE_KEY);
   if (!raw) return fallback;
   try {
@@ -153,7 +175,7 @@ function loadTeamMembers() {
   }
 }
 
-function saveTeamTeamMembers() {
+function saveTeamMembers() {
   localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(teamMembers));
 }
 
@@ -162,6 +184,81 @@ function normalizeItem(item) {
   if (item.priority !== "high") item.priority = "normal";
   item.blocked = Boolean(item.blocked);
   return item;
+}
+
+function normalizeProjectKey(raw) {
+  return String(raw || "").trim().replace(/\s+/g, " ");
+}
+
+function parseTopicHeading(rawHeading) {
+  const raw = String(rawHeading || "").trim();
+  const m = raw.match(/^(.*?)\s*\[project:([^\]]+)\]\s*$/i);
+  if (!m) return { title: raw, projectKey: "" };
+  return {
+    title: (m[1] || "").trim() || raw,
+    projectKey: normalizeProjectKey(m[2]),
+  };
+}
+
+function formatTopicHeading(topic) {
+  const title = String(topic.title || "").trim();
+  const projectKey = normalizeProjectKey(topic.projectKey);
+  if (!projectKey) return title;
+  return `${title} [project:${projectKey.replace(/\]/g, "")}]`;
+}
+
+function extractRootProjectKeys(dirs, files) {
+  const roots = new Set();
+  (dirs || []).forEach((p) => {
+    const first = String(p || "").split("/").filter(Boolean)[0];
+    if (first) roots.add(first);
+  });
+  (files || []).forEach((p) => {
+    const parts = String(p || "").split("/").filter(Boolean);
+    if (parts.length < 2) return;
+    const first = parts[0];
+    if (first) roots.add(first);
+  });
+  return Array.from(roots).sort((a, b) => a.localeCompare(b));
+}
+
+function projectLabel(projectKey) {
+  const key = normalizeProjectKey(projectKey);
+  return key || "No project";
+}
+
+function inferProjectKeyFromTitle(title) {
+  const cleanTitle = String(title || "").trim().toLowerCase();
+  if (!cleanTitle) return "";
+  const match = projectCatalog.find((name) => name.toLowerCase() === cleanTitle);
+  return match || "";
+}
+
+function normalizeTopic(topic) {
+  topic.projectKey = normalizeProjectKey(topic.projectKey) || inferProjectKeyFromTitle(topic.title);
+  if (!Array.isArray(topic.items)) topic.items = [];
+  topic.items = topic.items.map((item) => normalizeItem(item));
+  return topic;
+}
+
+function normalizeAllTopics() {
+  state.sprints.forEach((sprint) => {
+    sprint.topics = (sprint.topics || []).map((topic) => normalizeTopic(topic));
+  });
+}
+
+function updateProjectCatalogFromTree(dirs, files) {
+  projectCatalog = extractRootProjectKeys(dirs, files);
+  normalizeAllTopics();
+}
+
+async function refreshProjectCatalog() {
+  try {
+    const payload = await fetchProjectsTree();
+    updateProjectCatalogFromTree(payload.dirs || [], payload.files || []);
+  } catch {
+    projectCatalog = [];
+  }
 }
 
 function itemDisplayText(item) {
@@ -221,9 +318,11 @@ function parseSprintMarkdown(fileName, markdown) {
     }
 
     if (/^##\s+/.test(line)) {
+      const heading = parseTopicHeading(line.replace(/^##\s+/, "").trim());
       currentTopic = {
         id: uid(),
-        title: line.replace(/^##\s+/, "").trim(),
+        title: heading.title,
+        projectKey: heading.projectKey,
         description: "",
         items: [],
       };
@@ -233,7 +332,7 @@ function parseSprintMarkdown(fileName, markdown) {
 
     if (/^- \[[ xX]\]\s+/.test(line)) {
       if (!currentTopic) {
-        currentTopic = { id: uid(), title: "Updates", description: "", items: [] };
+        currentTopic = { id: uid(), title: "Updates", projectKey: "", description: "", items: [] };
         topics.push(currentTopic);
       }
       const done = /^- \[[xX]\]/.test(line);
@@ -253,7 +352,7 @@ function parseSprintMarkdown(fileName, markdown) {
 
     if (/^- /.test(line)) {
       if (!currentTopic) {
-        currentTopic = { id: uid(), title: "Updates", description: "", items: [] };
+        currentTopic = { id: uid(), title: "Updates", projectKey: "", description: "", items: [] };
         topics.push(currentTopic);
       }
       const parsed = parseItemTextAndResponsibles(line.replace(/^- /, "").trim());
@@ -271,7 +370,7 @@ function parseSprintMarkdown(fileName, markdown) {
     }
 
     if (!currentTopic) {
-      currentTopic = { id: uid(), title: "Updates", description: "", items: [] };
+      currentTopic = { id: uid(), title: "Updates", projectKey: "", description: "", items: [] };
       topics.push(currentTopic);
     }
 
@@ -294,7 +393,7 @@ function sprintToMarkdown(sprint) {
   if (sprint.goal) lines.push(`Goal: ${sprint.goal}`, "");
 
   sprint.topics.forEach((topic) => {
-    lines.push(`## ${topic.title}`);
+    lines.push(`## ${formatTopicHeading(topic)}`);
     if (topic.description) lines.push(topic.description, "");
 
     if (!topic.items.length) {
@@ -393,6 +492,232 @@ async function deleteProjectFile(relPath) {
     .replace(/\s+/g, " ")
     .trim();
   throw new Error(clean || "Failed to delete file");
+}
+
+async function fetchPjsFile() {
+  const res = await fetch("/api/pjs");
+  if (!res.ok) throw new Error("Failed to load PJs file");
+  return res.json();
+}
+
+async function savePjsFile(content) {
+  const res = await fetch("/api/pjs/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || "Failed to save PJs file");
+  }
+}
+
+function currentPaymentMonth() {
+  return new Date().toISOString().slice(0, 7);
+}
+
+function createEmptyPjEntry() {
+  return {
+    supplierNumber: "",
+    orderNumber: "",
+    supplierName: "",
+    monthlyValue: "",
+    notes: "",
+    paidMonth: "",
+  };
+}
+
+function parseLegacyPjLine(line) {
+  const m = line.match(
+    /^(ok|x)\s*-\s*([0-9]+)\s*(?:-\s*([0-9]+)\s*)?:\s*([^=]+?)\s*=\s*([^(]+?)\s*(?:\((.*)\))?$/i
+  );
+  if (!m) return null;
+  const status = String(m[1] || "").trim().toLowerCase();
+  if (status === "x") return null;
+  return {
+    supplierNumber: (m[2] || "").trim(),
+    orderNumber: (m[3] || "").trim(),
+    supplierName: (m[4] || "").trim(),
+    monthlyValue: (m[5] || "").trim(),
+    notes: (m[6] || "").trim(),
+    paidMonth: "",
+  };
+}
+
+function parsePjsMarkdown(content) {
+  const lines = String(content || "").split(/\r?\n/);
+  const entries = [];
+  const monthKey = currentPaymentMonth();
+
+  lines.forEach((lineRaw) => {
+    const line = lineRaw.trim();
+    if (!line) return;
+
+    if (/^##\s+/i.test(line)) return;
+
+    if (line.startsWith("|")) {
+      if (/^\|\s*-/.test(line)) return;
+      const cells = line.split("|").slice(1, -1).map((x) => x.trim());
+      if (!cells.length) return;
+      if (/^status$/i.test(cells[0]) || /^n\./i.test(cells[0])) return;
+
+      // Old table format: Status | Fornecedor | Pedido | Nome | Valor | Observacoes
+      if (/^(ok|x)$/i.test(cells[0])) {
+        if (/^x$/i.test(cells[0])) return;
+        if (cells.length < 6) return;
+        entries.push({
+          supplierNumber: cells[1] || "",
+          orderNumber: cells[2] || "",
+          supplierName: cells[3] || "",
+          monthlyValue: cells[4] || "",
+          notes: cells[5] || "",
+          paidMonth: "",
+        });
+        return;
+      }
+
+      // New table format: Fornecedor | Pedido | Nome | Valor | Pago no mes | Observacoes
+      if (cells.length < 6) return;
+      const paidCell = String(cells[4] || "").trim().toLowerCase();
+      const isPaid =
+        paidCell === "sim" ||
+        paidCell === "yes" ||
+        paidCell === "true" ||
+        paidCell === "1" ||
+        paidCell === monthKey;
+      entries.push({
+        supplierNumber: cells[0] || "",
+        orderNumber: cells[1] || "",
+        supplierName: cells[2] || "",
+        monthlyValue: cells[3] || "",
+        paidMonth: isPaid ? monthKey : "",
+        notes: cells[5] || "",
+      });
+      return;
+    }
+
+    const legacy = parseLegacyPjLine(line);
+    if (legacy) entries.push(legacy);
+  });
+
+  return entries;
+}
+
+function pjsToMarkdown(entries) {
+  const monthKey = currentPaymentMonth();
+  const clean = entries
+    .map((entry) => ({
+      supplierNumber: String(entry.supplierNumber || "").trim(),
+      orderNumber: String(entry.orderNumber || "").trim(),
+      supplierName: String(entry.supplierName || "").trim(),
+      monthlyValue: String(entry.monthlyValue || "").trim(),
+      notes: String(entry.notes || "").trim(),
+      paidMonth: String(entry.paidMonth || "").trim(),
+    }))
+    .filter(
+      (entry) =>
+        entry.supplierNumber || entry.orderNumber || entry.supplierName || entry.monthlyValue || entry.notes
+    );
+
+  const tableHeader = [
+    `| N. Fornecedor | N. Pedido aberto | Nome Fornecedor | Valor Mensal | Pago (${monthKey}) | Observacoes |`,
+    "| --- | --- | --- | --- | --- | --- |",
+  ];
+  const toRow = (entry) =>
+    `| ${entry.supplierNumber} | ${entry.orderNumber} | ${entry.supplierName} | ${entry.monthlyValue} | ${entry.paidMonth === monthKey ? "SIM" : ""} | ${entry.notes} |`;
+  const lines = [
+    "# PJs",
+    "",
+    `Referencia de pagamento: ${monthKey}`,
+    "",
+    "## Ativos",
+    ...tableHeader,
+    ...clean.map(toRow),
+    "",
+  ];
+  return lines.join("\n");
+}
+
+function renderPjsRows() {
+  el.pjsRows.innerHTML = "";
+
+  pjsEntries.forEach((entry, idx) => {
+    const tr = document.createElement("tr");
+    const monthKey = currentPaymentMonth();
+
+    const fields = [
+      ["supplierNumber", "Fornecedor"],
+      ["orderNumber", "Pedido"],
+      ["supplierName", "Nome"],
+      ["monthlyValue", "R$ 0,00"],
+    ];
+
+    fields.forEach(([key, placeholder]) => {
+      const td = document.createElement("td");
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "pjs-input";
+      input.placeholder = placeholder;
+      input.value = entry[key] || "";
+      input.addEventListener("input", () => {
+        pjsEntries[idx][key] = input.value;
+      });
+      td.appendChild(input);
+      tr.appendChild(td);
+    });
+
+    const paidTd = document.createElement("td");
+    const paidInput = document.createElement("input");
+    paidInput.type = "checkbox";
+    paidInput.checked = entry.paidMonth === monthKey;
+    paidInput.addEventListener("change", () => {
+      pjsEntries[idx].paidMonth = paidInput.checked ? monthKey : "";
+    });
+    paidTd.appendChild(paidInput);
+    tr.appendChild(paidTd);
+
+    const notesTd = document.createElement("td");
+    const notesInput = document.createElement("input");
+    notesInput.type = "text";
+    notesInput.className = "pjs-input";
+    notesInput.placeholder = "Obs";
+    notesInput.value = entry.notes || "";
+    notesInput.addEventListener("input", () => {
+      pjsEntries[idx].notes = notesInput.value;
+    });
+    notesTd.appendChild(notesInput);
+    tr.appendChild(notesTd);
+
+    const actions = document.createElement("td");
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "btn btn-link";
+    remove.textContent = "Remove";
+    remove.addEventListener("click", () => {
+      pjsEntries.splice(idx, 1);
+      renderPjsRows();
+    });
+    actions.appendChild(remove);
+    tr.appendChild(actions);
+
+    el.pjsRows.appendChild(tr);
+  });
+}
+
+async function openPjsModal() {
+  try {
+    const payload = await fetchPjsFile();
+    pjsEntries = parsePjsMarkdown(payload.content || "");
+    if (!pjsEntries.length) pjsEntries = [createEmptyPjEntry()];
+    renderPjsRows();
+    el.pjsModal.classList.remove("hidden");
+  } catch (err) {
+    window.alert(`Failed to load PJs: ${err.message}`);
+  }
+}
+
+function closePjsModal() {
+  el.pjsModal.classList.add("hidden");
 }
 
 function nowIsoDate() {
@@ -498,17 +823,6 @@ async function saveAllToFiles() {
 function getActiveSprint() {
   const sprint = state.sprints.find((s) => s.id === state.activeSprintId);
   return sprint || state.sprints[0] || null;
-}
-
-function countStats() {
-  const allTopics = state.sprints.flatMap((s) => s.topics);
-  const allItems = allTopics.flatMap((t) => t.items);
-  return {
-    sprints: state.sprints.length,
-    topics: allTopics.length,
-    items: allItems.length,
-    doneItems: allItems.filter((i) => i.done).length,
-  };
 }
 
 function beginTaskDrag(topicId, itemId) {
@@ -619,6 +933,7 @@ function openProjectModal(topic, currentSprintId, onSave, onDelete, onCopy) {
   projectModalOnDelete = onDelete || null;
   projectModalOnCopy = onCopy || null;
   el.projectTitleInput.value = topic.title || "";
+  renderProjectModalSelect(topic.projectKey || "");
   el.projectDescInput.value = topic.description || "";
   el.projectDeleteBtn.classList.toggle("hidden", !projectModalOnDelete);
   projectModalCopyOptions = state.sprints.filter((s) => s.id !== currentSprintId);
@@ -773,6 +1088,7 @@ async function refreshProjectsModalData() {
   const payload = await fetchProjectsTree();
   projectsTreeDirs = payload.dirs || [];
   projectsTreeFiles = payload.files || [];
+  updateProjectCatalogFromTree(projectsTreeDirs, projectsTreeFiles);
   if (currentProjectFile && !projectsTreeFiles.includes(currentProjectFile)) {
     currentProjectFile = "";
   }
@@ -808,22 +1124,6 @@ function openCreateTypeModal() {
 
 function closeCreateTypeModal() {
   el.createTypeModal.classList.add("hidden");
-}
-
-function renderStats() {
-  const stats = countStats();
-  const cards = [
-    [stats.sprints, "Sprints"],
-    [stats.topics, "Topics"],
-    [stats.items, "Items"],
-    [stats.doneItems, "Done"],
-  ];
-  el.stats.innerHTML = cards
-    .map(
-      ([value, label]) =>
-        `<article class="stat"><strong>${value}</strong><span>${label}</span></article>`
-    )
-    .join("");
 }
 
 function renderSprintsList() {
@@ -866,241 +1166,354 @@ function renderResponsibleFilter() {
   else select.value = "";
 }
 
+function renderProjectFilter() {
+  const select = el.projectFilter;
+  if (!select) return;
+
+  const current = selectedProjectKey;
+  select.innerHTML = "";
+
+  const allOpt = document.createElement("option");
+  allOpt.value = "";
+  allOpt.textContent = "All projects";
+  select.appendChild(allOpt);
+
+  projectCatalog.forEach((name) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+
+  if (projectCatalog.includes(current)) select.value = current;
+  else {
+    select.value = "";
+    selectedProjectKey = "";
+  }
+}
+
+function renderTopicProjectSelect() {
+  const select = el.topicProjectSelect;
+  if (!select) return;
+  const current = select.value;
+  select.innerHTML = "";
+
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = "No project";
+  select.appendChild(none);
+
+  projectCatalog.forEach((name) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+
+  if (projectCatalog.includes(current)) select.value = current;
+  else select.value = "";
+}
+
+function renderProjectModalSelect(currentProjectKey = "") {
+  const select = el.projectKeySelect;
+  if (!select) return;
+  select.innerHTML = "";
+
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = "No project";
+  select.appendChild(none);
+
+  projectCatalog.forEach((name) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+
+  const normalized = normalizeProjectKey(currentProjectKey);
+  select.value = projectCatalog.includes(normalized) ? normalized : "";
+}
+
+function visibleSprints() {
+  if (sprintScope === "all") return state.sprints;
+  const active = getActiveSprint();
+  return active ? [active] : [];
+}
+
 function renderTopics() {
-  const sprint = getActiveSprint();
-  if (!sprint) {
+  const activeSprint = getActiveSprint();
+  if (!activeSprint) {
     el.boardTitle.textContent = "No sprints yet";
     el.boardMeta.textContent = "Create your first sprint.";
     el.topicsGrid.innerHTML = "";
     return;
   }
 
-  el.boardTitle.textContent = `Sprint ${sprint.name}`;
-  el.boardMeta.textContent = sprint.goal || "No sprint goal defined.";
+  if (sprintScope === "all") {
+    el.boardTitle.textContent = "All sprints";
+    el.boardMeta.textContent = selectedProjectKey
+      ? `Project: ${selectedProjectKey}`
+      : "Showing activities across every sprint.";
+  } else {
+    el.boardTitle.textContent = `Sprint ${activeSprint.name}`;
+    el.boardMeta.textContent = activeSprint.goal || "No sprint goal defined.";
+  }
   el.topicsGrid.innerHTML = "";
   let renderedTopicCount = 0;
+  const multiSprintMode = sprintScope === "all";
+  const canDrag = !multiSprintMode;
+  const sprintsToRender = visibleSprints();
 
-  sprint.topics.forEach((topic) => {
-    const visibleItems = topic.items.filter((item) => {
-      normalizeItem(item);
-      if (selectedResponsible && !(item.responsibles || []).includes(selectedResponsible)) return false;
-      if (filterHighOnly && item.priority !== "high") return false;
-      if (filterBlockedOnly && !item.blocked) return false;
-      return true;
-    });
-    if (selectedResponsible && visibleItems.length === 0) return;
+  sprintsToRender.forEach((sprint) => {
+    sprint.topics.forEach((topic) => {
+      normalizeTopic(topic);
+      if (selectedProjectKey && topic.projectKey !== selectedProjectKey) return;
 
-    const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
-    node.querySelector(".topic-title").textContent = topic.title;
-    node.querySelector(".topic-desc").textContent = topic.description || "No description";
-    node.querySelector(".topic-edit-btn").addEventListener("click", () => {
-      openProjectModal(
-        topic,
-        sprint.id,
-        ({ title, description }) => {
-          topic.title = title;
-          topic.description = description;
-          persistState();
-          render();
-        },
-        () => {
-          const idx = sprint.topics.findIndex((t) => t.id === topic.id);
-          if (idx < 0) return;
-          sprint.topics.splice(idx, 1);
-          persistState();
-          render();
-        },
-        (targetSprintId, options = {}) => {
-          const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
-          if (!targetSprint) return;
-          const onlyOpenTasks = Boolean(options.onlyOpenTasks);
-          const itemsToCopy = onlyOpenTasks
-            ? topic.items.filter((item) => !item.done)
-            : topic.items;
+      const visibleItems = topic.items.filter((item) => {
+        normalizeItem(item);
+        if (selectedResponsible && !(item.responsibles || []).includes(selectedResponsible)) return false;
+        if (filterHighOnly && item.priority !== "high") return false;
+        if (filterBlockedOnly && !item.blocked) return false;
+        return true;
+      });
+      if (selectedResponsible && visibleItems.length === 0) return;
 
-          const cloned = {
-            id: uid(),
-            title: topic.title,
-            description: topic.description,
-            items: itemsToCopy.map((item) => ({
+      const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
+      node.querySelector(".topic-title").textContent = topic.title;
+      const projectText = projectLabel(topic.projectKey);
+      node.querySelector(".topic-project").textContent = multiSprintMode
+        ? `${projectText} | Sprint ${sprint.name}`
+        : projectText;
+      node.querySelector(".topic-desc").textContent = topic.description || "No description";
+      node.querySelector(".topic-edit-btn").addEventListener("click", () => {
+        openProjectModal(
+          topic,
+          sprint.id,
+          ({ title, description, projectKey }) => {
+            topic.title = title;
+            topic.description = description;
+            topic.projectKey = normalizeProjectKey(projectKey);
+            persistState();
+            render();
+          },
+          () => {
+            const idx = sprint.topics.findIndex((t) => t.id === topic.id);
+            if (idx < 0) return;
+            sprint.topics.splice(idx, 1);
+            persistState();
+            render();
+          },
+          (targetSprintId, options = {}) => {
+            const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
+            if (!targetSprint) return;
+            const onlyOpenTasks = Boolean(options.onlyOpenTasks);
+            const itemsToCopy = onlyOpenTasks ? topic.items.filter((item) => !item.done) : topic.items;
+
+            const cloned = {
               id: uid(),
-              text: item.text,
-              done: item.done,
-              responsibles: [...(item.responsibles || [])],
-              priority: item.priority === "high" ? "high" : "normal",
-              blocked: Boolean(item.blocked),
-            })),
-          };
+              title: topic.title,
+              projectKey: topic.projectKey || "",
+              description: topic.description,
+              items: itemsToCopy.map((item) => ({
+                id: uid(),
+                text: item.text,
+                done: item.done,
+                responsibles: [...(item.responsibles || [])],
+                priority: item.priority === "high" ? "high" : "normal",
+                blocked: Boolean(item.blocked),
+              })),
+            };
 
-          targetSprint.topics.push(cloned);
+            targetSprint.topics.push(cloned);
+            persistState();
+            render();
+          }
+        );
+      });
+
+      const itemsList = node.querySelector(".items-list");
+      if (visibleItems.length === 0) {
+        itemsList.classList.add("empty-drop-zone");
+        const emptyHint = document.createElement("li");
+        emptyHint.className = "item-empty-hint";
+        emptyHint.textContent = canDrag ? "Drop task here" : "No matching tasks";
+        itemsList.appendChild(emptyHint);
+      }
+      if (canDrag) {
+        itemsList.addEventListener("dragover", (e) => {
+          if (!dragTaskState) return;
+          e.preventDefault();
+          itemsList.classList.add("drop-active");
+        });
+        itemsList.addEventListener("dragleave", (e) => {
+          if (e.relatedTarget && itemsList.contains(e.relatedTarget)) return;
+          itemsList.classList.remove("drop-active");
+        });
+        itemsList.addEventListener("drop", (e) => {
+          e.preventDefault();
+          itemsList.classList.remove("drop-active");
+          moveDraggedTask(topic.id, null);
+          endTaskDrag();
+        });
+      }
+
+      visibleItems.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = `item ${item.done ? "done" : ""} ${item.priority === "high" ? "item-high" : ""} ${item.blocked ? "item-blocked" : ""}`;
+        li.draggable = canDrag;
+        normalizeItem(item);
+        li.innerHTML = `
+          <input type="checkbox" ${item.done ? "checked" : ""} />
+          <span class="item-line"><span class="item-text"></span></span>
+          <div>
+            <button type="button" class="btn-link btn-link-neutral item-edit">edit</button>
+            <button type="button" class="btn-link item-remove">remove</button>
+          </div>
+        `;
+        li.querySelector(".item-text").textContent = itemDisplayText(item);
+        const itemLine = li.querySelector(".item-line");
+        if (item.priority === "high") {
+          const tag = document.createElement("span");
+          tag.className = "tag tag-high";
+          tag.textContent = "HIGH";
+          itemLine.appendChild(tag);
+        }
+        if (item.blocked) {
+          const tag = document.createElement("span");
+          tag.className = "tag tag-blocked";
+          tag.textContent = "BLOCKED";
+          itemLine.appendChild(tag);
+        }
+
+        if (canDrag) {
+          li.addEventListener("dragstart", (e) => {
+            beginTaskDrag(topic.id, item.id);
+            li.classList.add("dragging");
+            if (e.dataTransfer) {
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", item.id);
+            }
+          });
+
+          li.addEventListener("dragend", () => {
+            li.classList.remove("dragging");
+            document.querySelectorAll(".item.drop-before").forEach((x) => x.classList.remove("drop-before"));
+            document.querySelectorAll(".items-list.drop-active").forEach((x) => x.classList.remove("drop-active"));
+            endTaskDrag();
+          });
+
+          li.addEventListener("dragover", (e) => {
+            if (!dragTaskState || dragTaskState.itemId === item.id) return;
+            e.preventDefault();
+            li.classList.add("drop-before");
+          });
+
+          li.addEventListener("dragleave", () => {
+            li.classList.remove("drop-before");
+          });
+
+          li.addEventListener("drop", (e) => {
+            e.preventDefault();
+            li.classList.remove("drop-before");
+            moveDraggedTask(topic.id, item.id);
+            endTaskDrag();
+          });
+        }
+
+        li.querySelector("input").addEventListener("change", (e) => {
+          item.done = e.target.checked;
           persistState();
           render();
-        }
-      );
-    });
+        });
 
-    const itemsList = node.querySelector(".items-list");
-    if (visibleItems.length === 0) {
-      itemsList.classList.add("empty-drop-zone");
-      const emptyHint = document.createElement("li");
-      emptyHint.className = "item-empty-hint";
-      emptyHint.textContent = "Drop task here";
-      itemsList.appendChild(emptyHint);
-    }
-    itemsList.addEventListener("dragover", (e) => {
-      if (!dragTaskState) return;
-      e.preventDefault();
-      itemsList.classList.add("drop-active");
-    });
-    itemsList.addEventListener("dragleave", (e) => {
-      if (e.relatedTarget && itemsList.contains(e.relatedTarget)) return;
-      itemsList.classList.remove("drop-active");
-    });
-    itemsList.addEventListener("drop", (e) => {
-      e.preventDefault();
-      itemsList.classList.remove("drop-active");
-      moveDraggedTask(topic.id, null);
-      endTaskDrag();
-    });
+        li.querySelector(".item-text").addEventListener("click", () => {
+          item.done = !item.done;
+          persistState();
+          render();
+        });
 
-    visibleItems.forEach((item) => {
-      const li = document.createElement("li");
-      li.className = `item ${item.done ? "done" : ""} ${item.priority === "high" ? "item-high" : ""} ${item.blocked ? "item-blocked" : ""}`;
-      li.draggable = true;
-      normalizeItem(item);
-      li.innerHTML = `
-        <input type="checkbox" ${item.done ? "checked" : ""} />
-        <span class="item-line"><span class="item-text"></span></span>
-        <div>
-          <button type="button" class="btn-link btn-link-neutral item-edit">edit</button>
-          <button type="button" class="btn-link item-remove">remove</button>
-        </div>
-      `;
-      li.querySelector(".item-text").textContent = itemDisplayText(item);
-      const itemLine = li.querySelector(".item-line");
-      if (item.priority === "high") {
-        const tag = document.createElement("span");
-        tag.className = "tag tag-high";
-        tag.textContent = "HIGH";
-        itemLine.appendChild(tag);
-      }
-      if (item.blocked) {
-        const tag = document.createElement("span");
-        tag.className = "tag tag-blocked";
-        tag.textContent = "BLOCKED";
-        itemLine.appendChild(tag);
-      }
+        li.querySelector(".item-remove").addEventListener("click", () => {
+          topic.items = topic.items.filter((x) => x.id !== item.id);
+          persistState();
+          render();
+        });
 
-      li.addEventListener("dragstart", (e) => {
-        beginTaskDrag(topic.id, item.id);
-        li.classList.add("dragging");
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", item.id);
-        }
+        li.querySelector(".item-edit").addEventListener("click", () => {
+          openTaskModal({
+            title: "Edit Task",
+            saveLabel: "Apply",
+            currentText: { text: item.text, priority: item.priority, blocked: item.blocked },
+            currentNames: item.responsibles || [],
+            onSave: ({ text, responsibles, priority, blocked }) => {
+              item.text = text;
+              item.responsibles = responsibles;
+              item.priority = priority;
+              item.blocked = blocked;
+              persistState();
+              render();
+            },
+          });
+        });
+
+        itemsList.appendChild(li);
       });
 
-      li.addEventListener("dragend", () => {
-        li.classList.remove("dragging");
-        document.querySelectorAll(".item.drop-before").forEach((x) => x.classList.remove("drop-before"));
-        document.querySelectorAll(".items-list.drop-active").forEach((x) => x.classList.remove("drop-active"));
-        endTaskDrag();
-      });
-
-      li.addEventListener("dragover", (e) => {
-        if (!dragTaskState || dragTaskState.itemId === item.id) return;
-        e.preventDefault();
-        li.classList.add("drop-before");
-      });
-
-      li.addEventListener("dragleave", () => {
-        li.classList.remove("drop-before");
-      });
-
-      li.addEventListener("drop", (e) => {
-        e.preventDefault();
-        li.classList.remove("drop-before");
-        moveDraggedTask(topic.id, item.id);
-        endTaskDrag();
-      });
-
-      li.querySelector("input").addEventListener("change", (e) => {
-        item.done = e.target.checked;
-        persistState();
-        render();
-      });
-
-      li.querySelector(".item-text").addEventListener("click", () => {
-        item.done = !item.done;
-        persistState();
-        render();
-      });
-
-      li.querySelector(".item-remove").addEventListener("click", () => {
-        topic.items = topic.items.filter((x) => x.id !== item.id);
-        persistState();
-        render();
-      });
-
-      li.querySelector(".item-edit").addEventListener("click", () => {
+      const addItemBtn = node.querySelector(".add-item-btn");
+      addItemBtn.addEventListener("click", () => {
         openTaskModal({
-          title: "Edit Task",
-          saveLabel: "Apply",
-          currentText: { text: item.text, priority: item.priority, blocked: item.blocked },
-          currentNames: item.responsibles || [],
+          title: "New Task",
+          saveLabel: "Create",
+          currentText: { text: "", priority: "normal", blocked: false },
+          currentNames: [],
           onSave: ({ text, responsibles, priority, blocked }) => {
-            item.text = text;
-            item.responsibles = responsibles;
-            item.priority = priority;
-            item.blocked = blocked;
+            topic.items.push({
+              id: uid(),
+              text,
+              done: false,
+              responsibles,
+              priority,
+              blocked,
+            });
             persistState();
             render();
           },
         });
       });
 
-      itemsList.appendChild(li);
+      el.topicsGrid.appendChild(node);
+      renderedTopicCount += 1;
     });
-
-    const addItemBtn = node.querySelector(".add-item-btn");
-    addItemBtn.addEventListener("click", () => {
-      openTaskModal({
-        title: "New Task",
-        saveLabel: "Create",
-        currentText: { text: "", priority: "normal", blocked: false },
-        currentNames: [],
-        onSave: ({ text, responsibles, priority, blocked }) => {
-          topic.items.push({
-            id: uid(),
-            text,
-            done: false,
-            responsibles,
-            priority,
-            blocked,
-          });
-          persistState();
-          render();
-        },
-      });
-    });
-
-    el.topicsGrid.appendChild(node);
-    renderedTopicCount += 1;
   });
 
-  if (selectedResponsible && renderedTopicCount === 0) {
+  if (renderedTopicCount === 0) {
     const msg = document.createElement("p");
     msg.className = "muted";
-    msg.textContent = `No tasks found for ${selectedResponsible} in this sprint.`;
+    msg.textContent = selectedResponsible
+      ? `No tasks found for ${selectedResponsible} in this view.`
+      : "No projects found with the current filters.";
     el.topicsGrid.appendChild(msg);
   }
 }
 
 function render() {
-  renderStats();
+  el.sprintScopeFilter.value = sprintScope;
   renderSprintsList();
+  renderProjectFilter();
+  renderTopicProjectSelect();
   renderResponsibleFilter();
   renderTopics();
+  const allMode = sprintScope === "all";
+  el.newTopicBtn.disabled = allMode;
+  el.editSprintBtn.disabled = allMode;
+  if (allMode) {
+    el.topicForm.classList.add("hidden");
+    el.newTopicBtn.title = "Switch to Current Sprint to create projects";
+    el.editSprintBtn.title = "Switch to Current Sprint to edit sprint";
+  } else {
+    el.newTopicBtn.title = "";
+    el.editSprintBtn.title = "";
+  }
 }
 
 function createSprint() {
@@ -1136,6 +1549,7 @@ function copySprintFromSource(source, sprintName, includeDone) {
   const copiedTopics = source.topics.map((topic) => ({
     id: uid(),
     title: topic.title,
+    projectKey: topic.projectKey || "",
     description: topic.description,
     items: topic.items.map((item) => ({
       id: uid(),
@@ -1167,11 +1581,13 @@ function addTopic(e) {
   if (!sprint) return;
 
   const title = el.topicTitleInput.value.trim();
+  const projectKey = normalizeProjectKey(el.topicProjectSelect.value);
   const description = el.topicDescInput.value.trim();
   if (!title) return;
 
-  sprint.topics.push({ id: uid(), title, description, items: [] });
+  sprint.topics.push({ id: uid(), title, projectKey, description, items: [] });
   el.topicTitleInput.value = "";
+  el.topicProjectSelect.value = "";
   el.topicDescInput.value = "";
   el.topicForm.classList.add("hidden");
   persistState();
@@ -1206,10 +1622,13 @@ async function loadFromFiles() {
       activeSprintId: parsed[parsed.length - 1]?.id || null,
       sprints: parsed,
     };
+    await refreshProjectCatalog();
+    normalizeAllTopics();
     dataMode = "files";
     setStatus("file-based (`tech/sprints/*.md`)");
   } catch (err) {
     state = loadStateLocal();
+    normalizeAllTopics();
     dataMode = "local";
     setStatus("localStorage fallback (run `python sprint-hub/server.py` for file mode)");
   }
@@ -1245,7 +1664,19 @@ el.editSprintBtn.addEventListener("click", () => {
     }
   );
 });
+el.pjsBtn.addEventListener("click", openPjsModal);
 el.projectsBtn.addEventListener("click", openProjectsModal);
+el.sprintScopeFilter.addEventListener("change", () => {
+  sprintScope = el.sprintScopeFilter.value === "all" ? "all" : "active";
+  if (sprintScope !== "all") selectedProjectKey = "";
+  render();
+});
+el.projectFilter.addEventListener("change", () => {
+  selectedProjectKey = normalizeProjectKey(el.projectFilter.value);
+  if (selectedProjectKey) sprintScope = "all";
+  el.sprintScopeFilter.value = sprintScope;
+  render();
+});
 el.responsibleFilter.addEventListener("change", () => {
   selectedResponsible = el.responsibleFilter.value || "";
   render();
@@ -1261,6 +1692,7 @@ el.blockedOnlyFilter.addEventListener("change", () => {
 el.teamBtn.addEventListener("click", manageTeamMembers);
 
 el.newTopicBtn.addEventListener("click", () => {
+  if (sprintScope === "all") return;
   el.topicForm.classList.remove("hidden");
   el.topicTitleInput.focus();
 });
@@ -1299,12 +1731,13 @@ el.projectSaveBtn.addEventListener("click", () => {
     return;
   }
   const title = el.projectTitleInput.value.trim();
+  const projectKey = normalizeProjectKey(el.projectKeySelect.value);
   const description = el.projectDescInput.value.trim();
   if (!title) {
     window.alert("Project title cannot be empty.");
     return;
   }
-  projectModalOnSave({ title, description });
+  projectModalOnSave({ title, description, projectKey });
   closeProjectModal();
 });
 el.projectDeleteBtn.addEventListener("click", () => {
@@ -1417,6 +1850,26 @@ el.createTypeModal.addEventListener("click", (e) => {
 el.projectsModal.addEventListener("click", (e) => {
   if (e.target === el.projectsModal) closeProjectsModal();
 });
+el.pjsCloseBtn.addEventListener("click", closePjsModal);
+el.pjsAddRowBtn.addEventListener("click", () => {
+  pjsEntries.push(createEmptyPjEntry());
+  renderPjsRows();
+});
+el.pjsSaveBtn.addEventListener("click", async () => {
+  try {
+    const content = pjsToMarkdown(pjsEntries);
+    await savePjsFile(content);
+    pjsEntries = parsePjsMarkdown(content);
+    if (!pjsEntries.length) pjsEntries = [createEmptyPjEntry()];
+    renderPjsRows();
+    setStatus("file-based (`tech/pjs.md`) - saved");
+  } catch (err) {
+    window.alert(`Failed to save PJs: ${err.message}`);
+  }
+});
+el.pjsModal.addEventListener("click", (e) => {
+  if (e.target === el.pjsModal) closePjsModal();
+});
 
 el.cancelTopicBtn.addEventListener("click", () => {
   el.topicForm.classList.add("hidden");
@@ -1425,5 +1878,3 @@ el.cancelTopicBtn.addEventListener("click", () => {
 el.topicForm.addEventListener("submit", addTopic);
 
 loadFromFiles();
-
-

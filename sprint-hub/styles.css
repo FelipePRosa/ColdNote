@@ -241,6 +241,11 @@ main {
   max-width: 170px;
 }
 
+#projectFilter,
+#sprintScopeFilter {
+  min-width: 150px;
+}
+
 .quick-filter {
   display: inline-flex;
   align-items: center;
@@ -299,7 +304,7 @@ main {
 .inline-form {
   margin-top: 12px;
   display: grid;
-  grid-template-columns: 1fr 1fr auto auto;
+  grid-template-columns: 1fr 240px 1fr auto auto;
   gap: 8px;
 }
 
@@ -338,6 +343,13 @@ main {
 .topic-desc {
   margin: 6px 0 0;
   font-size: 0.9rem;
+}
+
+.topic-project {
+  margin: 6px 0 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: #7dfbd8;
 }
 
 .items-list {
@@ -702,6 +714,51 @@ select:focus {
   line-height: 1.38;
 }
 
+.pjs-modal-card {
+  width: min(1280px, 97vw);
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pjs-table-wrap {
+  margin-top: 10px;
+  border: 1px solid rgba(133, 157, 255, 0.34);
+  border-radius: 12px;
+  background: rgba(8, 14, 30, 0.66);
+  overflow: auto;
+  max-height: 64vh;
+}
+
+.pjs-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+}
+
+.pjs-table th,
+.pjs-table td {
+  border-bottom: 1px solid rgba(133, 157, 255, 0.22);
+  padding: 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.pjs-table th {
+  color: #8ea7ff;
+  position: sticky;
+  top: 0;
+  background: rgba(10, 16, 34, 0.95);
+}
+
+.pjs-input {
+  width: 100%;
+  margin: 0;
+  min-height: 34px;
+}
+
 @media (max-width: 980px) {
   .workspace {
     grid-template-columns: 1fr;
@@ -727,5 +784,9 @@ select:focus {
 
   .projects-actions {
     flex-wrap: wrap;
+  }
+
+  .pjs-modal-card {
+    width: 98vw;
   }
 }
