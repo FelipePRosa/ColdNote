@@ -34,32 +34,32 @@ src/
 |   |
 |   |-- services/              # External services
 |   |   |-- __init__.py
-|   |   |-- openai_service.py
-|   |   `-- pagarme_service.py
+|   |   |-- openai_service.py    # Example
+|   |   `-- pagarme_service.py   # Example
 |   |
 |   `-- utils/                 # Helper functions
 |       |-- __init__.py
-|       |-- notations.py
-|       `-- helpers.py
+|       |-- notations.py      # Example
+|       `-- helpers.py        # Example
 |
 |-- domain/                   # Business logic       
 |   |-- application/          #business/application logic
 |   |   |-- __init__.py
-|   |   |-- balance_operation.py
-|   |   |-- payment.py
-|   |   |-- notification.py
-|   |   `-- installments.py
+|   |   |-- balance_operation.py   # Example
+|   |   |-- payment.py             # Example
+|   |   |-- notification.py        # Example
+|   |   `-- installments.py        # Example
 |   |
 |   |-- models/               # Domain models
 |   |   |-- __init__.py
-|   |   |-- payment_model.py
-|   |   `-- notification_model.py
+|   |   |-- payment_model.py       # Example
+|   |   `-- notification_model.py  # Example
 |   |
-|   `-- commands/             # Use-case commands
+|   `-- commands/             # Use-case commands, orchestrate application/ functions
 |       |-- __init__.py
-|       |-- generate_notification.py
-|       |-- send_message.py
-|       `-- get_installments.py
+|       |-- generate_notification.py   # Example
+|       |-- send_message.py            # Example
+|       `-- get_installments.py        # Example
 |
 |-- tests/
 |   |-- unit/                  # Unit tests
@@ -72,7 +72,7 @@ src/
 |
 |-- docs/
 |   |-- architecture.md
-|   |-- api_reference.md
+|   |-- api_reference.md       # Example
 |   `-- requirements.md
 |
 `-- .env                       # Environment variables (do not commit in production)
