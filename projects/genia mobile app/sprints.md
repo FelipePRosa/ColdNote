@@ -56,7 +56,7 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Cacheamento (Gui)
 - [ ] Dashboard (Brunin)
 - [ ] Cache de mapa (Nu)
-- [ ] Catálogo Neodent (Dani)
+- [ ] Catálogo Neodent (Dani) [BLOCKED]
 - [ ] Métricas dos assessores (Nu + Fel)
 - [ ] Reunião com Ju + Gabi p/ promoções ativas (Nu + Fel)
 - [ ] Filtros avançados (Gui + Vicco)

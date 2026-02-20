@@ -20,6 +20,7 @@ const el = {
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
+  copySprintMdBtn: document.getElementById("copySprintMdBtn"),
   viewModeBtn: document.getElementById("viewModeBtn"),
   pjsBtn: document.getElementById("pjsBtn"),
   teamBtn: document.getElementById("teamBtn"),
@@ -1096,6 +1097,33 @@ async function saveAllToFiles() {
   }
 }
 
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textarea);
+}
+
+async function copyActiveSprintMarkdown() {
+  const sprint = getActiveSprint();
+  if (!sprint) {
+    window.alert("No active sprint selected.");
+    return;
+  }
+  const content = sprintToMarkdown(sprint);
+  await copyTextToClipboard(content);
+  setStatus(`sprint markdown copied (${sprint.name})`);
+}
+
 function getActiveSprint() {
   const sprint = state.sprints.find((s) => s.id === state.activeSprintId);
   return sprint || state.sprints[0] || null;
@@ -1798,14 +1826,17 @@ function render() {
   const projectsMode = boardView === "projects";
   el.newTopicBtn.disabled = projectsMode;
   el.editSprintBtn.disabled = projectsMode;
+  el.copySprintMdBtn.disabled = projectsMode;
   el.viewModeBtn.textContent = projectsMode ? "Sprints View" : "Projects View";
   if (projectsMode) {
     el.topicForm.classList.add("hidden");
     el.newTopicBtn.title = "Switch to Sprints View to create projects";
     el.editSprintBtn.title = "Switch to Sprints View to edit sprint";
+    el.copySprintMdBtn.title = "Switch to Sprints View to copy sprint markdown";
   } else {
     el.newTopicBtn.title = "";
     el.editSprintBtn.title = "";
+    el.copySprintMdBtn.title = "";
   }
 }
 
@@ -1941,6 +1972,13 @@ el.editSprintBtn.addEventListener("click", () => {
       copySprintFromSource(sprint, nameInput.trim(), includeDone);
     }
   );
+});
+el.copySprintMdBtn.addEventListener("click", async () => {
+  try {
+    await copyActiveSprintMarkdown();
+  } catch (err) {
+    window.alert(`Failed to copy sprint markdown: ${err.message}`);
+  }
 });
 el.pjsBtn.addEventListener("click", openPjsModal);
 el.projectsBtn.addEventListener("click", openProjectsModal);

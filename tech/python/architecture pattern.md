@@ -8,19 +8,19 @@ E.g.:
 generic_send_email
 neoapp_genia_voice
 
+duas branchs por lambda (hom e prod)
+
 ## Suggested Structure
 ```text
 src/
-|-- __init__.py
 |-- config.py                  # Project settings (keys, env vars, etc.)
 |-- main.py                    # Entry point for AWS Lambda or main execution
 |
-|-- api/ 
-|   |-- __init__.py
+|-- endpoint/ 
 |   |-- main.py                # FastAPI app
 |   |-- utils.py               # APIs utils
 |   `-- routes/
-|       `-- __init__.py
+|       `--banner
 |
 |-- core/
 |   |-- mew/
@@ -30,36 +30,35 @@ src/
 |   |   |--core.py
 |   |   `--arbok                # Database connection (singleton/pool)
 |   |       |--odbc.py
+|   |       |--postgres.py
 |   |       `--mongo.py
 |   |
 |   |-- services/              # External services
-|   |   |-- __init__.py
 |   |   |-- openai_service.py
 |   |   `-- pagarme_service.py
 |   |
 |   `-- utils/                 # Helper functions
-|       |-- __init__.py
 |       |-- notations.py
 |       `-- helpers.py
 |
 |-- domain/                   # Business logic       
-|   |-- application/          #business/application logic
-|   |   |-- __init__.py
-|   |   |-- balance_operation.py
-|   |   |-- payment.py
-|   |   |-- notification.py
-|   |   `-- installments.py
+|   |-- operations/          #business/application logic
+|   |   |-- banner_operations.py
+|   |   |-- payment_operations.py
+|   |   |-- notification_operations.py
+|   |   `-- installments_operations.py
 |   |
 |   |-- models/               # Domain models
-|   |   |-- __init__.py
-|   |   |-- payment_model.py
-|   |   `-- notification_model.py
+|   |   |-- banner_models.py
+|   |   |-- payment_models.py
+|   |   |-- installment_models.py
+|   |   `-- notification_models.py
 |   |
 |   `-- commands/             # Use-case commands
-|       |-- __init__.py
-|       |-- generate_notification.py
-|       |-- send_message.py
-|       `-- get_installments.py
+|       |-- banner_commands.py
+|       |-- payment_commands.py
+|       |-- installment_commands.py
+|       `-- notification_commands.py
 |
 |-- tests/
 |   |-- unit/                  # Unit tests
@@ -89,5 +88,5 @@ Obs.:
 - Utilizar Secret Managers já existentes para casos possíveis (E.g.: db e api)
 - Imports devem usar caminho relativo sempre
 - Padronizar arquivos de inicialização main.main
-- Repositórios com pipeline fazendo commit e apontando alias baseado na branch (pesquisa)
+- Repositórios com pipeline fazendo commit e apontando alias baseado na branch
 - Artefato mew + ekans
