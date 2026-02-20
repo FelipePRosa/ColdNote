@@ -71,7 +71,7 @@ src/
 |
 |-- docs/
 |   |-- architecture.md
-|   |-- api_reference.md
+|   |-- api_reference.md       # Example
 |   `-- requirements.md
 |
 `-- .env                       # Environment variables (do not commit in production)
