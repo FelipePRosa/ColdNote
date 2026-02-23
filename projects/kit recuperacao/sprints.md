@@ -8,7 +8,7 @@ Regra: inclui apenas sprints depois de 26-01.
 - [x] Aguardando templates (Nu) [BLOCKED]
 - [x] Analise de arquitetura de passos (Fel + Gui + Nu)
 
-## Sprint 26-07
+## Sprint 26-08
 
 ### Kit Recuperacao
 - [ ] Aguardando templates (Nu) [BLOCKED]

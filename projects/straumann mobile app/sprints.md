@@ -43,7 +43,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-07
 
 ### Straumann Mobile App
+- [x] Telas "who's who" aprovação (Nu + Rich)
+- [x] Dev tela implant detector (Andy)
+
+## Sprint 26-08
+
+### Straumann Mobile App
 - [ ] Telas "who's who" aprovação (Nu + Rich)
-- [ ] Dev tela implant detector (Andy)
-- [ ] Trade Up (?) (Fel)
+- [ ] Refinamento tela de reconhecimento (Andy) [HIGH]
+- [ ] Trade Up (?) (Fel) [BLOCKED]
 - [ ] Straumann Web (Rich) [BLOCKED]

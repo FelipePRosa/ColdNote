@@ -34,5 +34,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-07
 
 ### OTB
+- [x] Planejamento de correcao definitiva de autenticacao - KID (Gui)
+- [x] Reorganizacao das pastas (Maxo + Berg)
+
+## Sprint 26-08
+
+### OTB
 - [ ] Planejamento de correcao definitiva de autenticacao - KID (Gui)
-- [ ] Reorganizacao das pastas (Maxo + Berg)
+- [ ] Revisão retroativo pastas s3 + testes (Gui + Nu)

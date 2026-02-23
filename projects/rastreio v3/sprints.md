@@ -25,4 +25,10 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-07
 
 ### Rastreio v3
-- [ ] Webhook de rastreio (Guto) [BLOCKED]
+- [x] Webhook de rastreio (Guto)
+
+## Sprint 26-08
+
+### Rastreio v3
+- [ ] URL de teste para teste de recebimentos (Guto)
+- [ ] Troca pra endpoint de prod (Guto)

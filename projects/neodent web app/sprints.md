@@ -36,5 +36,5 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-07
 
 ### Neodent Web App
-- [ ] Dashboard (Brunin)
-- [ ] Alteracao de logs chatbot payload (Brunin + Berg)
+- [x] Dashboard (Brunin)
+- [x] Alteracao de logs chatbot payload (Brunin + Berg)

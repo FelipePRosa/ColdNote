@@ -30,5 +30,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-07
 
 ### Mapping
-- [ ] Aguardando a migracao do banco para nuvem (Guto) [BLOCKED]
-- [ ] Integracao de bancos (Guto)
+- [x] Aguardando a migracao do banco para nuvem (Guto) [BLOCKED]
+- [x] Integracao de bancos (Guto)
+
+## Sprint 26-08
+
+### Mapping
+- [ ] Aguardando IPs autorizados (Guto) [BLOCKED]
+- [ ] Teste (Guto + Nu) [HIGH]

@@ -52,11 +52,16 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-07
 
 ### Genia Mobile App
-- [ ] Home (Nu + Mkt)
-- [ ] Cacheamento (Gui)
-- [ ] Dashboard (Brunin)
-- [ ] Cache de mapa (Nu)
+- [x] Cache de mapa (Nu)
+- [x] Métricas dos assessores (Nu + Fel)
+
+## Sprint 26-08
+
+### Genia Mobile App
+- [ ] Home boas vindas (Nu + Vicco)
+- [ ] Cacheamento endpoints (Gui)
+- [ ] Dashboard (Brunin) [HIGH]
 - [ ] Catálogo Neodent (Dani) [BLOCKED]
-- [ ] Métricas dos assessores (Nu + Fel)
 - [ ] Reunião com Ju + Gabi p/ promoções ativas (Nu + Fel)
 - [ ] Filtros avançados (Gui + Vicco)
+- [ ] Form de recomendação produtos digital (Fel + Nu)

@@ -23,7 +23,7 @@ Regra: inclui apenas sprints depois de 26-01.
 ### Global Hub
 - [x] Correções (Bruf)
 
-## Sprint 26-07
+## Sprint 26-08
 
 ### Global Hub
 - [ ] Correcoes (Berg)
