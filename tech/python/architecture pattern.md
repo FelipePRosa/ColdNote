@@ -8,7 +8,18 @@ E.g.:
 generic_send_email
 neoapp_genia_voice
 
-duas branchs por lambda (hom e prod)
+repositório por projeto
+- lambda_neoapp
+
+duas branchs por lambda project_function (hom e prod)
+- expire_banner_hom
+- expire_banner_prod
+- push_notification_hom
+- push_notification_prod
+
+lambdas
+- neoapp_expire_banner {alias: hom | prod}
+- neoapp_push_notification {alias: hom | prod}
 
 ## Suggested Structure
 ```text
@@ -18,9 +29,10 @@ src/
 |
 |-- endpoint/ 
 |   |-- main.py                # FastAPI app
+|   |-- auth/                
 |   |-- utils.py               # APIs utils
 |   `-- routes/
-|       `--banner
+|       `--banner.py
 |
 |-- core/
 |   |-- mew/
@@ -41,14 +53,23 @@ src/
 |       |-- notations.py
 |       `-- helpers.py
 |
-|-- domain/                   # Business logic       
+|-- domain/                   # Business logic
 |   |-- operations/          #business/application logic
 |   |   |-- banner_operations.py
 |   |   |-- payment_operations.py
 |   |   |-- notification_operations.py
+|   |   |-- be_thread_operations.py
+            # region logic
+            - for loop
+            - QUERY list by id
+            - valida se começa com J
+            - transformação
+            - QUERY list all
+            - insert
 |   |   `-- installments_operations.py
+
 |   |
-|   |-- models/               # Domain models
+|   |-- objects/               # Domain models
 |   |   |-- banner_models.py
 |   |   |-- payment_models.py
 |   |   |-- installment_models.py
@@ -69,12 +90,17 @@ src/
 |   |-- migrate.py             # DB migration helper
 |   `-- setup_env.py           # Local environment setup
 |
-|-- docs/
-|   |-- architecture.md
-|   |-- api_reference.md       # Example
-|   `-- requirements.md
-|
-`-- .env                       # Environment variables (do not commit in production)
+`-- docs/
+    |-- architecture.md
+    |-- api_reference.md       # Example
+    `-- requirements.md
+
+README.md
+requirements.txt
+docker-compose.yml
+dockerfile
+.gitignore
+.env                       # Environment variables (do not commit in production)
 ```
 
 ## Quick Rules
@@ -90,3 +116,54 @@ Obs.:
 - Padronizar arquivos de inicialização main.main
 - Repositórios com pipeline fazendo commit e apontando alias baseado na branch
 - Artefato mew + ekans
+
+
+
+
+
+
+
+
+
+----- sessao java
+
+@RestClass("/banner")
+BannerRest
+{
+
+    @Endpoint("/create")
+    public void create() {}
+
+    @Endpoint("/edit")
+    public void edit() {}
+
+}
+
+if (path.equals("/banner/create"))
+    banner_create_command():
+
+
+
+auth
+    - MobileBearerFilter
+        . skipFilter
+            RequestHeader -> WEB
+            Request Header -> Authorization
+        . doFilter
+            API Straumann -> bearer
+            build object UserSession (sapNumber)
+
+    - WebSamlFilter
+        . skipFilter
+            RequestHeader -> IOS, ANDROID
+            Cookies
+        . doFilter
+            API Straumann -> bearer
+            build object UserSession (sapNumber)
+
+    - RelationshipFilter
+        . skipFilter
+            RequestHeader Authorization -> Bearer
+        . doFilter
+            valida Basic
+            build object UserSession (sapNumber)
