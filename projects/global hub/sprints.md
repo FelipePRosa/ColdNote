@@ -26,5 +26,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-08
 
 ### Global Hub
+- [x] Correcoes (Berg)
+- [x] Tela categorias FAQ (Berg)
+
+## Sprint 26-09
+
+### Global Hub
 - [ ] Correcoes (Berg)
 - [ ] Tela categorias FAQ (Berg)

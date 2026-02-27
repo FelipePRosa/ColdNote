@@ -47,6 +47,12 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-08
 
 ### Genia Web App
+- [x] Testes (Nu + Berg) [HIGH]
+- [x] SSO microsoft - permissões (Gui) [HIGH]
+
+## Sprint 26-09
+
+### Genia Web App
 - [ ] Testes (Nu + Berg) [HIGH]
 - [ ] Hierarquia dev (Berg) [BLOCKED]
 - [ ] Hierarquia dev (Gui)

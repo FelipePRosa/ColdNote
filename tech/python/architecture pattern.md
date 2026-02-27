@@ -59,13 +59,6 @@ src/
 |   |   |-- payment_operations.py
 |   |   |-- notification_operations.py
 |   |   |-- be_thread_operations.py
-            # region logic
-            - for loop
-            - QUERY list by id
-            - valida se começa com J
-            - transformação
-            - QUERY list all
-            - insert
 |   |   `-- installments_operations.py
 
 |   |
@@ -90,13 +83,14 @@ src/
 |   |-- migrate.py             # DB migration helper
 |   `-- setup_env.py           # Local environment setup
 |
-`-- docs/
-    |-- architecture.md
-    |-- api_reference.md       # Example
-    `-- requirements.md
+|-- docs/
+|   |-- architecture.md
+|   |-- api_reference.md       # Example
+|   `-- requirements.md
+|
+`-- requirements.txt
 
 README.md
-requirements.txt
 docker-compose.yml
 dockerfile
 .gitignore

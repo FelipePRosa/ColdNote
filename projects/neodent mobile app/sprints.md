@@ -38,6 +38,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-08
 
 ### Neodent Mobile App
-- [ ] Atualizacao catalogo (Rich + Dani) [HIGH]
+- [x] Atualizacao catalogo (Rich + Dani) [HIGH]
+
+## Sprint 26-09
+
+### Neodent Mobile App
+- [ ] Atualizacao catalogo (Dani) [HIGH]
 - [ ] Alteração SSO (aguardando Bruf) (Brunin + Gui + Vicco) [BLOCKED]
-- [ ] Busca de catalogo melhorada (Vicco) [HIGH]
+- [ ] Busca de catalogo melhorada (Brunin + Vicco) [HIGH]
+- [ ] Novos SKUs (Brunin + Nu) [HIGH]
+- [ ] Refatoração script catálogo (Brunin) [HIGH]

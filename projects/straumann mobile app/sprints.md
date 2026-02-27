@@ -49,7 +49,16 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-08
 
 ### Straumann Mobile App
-- [ ] Telas "who's who" aprovação (Nu + Rich)
+- [x] Telas "who's who" aprovação (Nu + Rich)
+- [x] Refinamento tela de reconhecimento (Andy) [HIGH]
+- [x] Trade Up (?) (Fel) [BLOCKED]
+- [x] Straumann Web (Rich) [BLOCKED]
+
+## Sprint 26-09
+
+### Straumann Mobile App
 - [ ] Refinamento tela de reconhecimento (Andy) [HIGH]
 - [ ] Trade Up (?) (Fel) [BLOCKED]
 - [ ] Straumann Web (Rich) [BLOCKED]
+- [ ] Dev Mobile Who is Who (Andy)
+- [ ] Dev Back Who is Who (Gui)

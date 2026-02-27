@@ -10,3 +10,5 @@ Organização: 4
 Autonomia: 4
 Colaboração: 4
 Representação: 2
+
+- justificou muito Genia para digital

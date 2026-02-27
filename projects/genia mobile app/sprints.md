@@ -58,10 +58,17 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-08
 
 ### Genia Mobile App
-- [ ] Home boas vindas (Nu + Vicco)
-- [ ] Cacheamento endpoints (Gui)
+- [x] Reunião com Ju + Gabi p/ promoções ativas (Nu + Fel)
+- [x] Jornada do cliente produtos digital (Fel + Nu)
+
+## Sprint 26-09
+
+### Genia Mobile App
+- [ ] Welcome page (Nu + Vicco)
+- [ ] Cacheamento endpoints (Gui + Vicco)
 - [ ] Dashboard (Brunin) [HIGH]
 - [ ] Catálogo Neodent (Dani) [BLOCKED]
-- [ ] Reunião com Ju + Gabi p/ promoções ativas (Nu + Fel)
+- [ ] Reunião com Ju + Gabi p/ promoções ativas (Nu)
 - [ ] Filtros avançados (Gui + Vicco)
-- [ ] Form de recomendação produtos digital (Fel + Nu)
+- [ ] Jornada do cliente produtos digital (Gui + Nu)
+- [ ] KPIs tela + logicas (Gui + Nu) [HIGH]

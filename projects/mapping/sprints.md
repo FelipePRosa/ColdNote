@@ -36,5 +36,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-08
 
 ### Mapping
+- [x] Aguardando IPs autorizados (Guto) [BLOCKED]
+
+## Sprint 26-09
+
+### Mapping
 - [ ] Aguardando IPs autorizados (Guto) [BLOCKED]
 - [ ] Teste (Guto + Nu) [HIGH]
+- [ ] Espelhamento da base prod (Guto) [BLOCKED]

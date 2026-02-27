@@ -25,4 +25,9 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-08
 
 ### Eventos
-- [ ] Aguardando decisao do LT (Fel) [BLOCKED]
+- [x] Aguardando decisao do LT (Fel) [BLOCKED]
+
+## Sprint 26-09
+
+### Eventos
+- [x] Aguardando decisao do LT (Fel) [BLOCKED]

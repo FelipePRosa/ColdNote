@@ -37,8 +37,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-08
 
 ### ClearWallet
-- [ ] Seguranca de login (Gui)
-- [ ] Melhoria de geração de pagamento (Fel) [HIGH]
+- [x] Melhoria de geração de pagamento (Fel) [HIGH]
+- [x] 2 quick wins (reativar link + expiração 5 dias) (Gui + Berg) [HIGH]
+- [x] Definições de branding p/ software (Fel + Nu) [HIGH]
+- [x] Definições atividades Sync (Fel) [HIGH]
+
+## Sprint 26-09
+
+### ClearWallet
+- [ ] Melhoria de geração de pagamento (Gui) [HIGH]
 - [ ] 2 quick wins (reativar link + expiração 5 dias) (Gui + Berg) [HIGH]
-- [ ] Definições de branding p/ software (Fel + Nu) [HIGH]
 - [ ] Definições atividades Sync (Fel) [HIGH]
