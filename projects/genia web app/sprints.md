@@ -53,7 +53,41 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-09
 
 ### Genia Web App
-- [ ] Testes (Nu + Berg) [HIGH]
-- [ ] Hierarquia dev (Berg) [BLOCKED]
-- [ ] Hierarquia dev (Gui)
-- [ ] SSO microsoft - permissões (Gui) [HIGH]
+- [x] Testes (Nu + Berg) [HIGH]
+- [x] Hierarquia dev (Berg) [BLOCKED]
+- [x] Hierarquia dev (Gui)
+- [x] SSO microsoft - permissões (Gui) [HIGH]
+
+## Sprint 26-10
+
+### Genia Web App
+- [x] Testes (Nu + Berg) [HIGH]
+- [x] Hierarquia dev (Bruf + Maxo)
+- [x] SSO microsoft - Definições (Gui + Nu)
+- [x] Bugs Nuala (Bruf + Berg) [HIGH]
+
+## Sprint 26-11
+
+### Genia Web App
+- [x] Testes (Nu + Berg) [HIGH]
+- [x] Hierarquia dev (Berg) [BLOCKED]
+- [x] Desenvolvimento SSO (Bruf)
+- [x] Desenvolvimento Multimarca (Bruf)
+- [x] Promoções ativas (Bruf)
+
+## Sprint 26-12
+
+### Genia Web App
+- [x] Testes multimarca + sso + campanha mensais (Nu + Bruf) [HIGH]
+- [x] Hierarquia dev (Bruf) [BLOCKED]
+- [x] Markdown Genia (Brunin + Bruf)
+- [x] Quick Win 4 + 2 (Gui + Bruf)
+
+## Sprint 26-13
+
+### Genia Web App
+- [ ] Testes multimarca + sso + campanha mensais (Nu + Bruf) [HIGH]
+- [ ] Hierarquia dev (Bruf) [BLOCKED]
+- [ ] Markdown Genia (Brunin + Bruf)
+- [ ] Catálogo Neodent Link (Bruf)
+- [ ] Quick Win 4 + 2 (Bruf)

@@ -73,9 +73,53 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-09
 
 ### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+
+## Sprint 26-10
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+- [x] Deadlock (Guto + Gui)
+- [x] Troca URL Criação ZSEB (Gui)
+
+## Sprint 26-11
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+
+## Sprint 26-12
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Aguardando novo contrato neodent app (Nu + Aline compliance) [BLOCKED]
+
+## Sprint 26-13
+
+### Outros
 - [ ] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
 - [ ] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
 - [ ] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
 - [ ] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [ ] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
 - [ ] Divulgacao Straumann + Sales App (Mkt)
-- [ ] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+- [ ] Aguardando novo contrato neodent app (Nu + Aline compliance) [BLOCKED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários

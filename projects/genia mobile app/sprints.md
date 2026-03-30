@@ -64,11 +64,65 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-09
 
 ### Genia Mobile App
-- [ ] Welcome page (Nu + Vicco)
+- [x] Welcome page (Nu + Vicco)
+- [x] Cacheamento endpoints (Gui + Vicco)
+- [x] Dashboard (Brunin) [HIGH]
+- [x] Catálogo Neodent (Dani) [BLOCKED]
+- [x] Reunião com Ju + Gabi p/ promoções ativas (Nu)
+- [x] Filtros avançados (Gui + Vicco)
+- [x] Jornada do cliente produtos digital (Gui + Nu)
+- [x] KPIs tela + logicas (Gui + Nu) [HIGH]
+
+## Sprint 26-10
+
+### Genia Mobile App
+- [x] Home boas vindas (Nu + Vicco)
+- [x] Cacheamento endpoints (Gui)
+- [x] Dashboard (Brunin) [HIGH]
+- [x] Catálogo Neodent (Dani)
+- [x] Reunião com Ayslan p/ promoções ativas (Gui + Nu)
+- [x] Filtros avançados (Gui + Vicco)
+- [x] Form de recomendação produtos digital (Gui + Nu)
+- [x] Seleção de Marcas (Assessor Multimarca) (Bruf + Maxo + Vicco)
+- [x] Média Descontos Pedidos (Nu)
+- [x] Separação Clientes ACI/ACE/IS (Nu)
+- [x] Hierarquias + VIPS (Bruf + Maxo)
+
+## Sprint 26-11
+
+### Genia Mobile App
+- [x] Cacheamento endpoints (Gui + Vicco)
+- [x] Dashboard (Brunin) [HIGH]
+- [x] Catálogo Neodent (Vicco) [HIGH]
+- [x] Filtros avançados (Gui + Nu)
+- [x] Jornada do cliente produtos digital (Gui + Nu) [BLOCKED]
+- [x] KPIs tela + logicas (Gui + Nu) [HIGH]
+- [x] Desenvolvimento SSO (Andy) [HIGH]
+- [x] Multimarca (Andy)
+
+## Sprint 26-12
+
+### Genia Mobile App
+- [x] Dashboard (Brunin) [HIGH]
+- [x] Jornada do cliente produtos digital (Gui + Nu) [BLOCKED]
+- [x] KPIs tela + logicas (Gui + Nu + Fel) [HIGH]
+- [x] Analise biometria SSO (Andy) [HIGH]
+- [x] Multimarca (Andy)
+- [x] Quick Win 4 + 2 (Gui + Andy)
+- [x] Authentication SSO (Gui + Vicco)
+
+## Sprint 26-13
+
+### Genia Mobile App
 - [ ] Cacheamento endpoints (Gui + Vicco)
-- [ ] Dashboard (Brunin) [HIGH]
-- [ ] Catálogo Neodent (Dani) [BLOCKED]
-- [ ] Reunião com Ju + Gabi p/ promoções ativas (Nu)
-- [ ] Filtros avançados (Gui + Vicco)
-- [ ] Jornada do cliente produtos digital (Gui + Nu)
-- [ ] KPIs tela + logicas (Gui + Nu) [HIGH]
+- [ ] Dashboard (Hary) [HIGH]
+- [ ] Catálogo Neodent- pacote pronto para ser integrado (Anderson) [HIGH]
+- [ ] Filtros avançados (Nu)
+- [ ] Jornada do cliente produtos digital (Gui + Nu) [BLOCKED]
+- [ ] KPIs tela + logicas (Gui + Nu + Fel) [HIGH]
+- [ ] Analise biometria SSO - Sync (Andy) [HIGH]
+- [ ] Campanhas mensais (Nu)
+- [ ] Multimarca (Nu)
+- [ ] Quick Win 4 + 2 (Nu)
+- [ ] Authentication SSO (Nu)
+- [ ] Alteração Campos de Crédito (Andy)

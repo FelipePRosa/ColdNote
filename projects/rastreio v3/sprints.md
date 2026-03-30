@@ -32,3 +32,9 @@ Regra: inclui apenas sprints depois de 26-01.
 ### Rastreio v3
 - [x] URL de teste para teste de recebimentos (Guto)
 - [x] Troca pra endpoint de prod (Guto)
+
+## Sprint 26-10
+
+### Rastreio v3
+- [x] URL de teste para teste de recebimentos (Guto)
+- [x] Troca pra endpoint de prod (Guto)

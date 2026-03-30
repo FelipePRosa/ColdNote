@@ -45,6 +45,39 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-09
 
 ### ClearWallet
-- [ ] Melhoria de geração de pagamento (Gui) [HIGH]
-- [ ] 2 quick wins (reativar link + expiração 5 dias) (Gui + Berg) [HIGH]
+- [x] Melhoria de geração de pagamento (Gui) [HIGH]
+- [x] 2 quick wins (reativar link + expiração 5 dias) (Gui + Berg) [HIGH]
+- [x] Definições atividades Sync (Fel) [HIGH]
+
+## Sprint 26-10
+
+### ClearWallet
+- [x] Seguranca de login (Gui)
+- [x] 2 quick wins (reativar link + expiração 5 dias) (Gui + Berg) [HIGH]
+- [x] Definições atividades Sync (Fel) [HIGH]
+- [x] Cookies (Bruf + Gui)
+- [x] Conversa Yamini+Shakar+Petra (Dr. Portal) (Gui + Nu)
+- [x] Conversar Giglio (Nu)
+
+## Sprint 26-11
+
+### ClearWallet
+- [x] Conexão direta Dr.Portal (Gui) [HIGH]
+- [x] 2 quick wins (reativar link + expiração 5 dias) (Gui + Berg) [HIGH]
+- [x] Definições atividades Sync (Fel) [HIGH]
+- [x] Revalidar criptografia pagamento (Gui + Nu)
+
+## Sprint 26-12
+
+### ClearWallet
+- [x] Conexão direta Dr.Portal (Gui) [HIGH]
+- [x] Definições atividades Sync (Fel) [HIGH]
+
+## Sprint 26-13
+
+### ClearWallet
+- [ ] Conexão direta Dr.Portal (Gui + Nathalia sap) [HIGH]
 - [ ] Definições atividades Sync (Fel) [HIGH]
+- [ ] Revalidar criptografia pagamento (Gui + Nu)
+- [ ] Recuperar ambiente de homolog (Bruf + Gui)
+- [ ] Formulário de Reclamações (Nu)

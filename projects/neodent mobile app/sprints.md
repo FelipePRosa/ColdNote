@@ -43,8 +43,47 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-09
 
 ### Neodent Mobile App
-- [ ] Atualizacao catalogo (Dani) [HIGH]
-- [ ] Alteração SSO (aguardando Bruf) (Brunin + Gui + Vicco) [BLOCKED]
-- [ ] Busca de catalogo melhorada (Brunin + Vicco) [HIGH]
-- [ ] Novos SKUs (Brunin + Nu) [HIGH]
-- [ ] Refatoração script catálogo (Brunin) [HIGH]
+- [x] Atualizacao catalogo (Dani) [HIGH]
+- [x] Alteração SSO (aguardando Bruf) (Brunin + Gui + Vicco) [BLOCKED]
+- [x] Busca de catalogo melhorada (Brunin + Vicco) [HIGH]
+- [x] Novos SKUs (Brunin + Nu) [HIGH]
+- [x] Refatoração script catálogo (Brunin) [HIGH]
+
+## Sprint 26-10
+
+### Neodent Mobile App
+- [x] Atualizacao catalogo (Dani) [HIGH]
+- [x] Deploy Alteração SSO (Brunin + Gui + Vicco)
+- [x] Busca de catalogo melhorada (Vicco) [HIGH]
+
+## Sprint 26-11
+
+### Neodent Mobile App
+- [x] Atualizacao catalogo (Dani) [HIGH]
+- [x] Alteração SSO (aguardando Bruf) (Brunin + Gui + Vicco)
+- [x] Busca de catalogo melhorada (Guto + Brunin + Vicco) [HIGH]
+- [x] Novos SKUs (Brunin + Nu) [HIGH]
+- [x] Refatoração script catálogo (Brunin) [HIGH]
+- [x] Validação Catalogo (Nu)
+- [x] Rastreio 2.0 (Guto)
+- [x] Telas Rastreio 2.0 (Nu + Rich)
+- [x] Sessão Convidado (Dani + Nu) [BLOCKED]
+- [x] Ajeitar ordem de endpoints (problema Fortress) (Vicco)
+
+## Sprint 26-12
+
+### Neodent Mobile App
+- [x] Dev Rastreio 2.0 (Maxo)
+- [x] Telas Rastreio 2.0 (Nu + Rich)
+- [x] Sessão Convidado (Dani + Nu) [BLOCKED]
+- [x] Ignorar chamada de endpoints app desatualizado (problema Fortress) (Vicco)
+- [x] Refatorando OIDC para permitir redirect login straumann (Vicco)
+- [x] Deploy catalogo 2026 (Vicco)
+
+## Sprint 26-13
+
+### Neodent Mobile App
+- [ ] Telas Rastreio 2.0 (Nu + Rich)
+- [ ] Link do rastreio AfterShip (Vicco + Bruf + Gui)
+- [ ] Sessão Convidado (Dani + Nu) [BLOCKED]
+- [ ] Teste OIDC para permitir redirect login straumann (Nu)
