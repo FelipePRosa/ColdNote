@@ -67,6 +67,6 @@ Regra: inclui apenas sprints depois de 26-01.
 
 ### OTB
 - [ ] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED]
-- [ ] Quick Wins 6 (Bruf)
+- [ ] Quick Wins 2 (Bruf)
 - [ ] Alinhamento novo Fluxo? (Fel)
-- [ ] Comunicação WA p/ cliente (Fel)
+- [ ] Comunicação WA p/ cliente (Guto + Fel)

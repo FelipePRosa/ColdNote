@@ -83,7 +83,7 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-13
 
 ### Neodent Mobile App
-- [ ] Telas Rastreio 2.0 (Nu + Rich)
+- [ ] Telas Rastreio 2.0 (Andy + Maxo)
 - [ ] Link do rastreio AfterShip (Vicco + Bruf + Gui)
 - [ ] Sessão Convidado (Dani + Nu) [BLOCKED]
 - [ ] Teste OIDC para permitir redirect login straumann (Nu)

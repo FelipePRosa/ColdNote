@@ -122,4 +122,6 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
 - [ ] Divulgacao Straumann + Sales App (Mkt)
 - [ ] Aguardando novo contrato neodent app (Nu + Aline compliance) [BLOCKED]
-- [ ] Endpoints CRM de visita e confirmação + adição de comentários
+- [x] Endpoints CRM de visita e confirmação + adição de comentários
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui)
+- [ ] Migração Alteryx (Fel) [HIGH]

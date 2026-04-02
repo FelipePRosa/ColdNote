@@ -91,3 +91,5 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Markdown Genia (Brunin + Bruf)
 - [ ] Catálogo Neodent Link (Bruf)
 - [ ] Quick Win 4 + 2 (Bruf)
+- [ ] WakeWord (Brunin + Sam) [BLOCKED]
+- [ ] Echo Cancelation (Brunin + Sam) [BLOCKED]
