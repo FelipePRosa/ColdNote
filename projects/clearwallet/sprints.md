@@ -76,8 +76,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-13
 
 ### ClearWallet
-- [ ] Conexão direta Dr.Portal (Gui + Nathalia sap) [HIGH]
+- [x] Conexão direta Dr.Portal (Fel) [HIGH]
+- [x] Definições atividades Sync (Fel) [HIGH]
+- [x] Recuperar ambiente de homolog (Bruf + Gui)
+
+## Sprint 26-14
+
+### ClearWallet
+- [ ] Conexão direta Dr.Portal (Gui) [HIGH]
 - [ ] Definições atividades Sync (Fel) [HIGH]
 - [ ] Revalidar criptografia pagamento (Gui + Nu)
-- [ ] Recuperar ambiente de homolog (Bruf + Gui)
-- [ ] Formulário de Reclamações (Nu)
+- [ ] Flexibilização de parcela (Fel) [HIGH]

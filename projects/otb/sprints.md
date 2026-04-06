@@ -66,7 +66,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-13
 
 ### OTB
+- [x] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED]
+- [x] Alinhamento novo Fluxo? (Fel)
+
+## Sprint 26-14
+
+### OTB
 - [ ] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED]
-- [ ] Quick Wins 2 (Bruf)
-- [ ] Alinhamento novo Fluxo? (Fel)
-- [ ] Comunicação WA p/ cliente (Guto + Fel)
+- [ ] Quick Wins 6 + X (Bruf)
+- [ ] Novo Fluxo (Bruf + Gui)
+- [ ] Comunicação WA p/ cliente (Gui)

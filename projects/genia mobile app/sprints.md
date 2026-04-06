@@ -114,15 +114,29 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-13
 
 ### Genia Mobile App
-- [ ] Cacheamento endpoints (Gui + Vicco)
+- [x] Cacheamento endpoints (Gui + Vicco)
+- [x] Dashboard (Hary) [HIGH]
+- [x] Catálogo Neodent- pacote pronto para ser integrado (Anderson) [HIGH]
+- [x] Filtros avançados (Nu)
+- [x] Jornada do cliente produtos digital (Gui + Nu) [BLOCKED]
+- [x] Analise biometria SSO - Sync (Andy) [HIGH]
+- [x] Campanhas mensais (Andy + Nu)
+- [x] Multimarca (Andy + Nu)
+- [x] Quick Win 4 + 2 (Andy + Nu)
+- [x] Authentication SSO (Andy + Nu)
+- [x] Alteração Campos de Crédito (Andy + Nu)
+
+## Sprint 26-14
+
+### Genia Mobile App
+- [ ] Cacheamento endpoints (Gui + Vicco) [BLOCKED]
 - [ ] Dashboard (Hary) [HIGH]
 - [ ] Catálogo Neodent- pacote pronto para ser integrado (Anderson) [HIGH]
-- [ ] Filtros avançados (Nu)
+- [ ] Filtros avançados (Nu) [BLOCKED]
 - [ ] Jornada do cliente produtos digital (Gui + Nu) [BLOCKED]
-- [ ] KPIs tela + logicas (Gui + Nu + Fel) [HIGH]
-- [ ] Analise biometria SSO - Sync (Andy) [HIGH]
-- [ ] Campanhas mensais (Nu)
-- [ ] Multimarca (Nu)
-- [ ] Quick Win 4 + 2 (Nu)
-- [ ] Authentication SSO (Nu)
-- [ ] Alteração Campos de Crédito (Andy)
+- [ ] KPIs tela + logicas (Fel) [HIGH]
+- [ ] Campanhas mensais (Andy + Nu)
+- [ ] Multimarca (Andy + Nu)
+- [ ] Quick Win 4 + 2 (Andy + Nu)
+- [ ] Authentication SSO (Andy + Nu)
+- [ ] Alteração Campos de Crédito (Andy + Nu)

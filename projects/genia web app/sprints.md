@@ -86,6 +86,15 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-13
 
 ### Genia Web App
+- [x] Testes multimarca + sso + campanha mensais (Nu + Bruf) [HIGH]
+- [x] Hierarquia dev (Bruf) [BLOCKED]
+- [x] Markdown Genia (Brunin + Bruf)
+- [x] WakeWord (Brunin + Sam) [BLOCKED]
+- [x] Echo Cancelation (Brunin + Sam) [BLOCKED]
+
+## Sprint 26-14
+
+### Genia Web App
 - [ ] Testes multimarca + sso + campanha mensais (Nu + Bruf) [HIGH]
 - [ ] Hierarquia dev (Bruf) [BLOCKED]
 - [ ] Markdown Genia (Brunin + Bruf)

@@ -115,13 +115,27 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-13
 
 ### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
+- [x] Aguardando novo contrato neodent app (Nu + Aline compliance) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+- [x] Alinhamento problemas ONEID (Nu)
+
+## Sprint 26-14
+
+### Outros
 - [ ] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
 - [ ] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
 - [ ] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
 - [ ] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
 - [ ] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
-- [ ] Divulgacao Straumann + Sales App (Mkt)
+- [ ] Divulgacao Straumann + Sales App (Mkt + Nu)
 - [ ] Aguardando novo contrato neodent app (Nu + Aline compliance) [BLOCKED]
-- [x] Endpoints CRM de visita e confirmação + adição de comentários
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários
 - [ ] Lambda Pipeline (Brunin + Bruf + Gui)
 - [ ] Migração Alteryx (Fel) [HIGH]

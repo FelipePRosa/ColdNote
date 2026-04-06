@@ -55,7 +55,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-13
 
 ### Hub
-- [ ] Teste categorias FAQ (Nu)
-- [ ] Tela Kit resgate admin (Bruf)
-- [ ] acompanhamento FAQ (Maxo)
+- [x] Teste categorias FAQ (Nu)
+- [x] Tela Kit resgate admin (Berg)
+- [x] acompanhamento FAQ (Maxo)
+- [x] Back Kit resgate (Guto)
+
+## Sprint 26-14
+
+### Hub
+- [ ] Tela Kit resgate admin (Berg)
 - [ ] Back Kit resgate (Guto)
