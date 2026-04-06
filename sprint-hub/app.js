@@ -20,7 +20,6 @@ const el = {
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
-  copySprintMdBtn: document.getElementById("copySprintMdBtn"),
   viewModeBtn: document.getElementById("viewModeBtn"),
   pjsBtn: document.getElementById("pjsBtn"),
   teamBtn: document.getElementById("teamBtn"),
@@ -49,6 +48,7 @@ const el = {
   sprintNameInput: document.getElementById("sprintNameInput"),
   sprintGoalInput: document.getElementById("sprintGoalInput"),
   sprintCopyBtn: document.getElementById("sprintCopyBtn"),
+  sprintCopyMdBtn: document.getElementById("sprintCopyMdBtn"),
   sprintCancelBtn: document.getElementById("sprintCancelBtn"),
   sprintSaveBtn: document.getElementById("sprintSaveBtn"),
   projectsBtn: document.getElementById("projectsBtn"),
@@ -115,6 +115,7 @@ let currentProjectFile = "";
 let currentProjectDir = "";
 let sprintModalOnSave = null;
 let sprintModalOnCopy = null;
+let sprintModalOnCopyMd = null;
 let dragTaskState = null;
 let pjsEntries = [];
 let teamEntries = [];
@@ -1285,9 +1286,10 @@ function closeCopyTargetModal() {
   copyTargetOnPick = null;
 }
 
-function openSprintModal(sprint, onSave, onCopy) {
+function openSprintModal(sprint, onSave, onCopy, onCopyMd) {
   sprintModalOnSave = onSave;
   sprintModalOnCopy = onCopy;
+  sprintModalOnCopyMd = onCopyMd;
   el.sprintNameInput.value = sprint?.name || "";
   el.sprintGoalInput.value = sprint?.goal || "";
   el.sprintModal.classList.remove("hidden");
@@ -1297,6 +1299,7 @@ function closeSprintModal() {
   el.sprintModal.classList.add("hidden");
   sprintModalOnSave = null;
   sprintModalOnCopy = null;
+  sprintModalOnCopyMd = null;
 }
 
 function buildTreeFromPaths(dirPaths, filePaths) {
@@ -1826,17 +1829,14 @@ function render() {
   const projectsMode = boardView === "projects";
   el.newTopicBtn.disabled = projectsMode;
   el.editSprintBtn.disabled = projectsMode;
-  el.copySprintMdBtn.disabled = projectsMode;
   el.viewModeBtn.textContent = projectsMode ? "Sprints View" : "Projects View";
   if (projectsMode) {
     el.topicForm.classList.add("hidden");
     el.newTopicBtn.title = "Switch to Sprints View to create projects";
     el.editSprintBtn.title = "Switch to Sprints View to edit sprint";
-    el.copySprintMdBtn.title = "Switch to Sprints View to copy sprint markdown";
   } else {
     el.newTopicBtn.title = "";
     el.editSprintBtn.title = "";
-    el.copySprintMdBtn.title = "";
   }
 }
 
@@ -1970,15 +1970,15 @@ el.editSprintBtn.addEventListener("click", () => {
       if (!nameInput || !nameInput.trim()) return;
       const includeDone = window.confirm("Keep completed item status in the copy?");
       copySprintFromSource(sprint, nameInput.trim(), includeDone);
+    },
+    async () => {
+      try {
+        await copyActiveSprintMarkdown();
+      } catch (err) {
+        window.alert(`Failed to copy sprint markdown: ${err.message}`);
+      }
     }
   );
-});
-el.copySprintMdBtn.addEventListener("click", async () => {
-  try {
-    await copyActiveSprintMarkdown();
-  } catch (err) {
-    window.alert(`Failed to copy sprint markdown: ${err.message}`);
-  }
 });
 el.pjsBtn.addEventListener("click", openPjsModal);
 el.projectsBtn.addEventListener("click", openProjectsModal);
@@ -2108,6 +2108,10 @@ el.sprintSaveBtn.addEventListener("click", () => {
 el.sprintCopyBtn.addEventListener("click", () => {
   if (!sprintModalOnCopy) return;
   sprintModalOnCopy();
+});
+el.sprintCopyMdBtn.addEventListener("click", async () => {
+  if (!sprintModalOnCopyMd) return;
+  await sprintModalOnCopyMd();
 });
 el.sprintModal.addEventListener("click", (e) => {
   if (e.target === el.sprintModal) closeSprintModal();

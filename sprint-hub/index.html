@@ -6,7 +6,7 @@
   <title>Tech Innovation Sprint Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -19,6 +19,7 @@
       <h1>Tech Innovation Sprint Hub</h1>
     </div>
     <div class="topbar-actions">
+      <p id="syncStatus" class="sync-status">Mode: loading...</p>
       <button id="viewModeBtn" class="btn btn-ghost">Projects View</button>
       <button id="pjsBtn" class="btn btn-ghost">PJs</button>
       <button id="projectsBtn" class="btn btn-ghost">Projects Files</button>
@@ -27,13 +28,6 @@
   </header>
 
   <main>
-    <section class="hero card">
-      <p class="eyebrow">Sprint Workspace</p>
-      <h2>Plan, Track, and Move Projects Across Sprints</h2>
-      <p class="hero-copy">Create topics, break them into items, check progress, and re-balance sprint scope with one click.</p>
-      <p id="syncStatus" class="sync-status">Mode: loading...</p>
-    </section>
-
     <section class="workspace">
       <aside class="sprints-panel card">
         <div class="panel-head">
@@ -49,8 +43,9 @@
           <div>
             <div class="board-title-row">
               <h3 id="boardTitle">Sprint</h3>
-              <button id="editSprintBtn" class="btn btn-mini" type="button">Edit Sprint</button>
-              <button id="copySprintMdBtn" class="btn btn-mini" type="button">Copy Sprint MD</button>
+              <button id="editSprintBtn" class="icon-btn" type="button" aria-label="Edit sprint" title="Edit sprint">
+                <span aria-hidden="true">✎</span>
+              </button>
             </div>
             <p id="boardMeta" class="muted"></p>
           </div>
@@ -167,6 +162,7 @@
       <input id="sprintGoalInput" type="text" placeholder="Sprint goal (optional)" />
       <div class="modal-actions">
         <button id="sprintCopyBtn" class="btn btn-ghost modal-action-left" type="button">Copy Sprint</button>
+        <button id="sprintCopyMdBtn" class="btn btn-ghost" type="button">Copy Sprint MD</button>
         <button id="sprintCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
         <button id="sprintSaveBtn" class="btn btn-primary" type="button">Apply</button>
       </div>
