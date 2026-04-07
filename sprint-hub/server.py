@@ -15,6 +15,7 @@ PROJECTS_DIR = ROOT_DIR / "projects"
 HOST = "127.0.0.1"
 PORT = 8765
 PROJECT_SPRINTS_FROM = "26-01"
+TIMELINE_FILE_NAME = "timeline.md"
 
 
 def safe_name(name: str) -> str:
@@ -211,8 +212,40 @@ def build_project_sprints_markdown(project_name: str, sprint_topics: dict):
   return "\n".join(lines).rstrip() + "\n"
 
 
+def build_project_timeline_markdown(project_name: str) -> str:
+  lines = [
+    f"# Timeline - {project_name}",
+    "",
+    "_Adicione eventos importantes deste projeto aqui para revisar a linha do tempo depois._",
+    "",
+  ]
+  return "\n".join(lines)
+
+
+def ensure_project_timeline_file(project_dir: Path):
+  if not project_dir.exists() or not project_dir.is_dir():
+    return
+  timeline_file = project_dir / TIMELINE_FILE_NAME
+  if timeline_file.exists():
+    return
+  timeline_file.write_text(
+    build_project_timeline_markdown(project_dir.name),
+    encoding="utf-8",
+    newline="\n",
+  )
+
+
+def ensure_project_support_files():
+  PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
+  for path in sorted(PROJECTS_DIR.iterdir()):
+    if not path.is_dir():
+      continue
+    ensure_project_timeline_file(path)
+
+
 def sync_project_sprints_files(files: list):
   PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
+  ensure_project_support_files()
   sprint_topics_by_project = {}
   dedupe_by_project = {}
 
@@ -241,6 +274,7 @@ def sync_project_sprints_files(files: list):
     if not path.is_dir():
       continue
     project_name = path.name
+    ensure_project_timeline_file(path)
     content = build_project_sprints_markdown(project_name, sprint_topics_by_project.get(project_name, {}))
     out = path / "sprints.md"
     out.write_text(content, encoding="utf-8", newline="\n")
@@ -328,6 +362,7 @@ class Handler(SimpleHTTPRequestHandler):
       return
     if parsed == "/api/projects/tree":
       PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
+      ensure_project_support_files()
       dirs = []
       files = []
       for path in sorted(PROJECTS_DIR.rglob("*")):
@@ -425,6 +460,7 @@ class Handler(SimpleHTTPRequestHandler):
         if out.exists() and not out.is_dir():
           raise ValueError("A file already exists with this name")
         out.mkdir(parents=True, exist_ok=True)
+        ensure_project_timeline_file(out)
         self._json(200, {"ok": True, "path": rel})
       except Exception as exc:
         self._json(400, {"error": str(exc)})

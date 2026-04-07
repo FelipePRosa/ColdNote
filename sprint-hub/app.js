@@ -36,6 +36,7 @@ const el = {
   projectTitleInput: document.getElementById("projectTitleInput"),
   projectKeySelect: document.getElementById("projectKeySelect"),
   projectDescInput: document.getElementById("projectDescInput"),
+  projectTimelineBtn: document.getElementById("projectTimelineBtn"),
   projectCopyBtn: document.getElementById("projectCopyBtn"),
   projectDeleteBtn: document.getElementById("projectDeleteBtn"),
   projectCancelBtn: document.getElementById("projectCancelBtn"),
@@ -80,6 +81,16 @@ const el = {
   teamDeleteBtn: document.getElementById("teamDeleteBtn"),
   teamSaveBtn: document.getElementById("teamSaveBtn"),
   teamCloseBtn: document.getElementById("teamCloseBtn"),
+  timelineModal: document.getElementById("timelineModal"),
+  timelineTitle: document.getElementById("timelineTitle"),
+  timelineSubtitle: document.getElementById("timelineSubtitle"),
+  timelineForm: document.getElementById("timelineForm"),
+  timelineEventNameInput: document.getElementById("timelineEventNameInput"),
+  timelineEventDateInput: document.getElementById("timelineEventDateInput"),
+  timelineEventDescInput: document.getElementById("timelineEventDescInput"),
+  timelineAddBtn: document.getElementById("timelineAddBtn"),
+  timelineList: document.getElementById("timelineList"),
+  timelineCloseBtn: document.getElementById("timelineCloseBtn"),
 };
 
 const uid = () =>
@@ -97,6 +108,7 @@ let itemEditModalOnSave = null;
 let projectModalOnSave = null;
 let projectModalOnDelete = null;
 let projectModalOnCopy = null;
+let projectModalOnTimeline = null;
 let projectModalCopyOptions = [];
 let copyTargetOnPick = null;
 let autoSaveTimer = null;
@@ -121,6 +133,8 @@ let pjsEntries = [];
 let teamEntries = [];
 let currentTeamFile = "";
 let showInactiveTeamMembers = false;
+let currentTimelineProjectKey = "";
+let currentTimelineEntries = [];
 
 function setStatus(text) {
   el.syncStatus.textContent = `Mode: ${text}`;
@@ -234,6 +248,101 @@ function normalizeItem(item) {
 
 function normalizeProjectKey(raw) {
   return String(raw || "").trim().replace(/\s+/g, " ");
+}
+
+function normalizeTimelineEntry(entry) {
+  return {
+    id: entry?.id || uid(),
+    date: String(entry?.date || "").trim(),
+    name: String(entry?.name || "").trim(),
+    description: String(entry?.description || "").trim(),
+  };
+}
+
+function compareTimelineEntries(left, right) {
+  const a = normalizeTimelineEntry(left);
+  const b = normalizeTimelineEntry(right);
+  const dateCompare = String(a.date).localeCompare(String(b.date));
+  if (dateCompare !== 0) return dateCompare;
+  return String(a.name).localeCompare(String(b.name));
+}
+
+function parseTimelineMarkdown(content) {
+  const lines = String(content || "").split(/\r?\n/);
+  const entries = [];
+  let current = null;
+  let descLines = [];
+
+  const flush = () => {
+    if (!current || !current.date || !current.name) {
+      current = null;
+      descLines = [];
+      return;
+    }
+    entries.push(
+      normalizeTimelineEntry({
+        ...current,
+        description: descLines.join(" ").trim(),
+      })
+    );
+    current = null;
+    descLines = [];
+  };
+
+  lines.forEach((raw) => {
+    const line = String(raw || "").trimEnd();
+    const heading = line.match(/^##\s+(\d{4}-\d{2}-\d{2})\s+\-\s+(.+)$/);
+    if (heading) {
+      flush();
+      current = {
+        date: heading[1],
+        name: heading[2].trim(),
+      };
+      return;
+    }
+    if (!current) return;
+    if (!line.trim()) {
+      if (descLines.length) descLines.push("");
+      return;
+    }
+    descLines.push(line.trim());
+  });
+
+  flush();
+  return entries.sort(compareTimelineEntries);
+}
+
+function formatTimelineMarkdown(projectKey, entries) {
+  const projectName = normalizeProjectKey(projectKey) || "Project";
+  const lines = [
+    `# Timeline - ${projectName}`,
+    "",
+    "_Adicione eventos importantes deste projeto aqui para revisar a linha do tempo depois._",
+    "",
+  ];
+
+  const sorted = [...(entries || [])]
+    .map((entry) => normalizeTimelineEntry(entry))
+    .filter((entry) => entry.date && entry.name)
+    .sort(compareTimelineEntries);
+
+  sorted.forEach((entry) => {
+    lines.push(`## ${entry.date} - ${entry.name}`);
+    if (entry.description) {
+      lines.push(entry.description);
+    }
+    lines.push("");
+  });
+
+  return `${lines.join("\n").trim()}\n`;
+}
+
+function formatTimelineDate(dateText) {
+  const raw = String(dateText || "").trim();
+  if (!raw) return "";
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return raw;
+  return `${match[3]}/${match[2]}/${match[1]}`;
 }
 
 function parseTopicHeading(rawHeading) {
@@ -478,6 +587,18 @@ async function fetchProjectFile(relPath) {
   return res.json();
 }
 
+async function fetchProjectTimeline(projectKey) {
+  const relPath = `${normalizeProjectKey(projectKey)}/timeline.md`;
+  try {
+    return await fetchProjectFile(relPath);
+  } catch (err) {
+    if (!normalizeProjectKey(projectKey)) throw err;
+    const content = formatTimelineMarkdown(projectKey, []);
+    await saveProjectFile(relPath, content);
+    return { path: relPath, content };
+  }
+}
+
 async function saveProjectFile(relPath, content) {
   const res = await fetch("/api/projects/file/save", {
     method: "POST",
@@ -488,6 +609,12 @@ async function saveProjectFile(relPath, content) {
     const txt = await res.text();
     throw new Error(txt || "Failed to save project file");
   }
+}
+
+async function saveProjectTimeline(projectKey, entries) {
+  const relPath = `${normalizeProjectKey(projectKey)}/timeline.md`;
+  const content = formatTimelineMarkdown(projectKey, entries);
+  await saveProjectFile(relPath, content);
 }
 
 async function createProjectFolder(relPath) {
@@ -1233,10 +1360,66 @@ function closeAssigneeModal() {
   itemEditModalOnSave = null;
 }
 
-function openProjectModal(topic, currentSprintId, onSave, onDelete, onCopy) {
+function renderTimelineEntries() {
+  el.timelineList.innerHTML = "";
+  if (!currentTimelineEntries.length) {
+    const empty = document.createElement("div");
+    empty.className = "timeline-empty";
+    empty.textContent = "No timeline events yet for this project.";
+    el.timelineList.appendChild(empty);
+    return;
+  }
+
+  currentTimelineEntries
+    .slice()
+    .sort(compareTimelineEntries)
+    .forEach((entry) => {
+      const node = document.createElement("article");
+      node.className = "timeline-entry";
+      node.innerHTML = `
+        <div class="timeline-entry-head">
+          <h4 class="timeline-entry-title"></h4>
+          <span class="timeline-entry-date"></span>
+        </div>
+        <p class="timeline-entry-desc"></p>
+      `;
+      node.querySelector(".timeline-entry-title").textContent = entry.name;
+      node.querySelector(".timeline-entry-date").textContent = formatTimelineDate(entry.date);
+      const desc = node.querySelector(".timeline-entry-desc");
+      desc.textContent = entry.description || "No description";
+      el.timelineList.appendChild(node);
+    });
+}
+
+async function openTimelineModal(projectKey) {
+  const normalized = normalizeProjectKey(projectKey);
+  if (!normalized) {
+    window.alert("Select a project folder first.");
+    return;
+  }
+  const payload = await fetchProjectTimeline(normalized);
+  currentTimelineProjectKey = normalized;
+  currentTimelineEntries = parseTimelineMarkdown(payload.content);
+  el.timelineTitle.textContent = `Timeline - ${normalized}`;
+  el.timelineSubtitle.textContent = `Review and add important events for ${normalized}.`;
+  el.timelineEventNameInput.value = "";
+  el.timelineEventDateInput.value = "";
+  el.timelineEventDescInput.value = "";
+  renderTimelineEntries();
+  el.timelineModal.classList.remove("hidden");
+}
+
+function closeTimelineModal() {
+  el.timelineModal.classList.add("hidden");
+  currentTimelineProjectKey = "";
+  currentTimelineEntries = [];
+}
+
+function openProjectModal(topic, currentSprintId, onSave, onDelete, onCopy, onTimeline) {
   projectModalOnSave = onSave;
   projectModalOnDelete = onDelete || null;
   projectModalOnCopy = onCopy || null;
+  projectModalOnTimeline = onTimeline || null;
   el.projectTitleInput.value = topic.title || "";
   renderProjectModalSelect(topic.projectKey || "");
   el.projectDescInput.value = topic.description || "";
@@ -1244,6 +1427,7 @@ function openProjectModal(topic, currentSprintId, onSave, onDelete, onCopy) {
   projectModalCopyOptions = state.sprints.filter((s) => s.id !== currentSprintId);
   const canCopy = Boolean(projectModalOnCopy) && projectModalCopyOptions.length > 0;
   el.projectCopyBtn.disabled = !canCopy;
+  el.projectTimelineBtn.disabled = !normalizeProjectKey(topic.projectKey) || !projectModalOnTimeline;
   el.projectModal.classList.remove("hidden");
 }
 
@@ -1252,6 +1436,7 @@ function closeProjectModal() {
   projectModalOnSave = null;
   projectModalOnDelete = null;
   projectModalOnCopy = null;
+  projectModalOnTimeline = null;
   projectModalCopyOptions = [];
 }
 
@@ -1649,6 +1834,9 @@ function renderTopics() {
             targetSprint.topics.push(cloned);
             persistState();
             render();
+          },
+          async (projectKey) => {
+            await openTimelineModal(projectKey || topic.projectKey);
           }
         );
       });
@@ -2044,6 +2232,9 @@ el.assigneeModal.addEventListener("click", (e) => {
   if (e.target === el.assigneeModal) closeAssigneeModal();
 });
 el.projectCancelBtn.addEventListener("click", closeProjectModal);
+el.projectKeySelect.addEventListener("change", () => {
+  el.projectTimelineBtn.disabled = !normalizeProjectKey(el.projectKeySelect.value) || !projectModalOnTimeline;
+});
 el.projectSaveBtn.addEventListener("click", () => {
   if (!projectModalOnSave) {
     closeProjectModal();
@@ -2058,6 +2249,20 @@ el.projectSaveBtn.addEventListener("click", () => {
   }
   projectModalOnSave({ title, description, projectKey });
   closeProjectModal();
+});
+el.projectTimelineBtn.addEventListener("click", async () => {
+  if (!projectModalOnTimeline) return;
+  const selectedProjectKey = normalizeProjectKey(el.projectKeySelect.value);
+  if (!selectedProjectKey) {
+    window.alert("Select a project folder first.");
+    return;
+  }
+  try {
+    await projectModalOnTimeline(selectedProjectKey);
+    closeProjectModal();
+  } catch (err) {
+    window.alert(`Failed to open timeline: ${err.message}`);
+  }
 });
 el.projectDeleteBtn.addEventListener("click", () => {
   if (!projectModalOnDelete) return;
@@ -2232,6 +2437,40 @@ el.teamSaveBtn.addEventListener("click", async () => {
 });
 el.teamModal.addEventListener("click", (e) => {
   if (e.target === el.teamModal) closeTeamModal();
+});
+el.timelineCloseBtn.addEventListener("click", closeTimelineModal);
+el.timelineForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const projectKey = normalizeProjectKey(currentTimelineProjectKey);
+  const name = el.timelineEventNameInput.value.trim();
+  const date = el.timelineEventDateInput.value.trim();
+  const description = el.timelineEventDescInput.value.trim();
+  if (!projectKey) return;
+  if (!name || !date) {
+    window.alert("Event name and date are required.");
+    return;
+  }
+  try {
+    currentTimelineEntries.push(
+      normalizeTimelineEntry({
+        name,
+        date,
+        description,
+      })
+    );
+    currentTimelineEntries.sort(compareTimelineEntries);
+    await saveProjectTimeline(projectKey, currentTimelineEntries);
+    renderTimelineEntries();
+    el.timelineEventNameInput.value = "";
+    el.timelineEventDateInput.value = "";
+    el.timelineEventDescInput.value = "";
+    setStatus(`timeline updated (${projectKey})`);
+  } catch (err) {
+    window.alert(`Failed to save timeline event: ${err.message}`);
+  }
+});
+el.timelineModal.addEventListener("click", (e) => {
+  if (e.target === el.timelineModal) closeTimelineModal();
 });
 
 el.cancelTopicBtn.addEventListener("click", () => {

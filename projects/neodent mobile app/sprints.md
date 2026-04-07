@@ -91,7 +91,7 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-14
 
 ### Neodent Mobile App
-- [ ] Telas Rastreio 2.0 (Maxo + Vicco)
-- [ ] Link do rastreio AfterShip (Bruf + Maxo + Vicco)
+- [x] Telas Rastreio 2.0 (Maxo + Vicco)
+- [x] Link do rastreio AfterShip (Bruf + Maxo + Vicco)
 - [ ] Sessão Convidado (Dani + Nu) [BLOCKED]
 - [ ] Adequação GenIA novo modelo (Sam) [HIGH]

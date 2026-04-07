@@ -131,6 +131,7 @@
       </select>
       <input id="projectDescInput" type="text" placeholder="Project description (optional)" />
       <div class="modal-actions">
+        <button id="projectTimelineBtn" class="btn btn-ghost" type="button">Timeline</button>
         <button id="projectCopyBtn" class="btn btn-ghost modal-action-left" type="button">Copy to Sprint</button>
         <button id="projectDeleteBtn" class="btn btn-danger" type="button">Remove</button>
         <button id="projectCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
@@ -279,6 +280,25 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div id="timelineModal" class="modal hidden">
+    <div class="modal-card timeline-modal-card">
+      <div class="panel-head">
+        <div>
+          <h3 id="timelineTitle">Project Timeline</h3>
+          <p id="timelineSubtitle" class="muted">Track important project events.</p>
+        </div>
+        <button id="timelineCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+      <form id="timelineForm" class="timeline-form">
+        <input id="timelineEventNameInput" type="text" placeholder="Event name" required />
+        <input id="timelineEventDateInput" type="date" required />
+        <input id="timelineEventDescInput" type="text" placeholder="Description" />
+        <button id="timelineAddBtn" class="btn btn-primary" type="submit">Add Event</button>
+      </form>
+      <div id="timelineList" class="timeline-list"></div>
     </div>
   </div>
 
