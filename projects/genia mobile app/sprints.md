@@ -129,14 +129,25 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-14
 
 ### Genia Mobile App
-- [ ] Cacheamento endpoints (Gui + Vicco) [BLOCKED]
-- [ ] Dashboard (Hary) [HIGH]
-- [ ] Catálogo Neodent- pacote pronto para ser integrado (Anderson) [HIGH]
-- [ ] Filtros avançados (Nu) [BLOCKED]
+- [x] Cacheamento endpoints (Gui + Vicco) [BLOCKED]
+- [x] Dashboard (Hary) [HIGH]
+- [x] Catálogo Neodent- pacote pronto para ser integrado (Anderson) [HIGH]
+- [x] Filtros avançados (Nu) [BLOCKED]
+- [x] Jornada do cliente produtos digital (Gui + Nu) [BLOCKED]
+- [x] Campanhas mensais (Andy + Nu)
+- [x] Multimarca (Andy + Nu)
+- [x] Quick Win 4 + 2 (Andy + Nu)
+- [x] Authentication SSO (Andy + Nu)
+- [x] Alteração Campos de Crédito (Andy + Nu)
+
+## Sprint 26-15
+
+### Genia Mobile App
+- [ ] Cacheamento endpoints (Gui + Vicco)
+- [ ] Filtros V2 (Nu) [BLOCKED]
 - [ ] Jornada do cliente produtos digital (Gui + Nu) [BLOCKED]
 - [ ] KPIs tela + logicas (Fel) [HIGH]
-- [ ] Campanhas mensais (Andy + Nu)
 - [ ] Multimarca (Andy + Nu)
 - [ ] Quick Win 4 + 2 (Andy + Nu)
 - [ ] Authentication SSO (Andy + Nu)
-- [ ] Alteração Campos de Crédito (Andy + Nu)
+- [ ] Botão Recomendação Clear (Gui + Nu + Vicco) [HIGH]

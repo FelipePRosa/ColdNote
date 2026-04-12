@@ -63,5 +63,10 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-14
 
 ### Hub
-- [ ] Tela Kit resgate admin (Berg)
-- [ ] Back Kit resgate (Guto)
+- [x] Back Kit resgate (Guto)
+
+## Sprint 26-15
+
+### Hub
+- [ ] Revisão endpoints HUB (Maxo)
+- [ ] Revisar funcionalidades (Bruf + Nu)

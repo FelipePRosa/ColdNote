@@ -102,8 +102,18 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-14
 
 ### Straumann Mobile App
+- [x] Refinamento tela de reconhecimento (Andy + Fel + Nu) [HIGH] [BLOCKED]
+- [x] Trade Up (?) (Fel) [BLOCKED]
+- [x] Straumann Web (Rich) [BLOCKED]
+- [x] Dev Mobile Who is Who (Vicco) [BLOCKED]
+- [x] Dev Back Who is Who (Gui) [BLOCKED]
+
+## Sprint 26-15
+
+### Straumann Mobile App
 - [ ] Refinamento tela de reconhecimento (Andy + Fel + Nu) [HIGH] [BLOCKED]
 - [ ] Trade Up (?) (Fel) [BLOCKED]
 - [ ] Straumann Web (Rich) [BLOCKED]
 - [ ] Dev Mobile Who is Who (Vicco) [BLOCKED]
 - [ ] Dev Back Who is Who (Gui) [BLOCKED]
+- [ ] Link do rastreio AfterShip (Maxo + Nu + Vicco)

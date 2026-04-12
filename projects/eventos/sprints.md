@@ -55,4 +55,4 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-14
 
 ### Eventos
-- [ ] Aguardando decisao do LT (Fel) [BLOCKED]
+- [x] Aguardando decisao do LT (Fel) [BLOCKED]

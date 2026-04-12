@@ -28,6 +28,7 @@ const el = {
   modalItemText: document.getElementById("modalItemText"),
   modalHighPriorityCheck: document.getElementById("modalHighPriorityCheck"),
   modalBlockedCheck: document.getElementById("modalBlockedCheck"),
+  modalBlockedReasonInput: document.getElementById("modalBlockedReasonInput"),
   modalAssigneeSelect: document.getElementById("modalAssigneeSelect"),
   modalClearBtn: document.getElementById("modalClearBtn"),
   modalCancelBtn: document.getElementById("modalCancelBtn"),
@@ -243,6 +244,7 @@ function normalizeItem(item) {
   if (!Array.isArray(item.responsibles)) item.responsibles = [];
   if (item.priority !== "high") item.priority = "normal";
   item.blocked = Boolean(item.blocked);
+  item.blockedReason = item.blocked ? String(item.blockedReason || "").trim() : "";
   return item;
 }
 
@@ -426,28 +428,38 @@ function parseItemTextAndResponsibles(rawText) {
   let text = String(rawText || "").trim();
   let priority = "normal";
   let blocked = false;
+  let blockedReason = "";
+
+  const blockedReasonMatch = text.match(/\[BLOCKED\s*:\s*([^\]]+)\]/i);
+  if (blockedReasonMatch) {
+    blocked = true;
+    blockedReason = String(blockedReasonMatch[1] || "").trim();
+  }
 
   const metaMatches = text.match(/\[(HIGH|BLOCKED)\]/gi) || [];
   metaMatches.forEach((m) => {
     if (/HIGH/i.test(m)) priority = "high";
     if (/BLOCKED/i.test(m)) blocked = true;
   });
-  text = text.replace(/\s*\[(HIGH|BLOCKED)\]/gi, "").trim();
+  text = text
+    .replace(/\s*\[BLOCKED\s*:\s*[^\]]+\]/gi, "")
+    .replace(/\s*\[(HIGH|BLOCKED)\]/gi, "")
+    .trim();
 
   const m = text.match(/^(.*)\(([^()]*)\)\s*$/);
-  if (!m) return { text, responsibles: [], priority, blocked };
+  if (!m) return { text, responsibles: [], priority, blocked, blockedReason };
 
   const body = m[1].trim();
   const namesRaw = m[2].trim();
-  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked };
+  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked, blockedReason };
 
   const responsibles = namesRaw
     .split(/\s*\+\s*|\s*,\s*/)
     .map((x) => x.trim())
     .filter(Boolean);
 
-  if (!responsibles.length) return { text, responsibles: [], priority, blocked };
-  return { text: body || text, responsibles, priority, blocked };
+  if (!responsibles.length) return { text, responsibles: [], priority, blocked, blockedReason };
+  return { text: body || text, responsibles, priority, blocked, blockedReason };
 }
 
 function parseSprintMarkdown(fileName, markdown) {
@@ -500,6 +512,7 @@ function parseSprintMarkdown(fileName, markdown) {
           responsibles: parsed.responsibles,
           priority: parsed.priority,
           blocked: parsed.blocked,
+          blockedReason: parsed.blockedReason,
         });
       }
       continue;
@@ -519,6 +532,7 @@ function parseSprintMarkdown(fileName, markdown) {
           responsibles: parsed.responsibles,
           priority: parsed.priority,
           blocked: parsed.blocked,
+          blockedReason: parsed.blockedReason,
         });
       }
       continue;
@@ -559,7 +573,10 @@ function sprintToMarkdown(sprint) {
     topic.items.forEach((item) => {
       let lineText = itemDisplayText(item);
       if (item.priority === "high") lineText += " [HIGH]";
-      if (item.blocked) lineText += " [BLOCKED]";
+      if (item.blocked) {
+        const blockedReason = String(item.blockedReason || "").trim().replace(/\]/g, ")");
+        lineText += blockedReason ? ` [BLOCKED: ${blockedReason}]` : " [BLOCKED]";
+      }
       lines.push(`- [${item.done ? "x" : " "}] ${lineText}`);
     });
     lines.push("");
@@ -1342,6 +1359,9 @@ function openTaskModal({ title, saveLabel, currentText, currentNames, onSave }) 
   el.modalItemText.value = currentText?.text || "";
   el.modalHighPriorityCheck.checked = currentText?.priority === "high";
   el.modalBlockedCheck.checked = Boolean(currentText?.blocked);
+  el.modalBlockedReasonInput.value = currentText?.blockedReason || "";
+  el.modalBlockedReasonInput.disabled = !el.modalBlockedCheck.checked;
+  el.modalBlockedReasonInput.classList.toggle("hidden", !el.modalBlockedCheck.checked);
   el.modalAssigneeSelect.innerHTML = "";
 
   getAssignableMembers().forEach((name) => {
@@ -1828,6 +1848,7 @@ function renderTopics() {
                 responsibles: [...(item.responsibles || [])],
                 priority: item.priority === "high" ? "high" : "normal",
                 blocked: Boolean(item.blocked),
+                blockedReason: String(item.blockedReason || "").trim(),
               })),
             };
 
@@ -1894,6 +1915,12 @@ function renderTopics() {
           tag.textContent = "BLOCKED";
           itemLine.appendChild(tag);
         }
+        if (item.blocked && item.blockedReason) {
+          const reason = document.createElement("div");
+          reason.className = "item-blocked-reason";
+          reason.textContent = `Reason: ${item.blockedReason}`;
+          itemLine.appendChild(reason);
+        }
 
         if (canDrag) {
           li.addEventListener("dragstart", (e) => {
@@ -1952,13 +1979,14 @@ function renderTopics() {
           openTaskModal({
             title: "Edit Task",
             saveLabel: "Apply",
-            currentText: { text: item.text, priority: item.priority, blocked: item.blocked },
+            currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason },
             currentNames: item.responsibles || [],
-            onSave: ({ text, responsibles, priority, blocked }) => {
+            onSave: ({ text, responsibles, priority, blocked, blockedReason }) => {
               item.text = text;
               item.responsibles = responsibles;
               item.priority = priority;
               item.blocked = blocked;
+              item.blockedReason = blockedReason;
               persistState();
               render();
             },
@@ -1973,9 +2001,9 @@ function renderTopics() {
         openTaskModal({
           title: "New Task",
           saveLabel: "Create",
-          currentText: { text: "", priority: "normal", blocked: false },
+          currentText: { text: "", priority: "normal", blocked: false, blockedReason: "" },
           currentNames: [],
-          onSave: ({ text, responsibles, priority, blocked }) => {
+          onSave: ({ text, responsibles, priority, blocked, blockedReason }) => {
             topic.items.push({
               id: uid(),
               text,
@@ -1983,6 +2011,7 @@ function renderTopics() {
               responsibles,
               priority,
               blocked,
+              blockedReason,
             });
             persistState();
             render();
@@ -2070,6 +2099,7 @@ function copySprintFromSource(source, sprintName, includeDone) {
       responsibles: [...(item.responsibles || [])],
       priority: item.priority === "high" ? "high" : "normal",
       blocked: Boolean(item.blocked),
+      blockedReason: String(item.blockedReason || "").trim(),
     })),
   }));
 
@@ -2209,6 +2239,12 @@ el.modalClearBtn.addEventListener("click", () => {
     opt.selected = false;
   });
 });
+el.modalBlockedCheck.addEventListener("change", () => {
+  const enabled = el.modalBlockedCheck.checked;
+  el.modalBlockedReasonInput.disabled = !enabled;
+  el.modalBlockedReasonInput.classList.toggle("hidden", !enabled);
+  if (!enabled) el.modalBlockedReasonInput.value = "";
+});
 el.modalSaveBtn.addEventListener("click", () => {
   if (!itemEditModalOnSave) {
     closeAssigneeModal();
@@ -2225,6 +2261,7 @@ el.modalSaveBtn.addEventListener("click", () => {
     responsibles: selected,
     priority: el.modalHighPriorityCheck.checked ? "high" : "normal",
     blocked: el.modalBlockedCheck.checked,
+    blockedReason: el.modalBlockedCheck.checked ? el.modalBlockedReasonInput.value.trim() : "",
   });
   closeAssigneeModal();
 });

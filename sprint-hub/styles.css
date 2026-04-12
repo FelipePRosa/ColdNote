@@ -596,6 +596,14 @@ main {
   color: var(--md-blocked-on-container);
 }
 
+.item-blocked-reason {
+  width: 100%;
+  margin-top: 2px;
+  color: var(--md-blocked-on-container);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .item-form {
   display: grid;
   grid-template-columns: 1fr;

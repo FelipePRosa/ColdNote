@@ -11,6 +11,12 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-14
 
 ### ClearCorrect Automations
+- [x] Formulário de Reclamações (Nu) [BLOCKED]
+- [x] Update account não funciona (Gui) [HIGH]
+- [x] Máquina para automação (Fel) [HIGH]
+
+## Sprint 26-15
+
+### ClearCorrect Automations
 - [ ] Formulário de Reclamações (Nu) [BLOCKED]
-- [ ] Update account não funciona (Gui) [HIGH]
-- [ ] Máquina para automação (Fel) [HIGH]
+- [ ] Automação de Cupons (Fel) [HIGH]

@@ -83,6 +83,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-14
 
 ### ClearWallet
+- [x] Conexão direta Dr.Portal (Fel + Gui) [HIGH]
+- [x] Definições atividades Sync (Fel) [HIGH]
+- [x] Flexibilização de parcela (Fel) [HIGH]
+
+## Sprint 26-15
+
+### ClearWallet
 - [ ] Conexão direta Dr.Portal (Fel + Gui) [HIGH]
 - [ ] Definições atividades Sync (Fel) [HIGH]
 - [ ] Revalidar criptografia pagamento (Gui + Nu)
