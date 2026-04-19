@@ -1,16 +1,16 @@
 # Databases
 
 DA_LATAM
-User: user_da_latam
-Pass: mDQoQRS7RixKqJC2u5oq
+User: <redacted>
+Pass: <redacted>
 
 BDISECC
-User: bdisecc_ro
-Pass: bd1$ec9c_ro
+User: <redacted>
+Pass: <redacted>
 
-User: bdisecc_rw
-Pass: Bd1$ec7c_rw  
+User: <redacted>
+Pass: <redacted>
 
 Amazon Athena
-User: [REDACTED]
-Pass: [REDACTED]
+User: <redacted>
+Pass: <redacted>

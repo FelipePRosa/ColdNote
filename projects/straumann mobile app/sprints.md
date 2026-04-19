@@ -117,3 +117,13 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Dev Mobile Who is Who (Vicco) [BLOCKED]
 - [ ] Dev Back Who is Who (Gui) [BLOCKED]
 - [ ] Link do rastreio AfterShip (Maxo + Nu + Vicco)
+
+## Sprint 26-16
+
+### Straumann Mobile App
+- [ ] Refinamento tela de reconhecimento (Andy + Fel + Nu) [BLOCKED: Aguardando contrato]
+- [ ] Trade Up (?) (Fel) [BLOCKED: Sem prioridade]
+- [ ] Straumann Web (Rich) [BLOCKED: Sem prioridade]
+- [ ] Dev Mobile Who is Who (Vicco) [BLOCKED: Sem prioridade]
+- [ ] Dev Back Who is Who (Gui) [BLOCKED: Sem prioridade]
+- [ ] Link do rastreio AfterShip (Maxo + Nu + Vicco)

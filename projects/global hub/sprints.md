@@ -70,3 +70,8 @@ Regra: inclui apenas sprints depois de 26-01.
 ### Hub
 - [ ] Revisão endpoints HUB (Maxo)
 - [ ] Revisar funcionalidades (Bruf + Nu)
+
+## Sprint 26-16
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Nuala tá curtindo]

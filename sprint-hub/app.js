@@ -138,7 +138,14 @@ let currentTimelineProjectKey = "";
 let currentTimelineEntries = [];
 
 function setStatus(text) {
-  el.syncStatus.textContent = `Mode: ${text}`;
+  const raw = `Mode: ${text}`;
+  const compact = raw
+    .replace("file-based (`tech/sprints/*.md`)", "file-based")
+    .replace("file-based (`tech/pjs.md`)", "pjs")
+    .replace("file-based (`tech/team/*.md`)", "team")
+    .replace("localStorage fallback (run `python sprint-hub/server.py` for file mode)", "local fallback");
+  el.syncStatus.textContent = compact;
+  el.syncStatus.title = raw;
 }
 
 function seedState() {

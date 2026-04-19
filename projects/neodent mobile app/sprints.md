@@ -105,3 +105,12 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Sessão Convidado (Dani + Nu) [BLOCKED]
 - [ ] Adequação GenIA novo modelo (Sam) [HIGH]
 - [ ] Dev Data Wakeword (Brunin + Hary) [BLOCKED]
+
+## Sprint 26-16
+
+### Neodent Mobile App
+- [ ] Telas Rastreio 2.0 (Maxo + Nu + Vicco)
+- [ ] Sessão Convidado (Dani + Nu) [BLOCKED]
+- [ ] GenIA 3.0 markdown (Brunin + Sam) [HIGH] [BLOCKED: Falta de prioridade]
+- [ ] Dev Data Wakeword (Brunin + Hary)
+- [ ] Adição de logs (Brunin)

@@ -94,3 +94,11 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Definições atividades Sync (Fel) [HIGH]
 - [ ] Revalidar criptografia pagamento (Gui + Nu)
 - [ ] Flexibilização de parcela (Fel) [HIGH]
+
+## Sprint 26-16
+
+### ClearWallet
+- [ ] Conexão direta Dr.Portal (Fel + Gui) [HIGH] [BLOCKED: Aguardando aprovação]
+- [ ] Revalidar criptografia pagamento (Gui + Nu) [BLOCKED: Nuala tá curtindo]
+- [ ] Flexibilização de parcela (Fel + Gui) [HIGH]
+- [ ] Dev Back (Guto + Gui + Maxo) [HIGH]

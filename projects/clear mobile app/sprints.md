@@ -13,3 +13,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ### ClearSync
 - [x] Preparação do ambiente (Gui) [HIGH]
 - [x] Alinhamento de atividades (Gui) [HIGH]
+
+## Sprint 26-16
+
+### Clear Mobile App
+- [ ] Definições atividades (Fel + Gui) [HIGH]
+- [ ] Layout das telas (Nu + Rich) [HIGH]
+- [ ] Dev Mobile (Andy + Sam + Vicco) [HIGH]
+- [ ] Definição de features backend (Fel + Gui) [HIGH]

@@ -111,3 +111,15 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Quick Win 4 + 2 (Bruf)
 - [ ] WakeWord (Brunin + Bruf + Sam)
 - [ ] Echo Cancelation (Brunin + Bruf + Sam)
+
+## Sprint 26-16
+
+### Genia Web App
+- [ ] Testes multimarca + sso + campanha mensais (Nu + Bruf) [HIGH]
+- [ ] Hierarquia dev (Bruf) [BLOCKED: Aguardando aprovação]
+- [ ] Markdown Genia (Brunin + Bruf)
+- [ ] Catálogo Neodent Link (Bruf)
+- [ ] Quick Win 4 + 2 (Bruf)
+- [ ] WakeWord (Brunin + Bruf + Sam)
+- [ ] Echo Cancelation (Brunin + Bruf + Sam)
+- [ ] Correção de retorno de perguntas (Brunin) [HIGH]

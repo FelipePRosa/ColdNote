@@ -82,3 +82,10 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED]
 - [ ] Comunicação WA p/ cliente + Descrições (Gui)
 - [ ] Correção de SKUs (Gui)
+
+## Sprint 26-16
+
+### OTB
+- [ ] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED: Falta de prioridade]
+- [ ] Comunicação WA p/ cliente + Descrições (Gui + Nu) [BLOCKED: Nuala tá curtindo]
+- [ ] Correção de SKUs (Gui + Nu) [BLOCKED: Nuala tá curtindo]
