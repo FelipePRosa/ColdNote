@@ -141,14 +141,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-15
 
 ### Outros
-- [ ] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
-- [ ] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
-- [ ] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
-- [ ] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
-- [ ] Aguardando novo contrato neodent app (Fel + Nu) [BLOCKED]
-- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel)
-- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED]
-- [ ] Migração Alteryx (Fel) [HIGH]
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
+- [x] Aguardando novo contrato neodent app (Fel + Nu) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel)
+- [x] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED]
+- [x] Migração Alteryx (Fel) [HIGH]
 
 ## Sprint 26-16
 
@@ -161,4 +161,4 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel)
 - [ ] Lambda Pipeline (Brunin + Bruf + Gui)
 - [ ] Migração Alteryx (Fel) [HIGH]
-- [ ] Bug 450 database connectors (Fel + Gui) [HIGH]
+- [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]

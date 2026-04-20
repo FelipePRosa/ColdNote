@@ -18,8 +18,8 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-15
 
 ### ClearCorrect Automations
-- [ ] Formulário de Reclamações (Nu) [BLOCKED]
-- [ ] Automação de Cupons (Fel) [HIGH]
+- [x] Formulário de Reclamações (Nu) [BLOCKED]
+- [x] Automação de Cupons (Fel) [HIGH]
 
 ## Sprint 26-16
 

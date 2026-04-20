@@ -143,14 +143,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-15
 
 ### Genia Mobile App
-- [ ] Cacheamento endpoints (Gui + Vicco)
-- [ ] Filtros V2 (Nu) [BLOCKED]
-- [ ] Jornada do cliente produtos digital (Gui + Nu) [BLOCKED]
-- [ ] KPIs tela + logicas (Fel) [HIGH]
-- [ ] Multimarca (Andy + Nu)
-- [ ] Quick Win 4 + 2 (Andy + Nu)
-- [ ] Authentication SSO (Andy + Nu)
-- [ ] Botão Recomendação Clear (Gui + Nu + Vicco) [HIGH]
+- [x] Cacheamento endpoints (Gui + Vicco)
+- [x] Filtros V2 (Nu) [BLOCKED]
+- [x] Jornada do cliente produtos digital (Gui + Nu) [BLOCKED]
+- [x] KPIs tela + logicas (Fel) [HIGH]
+- [x] Multimarca (Andy + Nu)
+- [x] Quick Win 4 + 2 (Andy + Nu)
+- [x] Authentication SSO (Andy + Nu)
+- [x] Botão Recomendação Clear (Gui + Nu + Vicco) [HIGH]
 
 ## Sprint 26-16
 
