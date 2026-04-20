@@ -6,97 +6,70 @@
 
 ## Anatomia do Commit
 
+O formato correto é:
+
+```text
+emoji mensagem curta e objetiva
+emoji (escopo): mensagem curta e objetiva
 ```
-type: emoji mensagem curta e objetiva
 
-feat: ✨ add contract signature webhook
-fix: 🐛 resolve tenant isolation bug in Redis cache
-docs: 📝 update agent.md with Redis key conventions
+Exemplos válidos:
+
+```text
+⚡️ Lazyload home screen images
+🐛 Fix `onClick` event handler
+🔖 Bump version `1.2.0`
+♻️ (components): Transform classes to hooks
+📈 Add analytics to the dashboard
+🌐 Support Japanese language
+♿️ (account): Improve modals a11y
 ```
 
-**Regras gerais:**
+## Regras Gerais
 
-- Imperativo no presente: `add feature` e não `added feature`
-- Sem ponto final na mensagem curta
-- Limite de ~72 caracteres na linha do título
-- Emoji vem logo após o `type:` e antes da mensagem
-- Breaking changes: adicionar `!` após o type → `feat!: 💥 rename API`
-
----
-
-## Features
-
-| Emoji | `:code:` | `type` | Descrição | Exemplo |
-|-------|----------|--------|-----------|---------|
-| ✨ | `:sparkles:` | `feat` | Introduce new features | `feat: ✨ add user authentication module` |
-| 🎉 | `:tada:` | `init` | Begin a project / initial commit | `init: 🎉 initial project setup` |
-| 💄 | `:lipstick:` | `style` | Add or update UI/styling | `style: 💄 update button hover states` |
-| ♿ | `:wheelchair:` | `a11y` | Improve accessibility | `a11y: ♿ add ARIA labels to nav` |
-| 🌐 | `:globe_with_meridians:` | `i18n` | Internationalization/localization | `i18n: 🌐 add Portuguese translations` |
+- O commit começa com o emoji, sem prefixo obrigatório como `feat:` ou `fix:`
+- O escopo é opcional e vem entre parênteses logo após o emoji
+- A mensagem deve ser curta, clara e no imperativo
+- Evite ponto final no fim da linha do título
+- Mantenha a linha do commit por volta de 72 caracteres quando possível
+- Use corpo do commit só quando precisar explicar contexto, impacto ou breaking change
 
 ---
 
-## Bug Fixes
+## Exemplos por Uso
 
-| Emoji | `:code:` | `type` | Descrição | Exemplo |
-|-------|----------|--------|-----------|---------|
-| 🐛 | `:bug:` | `fix` | Fix a bug | `fix: 🐛 resolve null pointer on logout` |
-| 🚑 | `:ambulance:` | `hotfix` | Critical hotfix | `hotfix: 🚑 patch SQL injection vulnerability` |
-| 🩹 | `:adhesive_bandage:` | `fix` | Simple fix for non-critical issue | `fix: 🩹 correct typo in error message` |
+| Emoji | `:code:` | Uso | Exemplo |
+|-------|----------|-----|---------|
+| ✨ | `:sparkles:` | Nova funcionalidade | `✨ Add voucher retry queue` |
+| 🎉 | `:tada:` | Begin a project / initial commit | `🎉 initial project setup` |
+| 💄 | `:lipstick:` | Add or update UI/styling | `💄 update button hover states` |
+| 🐛 | `:bug:` | Correção de bug | `🐛 Fix SAP login fallback` |
+| 🩹 | `:adhesive_bandage:` | Correção pequena | `🩹 Correct typo in status label` |
+| 🚑 | `:ambulance:` | Critical hotfix | `🚑 patch SQL injection vulnerability` |
+| ♻️ | `:recycle:` | Refatoração | `♻️ (sap): Simplify recovery flow` |
+| ⚡️ | `:zap:` | Performance | `⚡️ Reduce SQL polling overhead` |
+| 📝 | `:memo:` | Documentação | `📝 Update AGENTS guide for SAP recovery` |
+| 🔧 | `:wrench:` | Configuração | `🔧 Add SSO and manual SAP connection settings` |
+| 🔖 | `:bookmark:` | Versionamento | `🔖 Bump version `1.2.0`` |
+| 📈 | `:chart_with_upwards_trend:` | Analytics/telemetria | `📈 Add runtime execution metrics` |
+| 🌐 | `:globe_with_meridians:` | Idioma/i18n | `🌐 Support Portuguese status labels` |
+| ♿️ | `:wheelchair:` | Acessibilidade | `♿️ (account): Improve modals a11y` |
+| ✅ | `:white_check_mark:` | Testes | `✅ Add tests for voucher validation` |
+| 👷 | `:construction_worker:` | CI/CD | `👷 Update pipeline for executable build` |
+| 🧪 | `:test_tube:` | Add failing test (TDD) | `🧪 add failing test for contract renewal` |
+| 🔥 | `:fire:` | Remoção | `🔥 Remove legacy SAP recorder script` |
+| 🚚 | `:truck:` | Mover/renomear | `🚚 Move AGENT spec to docs/AGENTS.md` |
+| ⏪ | `:rewind:` | Revert changes | `⏪ undo breaking auth changes` |
+| 🗑️ | `:wastebasket:` | Deprecate code that needs cleanup | `🗑️ mark legacy API v1 as deprecated` |
+| 🔒 | `:lock:` | Fix security issues | `🔒 enforce HTTPS on all routes` |
+| ☁️ | `:cloud:` | Infrastructure/cloud changes | `☁️ add AWS Lambda function for alerts` |
+| 🚀 | `:rocket:` | Deploy stuff | `🚀 release v1.2.0 to production` |
+| 🐳 | `:whale:` | Docker-related changes | `🐳 add multi-stage build to Dockerfile` |
+| 🔐 | `:closed_lock_with_key:` | Add or update secrets/auth | `🔐 rotate JWT signing keys` |
+| 📦 | `:package:` | Add or update packages/dependencies | `📦 update npm dependencies` |
+| 🏗️ | `:building_construction:` | Make architectural changes | `🏗️ migrate to multitenant schema` |
+| 💥 | `:boom:` | Introduce breaking changes | `💥 rename API endpoint /users to /accounts` |
 
----
-
-## Refactor & Performance
-
-| Emoji | `:code:` | `type` | Descrição | Exemplo |
-|-------|----------|--------|-----------|---------|
-| ♻️ | `:recycle:` | `refactor` | Refactor code | `refactor: ♻️ extract payment service class` |
-| ⚡ | `:zap:` | `perf` | Improve performance | `perf: ⚡ cache Redis tenant keys` |
-| 🏗️ | `:building_construction:` | `arch` | Make architectural changes | `arch: 🏗️ migrate to multitenant schema` |
-| 💥 | `:boom:` | `breaking` | Introduce breaking changes | `breaking: 💥 rename API endpoint /users to /accounts` |
-
----
-
-## Tests & QA
-
-| Emoji | `:code:` | `type` | Descrição | Exemplo |
-|-------|----------|--------|-----------|---------|
-| ✅ | `:white_check_mark:` | `test` | Add or update tests | `test: ✅ add unit tests for auth middleware` |
-| 🧪 | `:test_tube:` | `test` | Add failing test (TDD) | `test: 🧪 add failing test for contract renewal` |
-| 👷 | `:construction_worker:` | `ci` | Add or update CI/CD pipeline | `ci: 👷 add GitHub Actions deploy workflow` |
-
----
-
-## Docs & Config
-
-| Emoji | `:code:` | `type` | Descrição | Exemplo |
-|-------|----------|--------|-----------|---------|
-| 📝 | `:memo:` | `docs` | Add or update documentation | `docs: 📝 update agent.md architecture spec` |
-| 🔧 | `:wrench:` | `config` | Add or update config files | `config: 🔧 update Redis TTL settings` |
-| 🔐 | `:closed_lock_with_key:` | `security` | Add or update secrets/auth | `security: 🔐 rotate JWT signing keys` |
-| 📦 | `:package:` | `build` | Add or update packages/dependencies | `build: 📦 update npm dependencies` |
-
----
-
-## DevOps & Infra
-
-| Emoji | `:code:` | `type` | Descrição | Exemplo |
-|-------|----------|--------|-----------|---------|
-| 🚀 | `:rocket:` | `deploy` | Deploy stuff | `deploy: 🚀 release v1.2.0 to production` |
-| 🐳 | `:whale:` | `docker` | Docker-related changes | `docker: 🐳 add multi-stage build to Dockerfile` |
-| ☁️ | `:cloud:` | `infra` | Infrastructure/cloud changes | `infra: ☁️ add AWS Lambda function for alerts` |
-| 🔒 | `:lock:` | `security` | Fix security issues | `security: 🔒 enforce HTTPS on all routes` |
-
----
-
-## Cleanup
-
-| Emoji | `:code:` | `type` | Descrição | Exemplo |
-|-------|----------|--------|-----------|---------|
-| 🔥 | `:fire:` | `remove` | Remove code or files | `remove: 🔥 delete deprecated payment module` |
-| 🗑️ | `:wastebasket:` | `deprecate` | Deprecate code that needs cleanup | `deprecate: 🗑️ mark legacy API v1 as deprecated` |
-| 🚚 | `:truck:` | `move` | Move or rename resources | `move: 🚚 rename services/ to modules/` |
-| ⏪ | `:rewind:` | `revert` | Revert changes | `revert: ⏪ undo breaking auth changes` |
 
 ---
 
@@ -104,16 +77,13 @@ docs: 📝 update agent.md with Redis key conventions
 
 ```bash
 # Commit simples
-git commit -m "feat: ✨ add contract renewal alerts"
+git commit -m "🐛 Fix SAP login fallback"
 
-# Commit com breaking change
-git commit -m "feat!: 💥 rename /contracts to /agreements" -m "BREAKING CHANGE: update all client integrations"
+# Commit com escopo
+git commit -m "♻️ (sap): Simplify recovery flow"
 
-# Commit com corpo detalhado
-git commit -m "perf: ⚡ cache Redis tenant keys" -m "Adds scoped key convention: tenant:{id}:resource. TTL set to 3600s."
-
-# Ver log com emojis
-git log --oneline --graph
+# Commit com corpo
+git commit -m "🔧 Add SAP SSO fallback settings" -m "Prioritizes s10 for SSO and n10 for manual login fallback."
 ```
 
 ---
