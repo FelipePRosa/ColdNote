@@ -360,12 +360,14 @@ main {
   gap: 10px;
 }
 
-#responsibleFilter {
-  width: 132px;
-  min-width: 132px;
-  max-width: 132px;
+#responsibleFilter,
+#projectStatusFilter {
+  width: 118px;
+  min-width: 118px;
+  max-width: 118px;
   min-height: 40px;
-  padding-right: 34px;
+  padding: 0 30px 0 12px;
+  font-size: 0.82rem;
 }
 
 .quick-filter {
@@ -494,17 +496,68 @@ main {
   line-height: 1.45;
 }
 
+.topic-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+
 .topic-project {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  margin: 8px 0 0;
+  margin: 0;
   padding: 0 8px;
   border-radius: 999px;
   background: var(--md-sys-color-surface-container-low);
   color: var(--md-sys-color-primary);
   font-size: 0.74rem;
   font-weight: 600;
+}
+
+.topic-status-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.topic-status-tag[data-status="Planejamento"] {
+  background: #fff4d6;
+  border-color: #f2c66d;
+  color: #8a5a00;
+}
+
+.topic-status-tag[data-status="Desenvolvimento"] {
+  background: #dceeff;
+  border-color: #8bbcff;
+  color: #0d4f8f;
+}
+
+.topic-status-tag[data-status="Teste"] {
+  background: #fbe0ff;
+  border-color: #d59de6;
+  color: #7b2f8f;
+}
+
+.topic-status-tag[data-status="Acompanhamento"] {
+  background: #dff6e8;
+  border-color: #8ccca2;
+  color: #21663c;
+}
+
+.topic-status-tag[data-status="Bloqueado"] {
+  background: #ffe0e0;
+  border-color: #e08f8f;
+  color: #982b2b;
 }
 
 .items-list {
@@ -750,6 +803,45 @@ textarea:focus {
   margin: 0 0 6px;
   font-size: 1.2rem;
   font-weight: 620;
+}
+
+.project-modal-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.project-modal-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(148px, 0.8fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.field-block {
+  display: grid;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.project-folder-field {
+  max-width: 260px;
+}
+
+.project-status-field {
+  min-width: 0;
+}
+
+.field-block-accent input {
+  border-color: rgba(103, 80, 164, 0.28);
+  background: linear-gradient(180deg, rgba(103, 80, 164, 0.04), rgba(103, 80, 164, 0.015));
 }
 
 #modalAssigneeSelect {
@@ -1118,7 +1210,8 @@ textarea:focus {
   .inline-form,
   .projects-layout,
   .team-layout,
-  .timeline-form {
+  .timeline-form,
+  .project-modal-row {
     grid-template-columns: 1fr;
     min-height: 0;
   }

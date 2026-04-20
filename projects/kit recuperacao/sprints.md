@@ -36,3 +36,10 @@ Regra: inclui apenas sprints depois de 26-01.
 - [x] Arquitetura BD (Guto)
 - [x] Desenvolvimento mobile (Dani)
 - [x] Desenvolvimento Front (Berg)
+
+## Sprint 26-16
+
+### Kit Resgate
+- [ ] Desenvolvimento Back + Adequação (Guto)
+- [ ] Desenvolvimento mobile (Dani)
+- [ ] Desenvolvimento Front (Berg)

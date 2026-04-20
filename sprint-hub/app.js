@@ -1,5 +1,7 @@
 ﻿const STORAGE_KEY = "sprint_hub_v1";
 
+const PROJECT_STATUS_OPTIONS = ["Planejamento", "Desenvolvimento", "Teste", "Acompanhamento", "Bloqueado"];
+
 const el = {
   sprintsList: document.getElementById("sprintsList"),
   leftPanelTitle: document.getElementById("leftPanelTitle"),
@@ -7,6 +9,7 @@ const el = {
   boardTitle: document.getElementById("boardTitle"),
   boardMeta: document.getElementById("boardMeta"),
   responsibleFilter: document.getElementById("responsibleFilter"),
+  projectStatusFilter: document.getElementById("projectStatusFilter"),
   highOnlyFilter: document.getElementById("highOnlyFilter"),
   blockedOnlyFilter: document.getElementById("blockedOnlyFilter"),
   syncStatus: document.getElementById("syncStatus"),
@@ -15,6 +18,7 @@ const el = {
   topicForm: document.getElementById("topicForm"),
   topicTitleInput: document.getElementById("topicTitleInput"),
   topicProjectSelect: document.getElementById("topicProjectSelect"),
+  topicStatusSelect: document.getElementById("topicStatusSelect"),
   topicDescInput: document.getElementById("topicDescInput"),
   newTopicBtn: document.getElementById("newTopicBtn"),
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
@@ -36,6 +40,7 @@ const el = {
   projectModal: document.getElementById("projectModal"),
   projectTitleInput: document.getElementById("projectTitleInput"),
   projectKeySelect: document.getElementById("projectKeySelect"),
+  projectStatusSelect: document.getElementById("projectStatusSelect"),
   projectDescInput: document.getElementById("projectDescInput"),
   projectTimelineBtn: document.getElementById("projectTimelineBtn"),
   projectCopyBtn: document.getElementById("projectCopyBtn"),
@@ -119,6 +124,7 @@ let boardView = "sprints";
 let selectedProjectKey = "";
 let projectSearchText = "";
 let selectedResponsible = "";
+let selectedProjectStatus = "";
 let filterHighOnly = false;
 let filterBlockedOnly = false;
 let projectCatalog = [];
@@ -162,6 +168,7 @@ function seedState() {
             id: uid(),
             title: "Sales STG",
             projectKey: "",
+            status: "Desenvolvimento",
             description: "Delivery and quality improvements",
             items: [
               { id: uid(), text: "Finalize dashboard tasks", done: false, responsibles: [] },
@@ -257,6 +264,13 @@ function normalizeItem(item) {
 
 function normalizeProjectKey(raw) {
   return String(raw || "").trim().replace(/\s+/g, " ");
+}
+
+function normalizeProjectStatus(raw) {
+  const value = String(raw || "").trim().toLowerCase();
+  if (!value) return "";
+  const match = PROJECT_STATUS_OPTIONS.find((status) => status.toLowerCase() === value);
+  return match || "";
 }
 
 function normalizeTimelineEntry(entry) {
@@ -400,6 +414,8 @@ function inferProjectKeyFromTitle(title) {
 
 function normalizeTopic(topic) {
   topic.projectKey = normalizeProjectKey(topic.projectKey) || inferProjectKeyFromTitle(topic.title);
+  topic.status = normalizeProjectStatus(topic.status);
+  topic.description = String(topic.description || "").trim();
   if (!Array.isArray(topic.items)) topic.items = [];
   topic.items = topic.items.map((item) => normalizeItem(item));
   return topic;
@@ -497,6 +513,7 @@ function parseSprintMarkdown(fileName, markdown) {
         id: uid(),
         title: heading.title,
         projectKey: heading.projectKey,
+        status: "",
         description: "",
         items: [],
       };
@@ -506,7 +523,7 @@ function parseSprintMarkdown(fileName, markdown) {
 
     if (/^- \[[ xX]\]\s+/.test(line)) {
       if (!currentTopic) {
-        currentTopic = { id: uid(), title: "Updates", projectKey: "", description: "", items: [] };
+        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", description: "", items: [] };
         topics.push(currentTopic);
       }
       const done = /^- \[[xX]\]/.test(line);
@@ -527,7 +544,7 @@ function parseSprintMarkdown(fileName, markdown) {
 
     if (/^- /.test(line)) {
       if (!currentTopic) {
-        currentTopic = { id: uid(), title: "Updates", projectKey: "", description: "", items: [] };
+        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", description: "", items: [] };
         topics.push(currentTopic);
       }
       const parsed = parseItemTextAndResponsibles(line.replace(/^- /, "").trim());
@@ -545,8 +562,17 @@ function parseSprintMarkdown(fileName, markdown) {
       continue;
     }
 
+    if (/^Status:\s*/i.test(line)) {
+      if (!currentTopic) {
+        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", description: "", items: [] };
+        topics.push(currentTopic);
+      }
+      currentTopic.status = normalizeProjectStatus(line.replace(/^Status:\s*/i, "").trim());
+      continue;
+    }
+
     if (!currentTopic) {
-      currentTopic = { id: uid(), title: "Updates", projectKey: "", description: "", items: [] };
+      currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", description: "", items: [] };
       topics.push(currentTopic);
     }
 
@@ -570,7 +596,9 @@ function sprintToMarkdown(sprint) {
 
   sprint.topics.forEach((topic) => {
     lines.push(`## ${formatTopicHeading(topic)}`);
+    if (topic.status) lines.push(`Status: ${normalizeProjectStatus(topic.status)}`);
     if (topic.description) lines.push(topic.description, "");
+    else if (topic.status) lines.push("");
 
     if (!topic.items.length) {
       lines.push("- [ ] (no items)", "");
@@ -1449,6 +1477,7 @@ function openProjectModal(topic, currentSprintId, onSave, onDelete, onCopy, onTi
   projectModalOnTimeline = onTimeline || null;
   el.projectTitleInput.value = topic.title || "";
   renderProjectModalSelect(topic.projectKey || "");
+  renderProjectStatusSelect(topic.status || "");
   el.projectDescInput.value = topic.description || "";
   el.projectDeleteBtn.classList.toggle("hidden", !projectModalOnDelete);
   projectModalCopyOptions = state.sprints.filter((s) => s.id !== currentSprintId);
@@ -1725,6 +1754,27 @@ function renderResponsibleFilter() {
   else select.value = "";
 }
 
+function renderProjectStatusFilter() {
+  const select = el.projectStatusFilter;
+  if (!select) return;
+
+  select.innerHTML = "";
+
+  const allOpt = document.createElement("option");
+  allOpt.value = "";
+  allOpt.textContent = "Status";
+  select.appendChild(allOpt);
+
+  PROJECT_STATUS_OPTIONS.forEach((status) => {
+    const opt = document.createElement("option");
+    opt.value = status;
+    opt.textContent = status;
+    select.appendChild(opt);
+  });
+
+  select.value = normalizeProjectStatus(selectedProjectStatus);
+}
+
 function renderTopicProjectSelect() {
   const select = el.topicProjectSelect;
   if (!select) return;
@@ -1768,6 +1818,34 @@ function renderProjectModalSelect(currentProjectKey = "") {
   select.value = projectCatalog.includes(normalized) ? normalized : "";
 }
 
+function fillStatusSelect(select, currentStatus = "") {
+  if (!select) return;
+  const previousEmptyOption = select.querySelector('option[value=""]');
+  select.innerHTML = "";
+
+  const empty = document.createElement("option");
+  empty.value = "";
+  empty.textContent = previousEmptyOption?.textContent || "No status";
+  select.appendChild(empty);
+
+  PROJECT_STATUS_OPTIONS.forEach((status) => {
+    const option = document.createElement("option");
+    option.value = status;
+    option.textContent = status;
+    select.appendChild(option);
+  });
+
+  select.value = normalizeProjectStatus(currentStatus);
+}
+
+function renderTopicStatusSelect(currentStatus = "") {
+  fillStatusSelect(el.topicStatusSelect, currentStatus);
+}
+
+function renderProjectStatusSelect(currentStatus = "") {
+  fillStatusSelect(el.projectStatusSelect, currentStatus);
+}
+
 function visibleSprints() {
   if (boardView === "projects") return state.sprints;
   const active = getActiveSprint();
@@ -1802,6 +1880,7 @@ function renderTopics() {
     sprint.topics.forEach((topic) => {
       normalizeTopic(topic);
       if (boardView === "projects" && selectedProjectKey && topic.projectKey !== selectedProjectKey) return;
+      if (selectedProjectStatus && topic.status !== selectedProjectStatus) return;
 
       const visibleItems = topic.items.filter((item) => {
         normalizeItem(item);
@@ -1818,15 +1897,26 @@ function renderTopics() {
       node.querySelector(".topic-project").textContent = multiSprintMode
         ? `${projectText} | Sprint ${sprint.name}`
         : projectText;
+      const statusTag = node.querySelector(".topic-status-tag");
+      if (topic.status) {
+        statusTag.textContent = topic.status;
+        statusTag.dataset.status = topic.status;
+        statusTag.classList.remove("hidden");
+      } else {
+        statusTag.textContent = "";
+        delete statusTag.dataset.status;
+        statusTag.classList.add("hidden");
+      }
       node.querySelector(".topic-desc").textContent = topic.description || "No description";
       node.querySelector(".topic-edit-btn").addEventListener("click", () => {
         openProjectModal(
           topic,
           sprint.id,
-          ({ title, description, projectKey }) => {
+          ({ title, description, projectKey, status }) => {
             topic.title = title;
             topic.description = description;
             topic.projectKey = normalizeProjectKey(projectKey);
+            topic.status = normalizeProjectStatus(status);
             persistState();
             render();
           },
@@ -1847,6 +1937,7 @@ function renderTopics() {
               id: uid(),
               title: topic.title,
               projectKey: topic.projectKey || "",
+              status: normalizeProjectStatus(topic.status),
               description: topic.description,
               items: itemsToCopy.map((item) => ({
                 id: uid(),
@@ -2034,9 +2125,13 @@ function renderTopics() {
   if (renderedTopicCount === 0) {
     const msg = document.createElement("p");
     msg.className = "muted";
-    msg.textContent = selectedResponsible
-      ? `No tasks found for ${selectedResponsible} in this view.`
-      : "No projects found with the current filters.";
+    if (selectedResponsible) {
+      msg.textContent = `No tasks found for ${selectedResponsible} in this view.`;
+    } else if (selectedProjectStatus) {
+      msg.textContent = `No projects found with status ${selectedProjectStatus}.`;
+    } else {
+      msg.textContent = "No projects found with the current filters.";
+    }
     el.topicsGrid.appendChild(msg);
   }
 }
@@ -2048,7 +2143,9 @@ function render() {
   el.leftPanelSearch.value = projectSearchText;
   renderLeftPanel();
   renderTopicProjectSelect();
+  renderTopicStatusSelect(el.topicStatusSelect?.value || "");
   renderResponsibleFilter();
+  renderProjectStatusFilter();
   renderTopics();
   const projectsMode = boardView === "projects";
   el.newTopicBtn.disabled = projectsMode;
@@ -2098,6 +2195,7 @@ function copySprintFromSource(source, sprintName, includeDone) {
     id: uid(),
     title: topic.title,
     projectKey: topic.projectKey || "",
+    status: normalizeProjectStatus(topic.status),
     description: topic.description,
     items: topic.items.map((item) => ({
       id: uid(),
@@ -2131,12 +2229,14 @@ function addTopic(e) {
 
   const title = el.topicTitleInput.value.trim();
   const projectKey = normalizeProjectKey(el.topicProjectSelect.value);
+  const status = normalizeProjectStatus(el.topicStatusSelect.value);
   const description = el.topicDescInput.value.trim();
   if (!title) return;
 
-  sprint.topics.push({ id: uid(), title, projectKey, description, items: [] });
+  sprint.topics.push({ id: uid(), title, projectKey, status, description, items: [] });
   el.topicTitleInput.value = "";
   el.topicProjectSelect.value = "";
+  el.topicStatusSelect.value = "";
   el.topicDescInput.value = "";
   el.topicForm.classList.add("hidden");
   persistState();
@@ -2225,6 +2325,10 @@ el.responsibleFilter.addEventListener("change", () => {
   selectedResponsible = el.responsibleFilter.value || "";
   render();
 });
+el.projectStatusFilter.addEventListener("change", () => {
+  selectedProjectStatus = normalizeProjectStatus(el.projectStatusFilter.value);
+  render();
+});
 el.highOnlyFilter.addEventListener("change", () => {
   filterHighOnly = el.highOnlyFilter.checked;
   render();
@@ -2286,12 +2390,13 @@ el.projectSaveBtn.addEventListener("click", () => {
   }
   const title = el.projectTitleInput.value.trim();
   const projectKey = normalizeProjectKey(el.projectKeySelect.value);
+  const status = normalizeProjectStatus(el.projectStatusSelect.value);
   const description = el.projectDescInput.value.trim();
   if (!title) {
     window.alert("Project title cannot be empty.");
     return;
   }
-  projectModalOnSave({ title, description, projectKey });
+  projectModalOnSave({ title, description, projectKey, status });
   closeProjectModal();
 });
 el.projectTimelineBtn.addEventListener("click", async () => {

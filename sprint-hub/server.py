@@ -299,6 +299,10 @@ class Handler(SimpleHTTPRequestHandler):
   def do_GET(self):
     parsed_url = urlparse(self.path)
     parsed = parsed_url.path
+    if parsed == "/favicon.ico":
+      self.send_response(204)
+      self.end_headers()
+      return
     if parsed == "/api/pjs":
       PJS_FILE.parent.mkdir(parents=True, exist_ok=True)
       if not PJS_FILE.exists():

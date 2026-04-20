@@ -53,6 +53,7 @@
           </div>
           <div class="board-actions">
             <select id="responsibleFilter" aria-label="Filter by responsible"></select>
+            <select id="projectStatusFilter" aria-label="Filter by project status"></select>
             <label class="quick-filter">
               <input id="highOnlyFilter" type="checkbox" />
               High
@@ -70,6 +71,9 @@
           <select id="topicProjectSelect" aria-label="Project">
             <option value="">No project</option>
           </select>
+          <select id="topicStatusSelect" aria-label="Project status">
+            <option value="">No status</option>
+          </select>
           <input id="topicDescInput" type="text" placeholder="Short description (optional)" />
           <button type="submit" class="btn btn-primary">Add Project</button>
           <button type="button" id="cancelTopicBtn" class="btn btn-ghost">Cancel</button>
@@ -85,7 +89,10 @@
       <div class="topic-head">
         <div>
           <h4 class="topic-title"></h4>
-          <p class="topic-project muted"></p>
+          <div class="topic-meta">
+            <p class="topic-project muted"></p>
+            <span class="topic-status-tag hidden"></span>
+          </div>
           <p class="topic-desc muted"></p>
         </div>
         <button type="button" class="btn btn-mini topic-edit-btn">Edit Project</button>
@@ -128,11 +135,30 @@
     <div class="modal-card">
       <h3>Edit Project</h3>
       <p class="muted">Update project title and description.</p>
-      <input id="projectTitleInput" type="text" placeholder="Project title" />
-      <select id="projectKeySelect" aria-label="Project folder">
-        <option value="">No project</option>
-      </select>
-      <input id="projectDescInput" type="text" placeholder="Project description (optional)" />
+      <div class="project-modal-form">
+        <label class="field-block">
+          <span class="field-label">Title</span>
+          <input id="projectTitleInput" type="text" placeholder="Project title" />
+        </label>
+        <div class="project-modal-row">
+          <label class="field-block project-folder-field">
+            <span class="field-label">Folder</span>
+            <select id="projectKeySelect" aria-label="Project folder">
+              <option value="">No project</option>
+            </select>
+          </label>
+          <label class="field-block project-status-field">
+            <span class="field-label">Status</span>
+            <select id="projectStatusSelect" aria-label="Project status">
+              <option value="">No status</option>
+            </select>
+          </label>
+        </div>
+        <label class="field-block field-block-accent">
+          <span class="field-label">Description</span>
+          <input id="projectDescInput" type="text" placeholder="Short project summary (optional)" />
+        </label>
+      </div>
       <div class="modal-actions">
         <button id="projectTimelineBtn" class="btn btn-ghost" type="button">Timeline</button>
         <button id="projectCopyBtn" class="btn btn-ghost modal-action-left" type="button">Copy to Sprint</button>
