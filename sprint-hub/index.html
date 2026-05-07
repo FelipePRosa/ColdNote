@@ -81,6 +81,19 @@
 
         <div id="topicsGrid" class="topics-grid"></div>
       </section>
+
+      <aside class="backlog-panel card">
+        <div class="backlog-head">
+          <div>
+            <h3>Backlog</h3>
+          </div>
+          <div class="backlog-controls">
+            <select id="backlogProjectFilter" aria-label="Filter backlog by project"></select>
+            <button id="newBacklogItemBtn" class="btn btn-mini" type="button">Add</button>
+          </div>
+        </div>
+        <ul id="backlogList" class="backlog-list"></ul>
+      </aside>
     </section>
   </main>
 
@@ -95,7 +108,7 @@
           </div>
           <p class="topic-desc muted"></p>
         </div>
-        <button type="button" class="btn btn-mini topic-edit-btn">Edit Project</button>
+        <button type="button" class="btn btn-mini topic-edit-btn" aria-label="Edit project" title="Edit project">✎</button>
       </div>
 
       <ul class="items-list"></ul>
@@ -109,9 +122,15 @@
   <div id="assigneeModal" class="modal hidden">
     <div class="modal-card">
       <h3 id="modalTitle">Edit Task</h3>
-      <p class="muted">Update task text and responsibles.</p>
+      <p id="modalSubtitle" class="muted">Update task text and responsibles.</p>
       <input id="modalItemText" type="text" placeholder="Task text" />
-      <div class="task-meta-row">
+      <label id="modalBacklogProjectField" class="field-block hidden">
+        <span class="field-label">Project</span>
+        <select id="modalBacklogProjectSelect" aria-label="Backlog project">
+          <option value="">No project</option>
+        </select>
+      </label>
+      <div id="taskMetaRow" class="task-meta-row">
         <label class="copy-options">
           <input id="modalHighPriorityCheck" type="checkbox" />
           High Priority
@@ -124,7 +143,7 @@
       <input id="modalBlockedReasonInput" class="hidden" type="text" placeholder="Blocked reason" />
       <select id="modalAssigneeSelect" multiple size="8"></select>
       <div class="modal-actions">
-        <button id="modalClearBtn" class="btn btn-ghost" type="button">Clear responsibles</button>
+        <button id="modalDeleteBtn" class="btn btn-danger modal-action-left hidden" type="button">Remove</button>
         <button id="modalCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
         <button id="modalSaveBtn" class="btn btn-primary" type="button">Apply</button>
       </div>

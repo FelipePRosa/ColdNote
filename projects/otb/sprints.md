@@ -86,6 +86,20 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-16
 
 ### OTB
+- [x] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED: Falta de prioridade]
+- [x] Comunicação WA p/ cliente + Descrições (Gui + Nu) [BLOCKED: Nuala tá curtindo]
+- [x] Correção de SKUs (Gui + Nu) [BLOCKED: Nuala tá curtindo]
+
+## Sprint 26-17
+
+### OTB
+- [x] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED: Falta de prioridade]
+- [x] Comunicação WA p/ cliente + Descrições (Gui + Nu)
+- [x] Correção de SKUs (Gui + Nu)
+
+## Sprint 26-18
+
+### OTB
 - [ ] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED: Falta de prioridade]
-- [ ] Comunicação WA p/ cliente + Descrições (Gui + Nu) [BLOCKED: Nuala tá curtindo]
-- [ ] Correção de SKUs (Gui + Nu) [BLOCKED: Nuala tá curtindo]
+- [ ] Deploy Comunicação WA p/ cliente + Descrições (Gui)
+- [ ] Deploy Correção de SKUs (Gui)

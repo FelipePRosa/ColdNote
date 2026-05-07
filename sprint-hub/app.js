@@ -10,10 +10,13 @@ const el = {
   boardMeta: document.getElementById("boardMeta"),
   responsibleFilter: document.getElementById("responsibleFilter"),
   projectStatusFilter: document.getElementById("projectStatusFilter"),
+  backlogProjectFilter: document.getElementById("backlogProjectFilter"),
+  newBacklogItemBtn: document.getElementById("newBacklogItemBtn"),
   highOnlyFilter: document.getElementById("highOnlyFilter"),
   blockedOnlyFilter: document.getElementById("blockedOnlyFilter"),
   syncStatus: document.getElementById("syncStatus"),
   topicsGrid: document.getElementById("topicsGrid"),
+  backlogList: document.getElementById("backlogList"),
   topicTemplate: document.getElementById("topicTemplate"),
   topicForm: document.getElementById("topicForm"),
   topicTitleInput: document.getElementById("topicTitleInput"),
@@ -29,12 +32,16 @@ const el = {
   teamBtn: document.getElementById("teamBtn"),
   assigneeModal: document.getElementById("assigneeModal"),
   modalTitle: document.getElementById("modalTitle"),
+  modalSubtitle: document.getElementById("modalSubtitle"),
   modalItemText: document.getElementById("modalItemText"),
+  modalBacklogProjectField: document.getElementById("modalBacklogProjectField"),
+  modalBacklogProjectSelect: document.getElementById("modalBacklogProjectSelect"),
+  taskMetaRow: document.getElementById("taskMetaRow"),
   modalHighPriorityCheck: document.getElementById("modalHighPriorityCheck"),
   modalBlockedCheck: document.getElementById("modalBlockedCheck"),
   modalBlockedReasonInput: document.getElementById("modalBlockedReasonInput"),
   modalAssigneeSelect: document.getElementById("modalAssigneeSelect"),
-  modalClearBtn: document.getElementById("modalClearBtn"),
+  modalDeleteBtn: document.getElementById("modalDeleteBtn"),
   modalCancelBtn: document.getElementById("modalCancelBtn"),
   modalSaveBtn: document.getElementById("modalSaveBtn"),
   projectModal: document.getElementById("projectModal"),
@@ -106,11 +113,13 @@ const TEAM_METRICS_VIRTUAL_PATH = "__team_metrics__";
 let state = {
   activeSprintId: null,
   sprints: [],
+  backlog: [],
 };
 
 let dataMode = "loading";
 let teamMembers = loadTeamMembers();
 let itemEditModalOnSave = null;
+let itemEditModalOnDelete = null;
 let projectModalOnSave = null;
 let projectModalOnDelete = null;
 let projectModalOnCopy = null;
@@ -125,6 +134,7 @@ let selectedProjectKey = "";
 let projectSearchText = "";
 let selectedResponsible = "";
 let selectedProjectStatus = "";
+let selectedBacklogProject = "";
 let filterHighOnly = false;
 let filterBlockedOnly = false;
 let projectCatalog = [];
@@ -142,6 +152,8 @@ let currentTeamFile = "";
 let showInactiveTeamMembers = false;
 let currentTimelineProjectKey = "";
 let currentTimelineEntries = [];
+const modalBackdropState = new WeakMap();
+let taskModalBacklogMode = false;
 
 function setStatus(text) {
   const raw = `Mode: ${text}`;
@@ -152,6 +164,18 @@ function setStatus(text) {
     .replace("localStorage fallback (run `python sprint-hub/server.py` for file mode)", "local fallback");
   el.syncStatus.textContent = compact;
   el.syncStatus.title = raw;
+}
+
+function bindBackdropClose(modalEl, onClose) {
+  if (!modalEl) return;
+  modalEl.addEventListener("pointerdown", (e) => {
+    modalBackdropState.set(modalEl, e.target === modalEl);
+  });
+  modalEl.addEventListener("click", (e) => {
+    const startedOnBackdrop = modalBackdropState.get(modalEl);
+    modalBackdropState.delete(modalEl);
+    if (startedOnBackdrop && e.target === modalEl) onClose();
+  });
 }
 
 function seedState() {
@@ -178,6 +202,7 @@ function seedState() {
         ],
       },
     ],
+    backlog: [],
   };
 }
 
@@ -198,6 +223,7 @@ function loadStateLocal() {
         })
       ),
     }));
+    parsed.backlog = (parsed.backlog || []).map((item) => normalizeBacklogItem(item));
     return parsed;
   } catch {
     return seedState();
@@ -260,6 +286,25 @@ function normalizeItem(item) {
   item.blocked = Boolean(item.blocked);
   item.blockedReason = item.blocked ? String(item.blockedReason || "").trim() : "";
   return item;
+}
+
+function normalizeBacklogItem(item) {
+  const normalized = normalizeItem({
+    ...item,
+    id: item?.id || uid(),
+    text: String(item?.text || "").trim(),
+    done: false,
+    responsibles: [],
+    priority: "normal",
+    blocked: false,
+    blockedReason: "",
+    projectKey: normalizeProjectKey(item?.projectKey),
+    projectTitle: String(item?.projectTitle || "").trim(),
+  });
+  if (!normalized.projectTitle) {
+    normalized.projectTitle = normalized.projectKey || "No project";
+  }
+  return normalized;
 }
 
 function normalizeProjectKey(raw) {
@@ -425,6 +470,10 @@ function normalizeAllTopics() {
   state.sprints.forEach((sprint) => {
     sprint.topics = (sprint.topics || []).map((topic) => normalizeTopic(topic));
   });
+}
+
+function normalizeAllBacklog() {
+  state.backlog = (state.backlog || []).map((item) => normalizeBacklogItem(item));
 }
 
 function updateProjectCatalogFromTree(dirs, files) {
@@ -1263,6 +1312,9 @@ async function saveAllToFiles() {
       name: sprint.name,
       content: sprintToMarkdown(sprint),
     })),
+    backlog: (state.backlog || []).map((item) => ({
+      ...normalizeBacklogItem(item),
+    })),
   };
 
   const res = await fetch("/api/sprint-files/save-all", {
@@ -1309,28 +1361,68 @@ function getActiveSprint() {
   return sprint || state.sprints[0] || null;
 }
 
-function beginTaskDrag(topicId, itemId) {
-  dragTaskState = { topicId, itemId };
+function beginTopicTaskDrag(topicId, itemId) {
+  dragTaskState = { sourceType: "topic", topicId, itemId };
+}
+
+function beginBacklogTaskDrag(itemId) {
+  dragTaskState = { sourceType: "backlog", itemId };
 }
 
 function endTaskDrag() {
   dragTaskState = null;
 }
 
-function moveDraggedTask(targetTopicId, beforeItemId = null) {
+function removeDraggedTaskFromSource() {
+  if (!dragTaskState) return false;
+  if (dragTaskState.sourceType === "backlog") {
+    const sourceIndex = state.backlog.findIndex((item) => item.id === dragTaskState.itemId);
+    if (sourceIndex < 0) return null;
+    const [movedItem] = state.backlog.splice(sourceIndex, 1);
+    return movedItem || null;
+  }
+
+  const sprint = getActiveSprint();
+  if (!sprint) return null;
+
+  const sourceTopic = sprint.topics.find((t) => t.id === dragTaskState.topicId);
+  if (!sourceTopic) return null;
+  const sourceIndex = sourceTopic.items.findIndex((i) => i.id === dragTaskState.itemId);
+  if (sourceIndex < 0) return null;
+
+  const [movedItem] = sourceTopic.items.splice(sourceIndex, 1);
+  return movedItem || null;
+}
+
+function moveDraggedTaskToTopic(targetTopicId, beforeItemId = null) {
   if (!dragTaskState) return false;
   const sprint = getActiveSprint();
   if (!sprint) return false;
 
-  const sourceTopic = sprint.topics.find((t) => t.id === dragTaskState.topicId);
-  const targetTopic = sprint.topics.find((t) => t.id === targetTopicId);
-  if (!sourceTopic || !targetTopic) return false;
+  let targetTopic = sprint.topics.find((t) => t.id === targetTopicId);
+  if (!targetTopic) return false;
 
-  const sourceIndex = sourceTopic.items.findIndex((i) => i.id === dragTaskState.itemId);
-  if (sourceIndex < 0) return false;
-
-  const [movedItem] = sourceTopic.items.splice(sourceIndex, 1);
+  const sourceTopic =
+    dragTaskState.sourceType === "topic"
+      ? sprint.topics.find((t) => t.id === dragTaskState.topicId)
+      : null;
+  const sourceIndex =
+    dragTaskState.sourceType === "topic"
+      ? sourceTopic?.items.findIndex((i) => i.id === dragTaskState.itemId) ?? -1
+      : -1;
+  const movedItem = removeDraggedTaskFromSource();
   if (!movedItem) return false;
+
+  if (dragTaskState.sourceType === "backlog") {
+    const backlogProjectKey = normalizeProjectKey(movedItem.projectKey);
+    if (backlogProjectKey) {
+      const matchedTopic = sprint.topics.find((topic) => normalizeProjectKey(topic.projectKey) === backlogProjectKey);
+      if (matchedTopic) {
+        targetTopic = matchedTopic;
+        beforeItemId = null;
+      }
+    }
+  }
 
   let insertIndex = targetTopic.items.length;
   if (beforeItemId) {
@@ -1338,11 +1430,51 @@ function moveDraggedTask(targetTopicId, beforeItemId = null) {
     if (idx >= 0) insertIndex = idx;
   }
 
-  if (sourceTopic.id === targetTopic.id && insertIndex > sourceIndex) {
+  if (sourceTopic && sourceTopic.id === targetTopic.id && insertIndex > sourceIndex) {
     insertIndex -= 1;
   }
 
-  targetTopic.items.splice(Math.max(0, insertIndex), 0, movedItem);
+  targetTopic.items.splice(Math.max(0, insertIndex), 0, normalizeItem(movedItem));
+  persistState();
+  render();
+  return true;
+}
+
+function moveDraggedTaskToBacklog(beforeItemId = null) {
+  if (!dragTaskState) return false;
+
+  if (dragTaskState.sourceType === "topic") {
+    const sprint = getActiveSprint();
+    if (!sprint) return false;
+    const sourceTopic = sprint.topics.find((t) => t.id === dragTaskState.topicId);
+    if (!sourceTopic) return false;
+    const movedItem = removeDraggedTaskFromSource();
+    if (!movedItem) return false;
+    const backlogItem = normalizeBacklogItem({
+      ...movedItem,
+      projectKey: sourceTopic.projectKey || normalizeProjectKey(sourceTopic.title),
+      projectTitle: sourceTopic.title || sourceTopic.projectKey || "No project",
+    });
+    let insertIndex = state.backlog.length;
+    if (beforeItemId) {
+      const idx = state.backlog.findIndex((item) => item.id === beforeItemId);
+      if (idx >= 0) insertIndex = idx;
+    }
+    state.backlog.splice(Math.max(0, insertIndex), 0, backlogItem);
+  } else {
+    const sourceIndex = state.backlog.findIndex((item) => item.id === dragTaskState.itemId);
+    if (sourceIndex < 0) return false;
+    const [movedItem] = state.backlog.splice(sourceIndex, 1);
+    if (!movedItem) return false;
+    let insertIndex = state.backlog.length;
+    if (beforeItemId) {
+      const idx = state.backlog.findIndex((item) => item.id === beforeItemId);
+      if (idx >= 0) insertIndex = idx;
+    }
+    if (beforeItemId && insertIndex > sourceIndex) insertIndex -= 1;
+    state.backlog.splice(Math.max(0, insertIndex), 0, movedItem);
+  }
+
   persistState();
   render();
   return true;
@@ -1387,9 +1519,12 @@ async function flushAutoSave() {
   }
 }
 
-function openTaskModal({ title, saveLabel, currentText, currentNames, onSave }) {
+function openTaskModal({ title, subtitle, saveLabel, currentText, currentNames, currentProjectKey = "", onSave, onDelete = null, backlogMode = false }) {
   itemEditModalOnSave = onSave;
+  itemEditModalOnDelete = onDelete;
+  taskModalBacklogMode = backlogMode;
   el.modalTitle.textContent = title || "Edit Task";
+  el.modalSubtitle.textContent = subtitle || "Update task text and responsibles.";
   el.modalSaveBtn.textContent = saveLabel || "Apply";
   el.modalItemText.value = currentText?.text || "";
   el.modalHighPriorityCheck.checked = currentText?.priority === "high";
@@ -1407,12 +1542,26 @@ function openTaskModal({ title, saveLabel, currentText, currentNames, onSave }) 
     el.modalAssigneeSelect.appendChild(option);
   });
 
+  renderBacklogModalProjectSelect(currentProjectKey);
+  el.modalBacklogProjectField.classList.toggle("hidden", !backlogMode);
+  el.taskMetaRow.classList.toggle("hidden", backlogMode);
+  el.modalBlockedReasonInput.classList.toggle("hidden", backlogMode || !el.modalBlockedCheck.checked);
+  el.modalAssigneeSelect.classList.toggle("hidden", backlogMode);
+  el.modalDeleteBtn.classList.toggle("hidden", !onDelete);
+
   el.assigneeModal.classList.remove("hidden");
 }
 
 function closeAssigneeModal() {
   el.assigneeModal.classList.add("hidden");
+  el.modalBacklogProjectField.classList.add("hidden");
+  el.taskMetaRow.classList.remove("hidden");
+  el.modalAssigneeSelect.classList.remove("hidden");
+  el.modalDeleteBtn.classList.add("hidden");
+  el.modalBlockedReasonInput.classList.remove("hidden");
+  taskModalBacklogMode = false;
   itemEditModalOnSave = null;
+  itemEditModalOnDelete = null;
 }
 
 function renderTimelineEntries() {
@@ -1818,6 +1967,27 @@ function renderProjectModalSelect(currentProjectKey = "") {
   select.value = projectCatalog.includes(normalized) ? normalized : "";
 }
 
+function renderBacklogModalProjectSelect(currentProjectKey = "") {
+  const select = el.modalBacklogProjectSelect;
+  if (!select) return;
+  select.innerHTML = "";
+
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = "No project";
+  select.appendChild(none);
+
+  projectCatalog.forEach((name) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+
+  const normalized = normalizeProjectKey(currentProjectKey);
+  select.value = projectCatalog.includes(normalized) ? normalized : "";
+}
+
 function fillStatusSelect(select, currentStatus = "") {
   if (!select) return;
   const previousEmptyOption = select.querySelector('option[value=""]');
@@ -1846,8 +2016,158 @@ function renderProjectStatusSelect(currentStatus = "") {
   fillStatusSelect(el.projectStatusSelect, currentStatus);
 }
 
+function backlogProjectId(item) {
+  return normalizeProjectKey(item?.projectKey || item?.projectTitle);
+}
+
+function backlogProjectLabel(item) {
+  return String(item?.projectTitle || item?.projectKey || "No project").trim();
+}
+
+function renderBacklogProjectFilter() {
+  const select = el.backlogProjectFilter;
+  if (!select) return;
+
+  select.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "Todos projetos";
+  select.appendChild(all);
+
+  const projects = new Map();
+  (state.backlog || []).forEach((item) => {
+    const id = backlogProjectId(item);
+    const label = backlogProjectLabel(item);
+    if (!id || projects.has(id)) return;
+    projects.set(id, label);
+  });
+
+  Array.from(projects.entries())
+    .sort((a, b) => a[1].localeCompare(b[1]))
+    .forEach(([id, label]) => {
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = label;
+      select.appendChild(option);
+    });
+
+  select.value = projects.has(selectedBacklogProject) ? selectedBacklogProject : "";
+}
+
+function renderBacklog() {
+  const list = el.backlogList;
+  if (!list) return;
+  list.innerHTML = "";
+
+  const items = (state.backlog || []).filter((item) => {
+    if (!selectedBacklogProject) return true;
+    return backlogProjectId(item) === selectedBacklogProject;
+  });
+
+  if (!items.length) {
+    list.classList.add("empty-drop-zone");
+    const empty = document.createElement("li");
+    empty.className = "item-empty-hint";
+    empty.textContent = selectedBacklogProject ? "No backlog tasks for this project" : "Drop tasks here";
+    list.appendChild(empty);
+  } else {
+    list.classList.remove("empty-drop-zone");
+  }
+
+  list.ondragover = (e) => {
+    if (!dragTaskState) return;
+    e.preventDefault();
+    list.classList.add("drop-active");
+  };
+  list.ondragleave = (e) => {
+    if (e.relatedTarget && list.contains(e.relatedTarget)) return;
+    list.classList.remove("drop-active");
+  };
+  list.ondrop = (e) => {
+    e.preventDefault();
+    list.classList.remove("drop-active");
+    moveDraggedTaskToBacklog(null);
+    endTaskDrag();
+  };
+
+  items.forEach((item) => {
+    const li = document.createElement("li");
+    li.className = "item backlog-item";
+    li.draggable = true;
+    li.innerHTML = `
+      <span class="item-line"><span class="item-text"></span></span>
+    `;
+    li.querySelector(".item-text").textContent = itemDisplayText(item);
+
+    const itemLine = li.querySelector(".item-line");
+    const projectMeta = document.createElement("div");
+    projectMeta.className = "item-project-meta";
+    projectMeta.textContent = backlogProjectLabel(item);
+    itemLine.prepend(projectMeta);
+
+    li.addEventListener("dragstart", (e) => {
+      beginBacklogTaskDrag(item.id);
+      li.classList.add("dragging");
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", item.id);
+      }
+    });
+    li.addEventListener("dragend", () => {
+      li.classList.remove("dragging");
+      document.querySelectorAll(".item.drop-before").forEach((x) => x.classList.remove("drop-before"));
+      document.querySelectorAll(".items-list.drop-active, .backlog-list.drop-active").forEach((x) => x.classList.remove("drop-active"));
+      endTaskDrag();
+    });
+    li.addEventListener("dragover", (e) => {
+      if (!dragTaskState || dragTaskState.itemId === item.id) return;
+      e.preventDefault();
+      li.classList.add("drop-before");
+    });
+    li.addEventListener("dragleave", () => {
+      li.classList.remove("drop-before");
+    });
+    li.addEventListener("drop", (e) => {
+      e.preventDefault();
+      li.classList.remove("drop-before");
+      moveDraggedTaskToBacklog(item.id);
+      endTaskDrag();
+    });
+
+    li.addEventListener("click", (e) => {
+      openTaskModal({
+        title: "Edit Backlog Task",
+        subtitle: "Update only the task text for backlog.",
+        saveLabel: "Apply",
+        currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason },
+        currentNames: item.responsibles || [],
+        currentProjectKey: item.projectKey || "",
+        onDelete: () => {
+          state.backlog = state.backlog.filter((x) => x.id !== item.id);
+          persistState();
+          render();
+        },
+        backlogMode: true,
+        onSave: ({ text, projectKey }) => {
+          item.text = text;
+          item.projectKey = normalizeProjectKey(projectKey);
+          item.projectTitle = item.projectKey || "No project";
+          item.responsibles = [];
+          item.priority = "normal";
+          item.blocked = false;
+          item.blockedReason = "";
+          persistState();
+          render();
+        },
+      });
+    });
+
+    list.appendChild(li);
+  });
+}
+
 function visibleSprints() {
-  if (boardView === "projects") return state.sprints;
+  if (boardView === "projects") return [...state.sprints].reverse();
   const active = getActiveSprint();
   return active ? [active] : [];
 }
@@ -1981,7 +2301,7 @@ function renderTopics() {
         itemsList.addEventListener("drop", (e) => {
           e.preventDefault();
           itemsList.classList.remove("drop-active");
-          moveDraggedTask(topic.id, null);
+          moveDraggedTaskToTopic(topic.id, null);
           endTaskDrag();
         });
       }
@@ -1995,8 +2315,7 @@ function renderTopics() {
           <input type="checkbox" ${item.done ? "checked" : ""} />
           <span class="item-line"><span class="item-text"></span></span>
           <div>
-            <button type="button" class="btn-link btn-link-neutral item-edit">edit</button>
-            <button type="button" class="btn-link item-remove">remove</button>
+            <button type="button" class="btn-link btn-link-neutral item-edit" aria-label="Edit task" title="Edit task">✎</button>
           </div>
         `;
         li.querySelector(".item-text").textContent = itemDisplayText(item);
@@ -2022,7 +2341,7 @@ function renderTopics() {
 
         if (canDrag) {
           li.addEventListener("dragstart", (e) => {
-            beginTaskDrag(topic.id, item.id);
+            beginTopicTaskDrag(topic.id, item.id);
             li.classList.add("dragging");
             if (e.dataTransfer) {
               e.dataTransfer.effectAllowed = "move";
@@ -2050,7 +2369,7 @@ function renderTopics() {
           li.addEventListener("drop", (e) => {
             e.preventDefault();
             li.classList.remove("drop-before");
-            moveDraggedTask(topic.id, item.id);
+            moveDraggedTaskToTopic(topic.id, item.id);
             endTaskDrag();
           });
         }
@@ -2067,18 +2386,17 @@ function renderTopics() {
           render();
         });
 
-        li.querySelector(".item-remove").addEventListener("click", () => {
-          topic.items = topic.items.filter((x) => x.id !== item.id);
-          persistState();
-          render();
-        });
-
         li.querySelector(".item-edit").addEventListener("click", () => {
           openTaskModal({
             title: "Edit Task",
             saveLabel: "Apply",
             currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason },
             currentNames: item.responsibles || [],
+            onDelete: () => {
+              topic.items = topic.items.filter((x) => x.id !== item.id);
+              persistState();
+              render();
+            },
             onSave: ({ text, responsibles, priority, blocked, blockedReason }) => {
               item.text = text;
               item.responsibles = responsibles;
@@ -2146,7 +2464,9 @@ function render() {
   renderTopicStatusSelect(el.topicStatusSelect?.value || "");
   renderResponsibleFilter();
   renderProjectStatusFilter();
+  renderBacklogProjectFilter();
   renderTopics();
+  renderBacklog();
   const projectsMode = boardView === "projects";
   el.newTopicBtn.disabled = projectsMode;
   el.editSprintBtn.disabled = projectsMode;
@@ -2250,6 +2570,7 @@ async function loadFromFiles() {
     state = {
       activeSprintId: parsed[parsed.length - 1]?.id || null,
       sprints: parsed,
+      backlog: (payload.backlog || []).map((item) => normalizeBacklogItem(item)),
     };
     await refreshProjectCatalog();
     try {
@@ -2258,11 +2579,13 @@ async function loadFromFiles() {
       // Keep fallback team list if endpoint fails.
     }
     normalizeAllTopics();
+    normalizeAllBacklog();
     dataMode = "files";
     setStatus("file-based (`tech/sprints/*.md`)");
   } catch (err) {
     state = loadStateLocal();
     normalizeAllTopics();
+    normalizeAllBacklog();
     dataMode = "local";
     setStatus("localStorage fallback (run `python sprint-hub/server.py` for file mode)");
   }
@@ -2329,6 +2652,33 @@ el.projectStatusFilter.addEventListener("change", () => {
   selectedProjectStatus = normalizeProjectStatus(el.projectStatusFilter.value);
   render();
 });
+el.backlogProjectFilter.addEventListener("change", () => {
+  selectedBacklogProject = normalizeProjectKey(el.backlogProjectFilter.value);
+  render();
+});
+el.newBacklogItemBtn.addEventListener("click", () => {
+  openTaskModal({
+    title: "New Backlog Task",
+    subtitle: "Create a backlog task with task text and project.",
+    saveLabel: "Create",
+    currentText: { text: "", priority: "normal", blocked: false, blockedReason: "" },
+    currentNames: [],
+    currentProjectKey: selectedBacklogProject || "",
+    backlogMode: true,
+    onSave: ({ text, projectKey }) => {
+      state.backlog.push(
+        normalizeBacklogItem({
+          id: uid(),
+          text,
+          done: false,
+          projectKey: normalizeProjectKey(projectKey),
+        })
+      );
+      persistState();
+      render();
+    },
+  });
+});
 el.highOnlyFilter.addEventListener("change", () => {
   filterHighOnly = el.highOnlyFilter.checked;
   render();
@@ -2345,12 +2695,20 @@ el.newTopicBtn.addEventListener("click", () => {
   el.topicTitleInput.focus();
 });
 el.modalCancelBtn.addEventListener("click", closeAssigneeModal);
-el.modalClearBtn.addEventListener("click", () => {
-  Array.from(el.modalAssigneeSelect.options).forEach((opt) => {
-    opt.selected = false;
-  });
+el.modalDeleteBtn.addEventListener("click", () => {
+  if (!itemEditModalOnDelete) return;
+  if (!window.confirm("Remove this task?")) return;
+  itemEditModalOnDelete();
+  closeAssigneeModal();
 });
 el.modalBlockedCheck.addEventListener("change", () => {
+  if (taskModalBacklogMode) {
+    el.modalBlockedCheck.checked = false;
+    el.modalBlockedReasonInput.disabled = true;
+    el.modalBlockedReasonInput.classList.add("hidden");
+    el.modalBlockedReasonInput.value = "";
+    return;
+  }
   const enabled = el.modalBlockedCheck.checked;
   el.modalBlockedReasonInput.disabled = !enabled;
   el.modalBlockedReasonInput.classList.toggle("hidden", !enabled);
@@ -2369,15 +2727,13 @@ el.modalSaveBtn.addEventListener("click", () => {
   const selected = Array.from(el.modalAssigneeSelect.selectedOptions).map((o) => o.value);
   itemEditModalOnSave({
     text,
-    responsibles: selected,
-    priority: el.modalHighPriorityCheck.checked ? "high" : "normal",
-    blocked: el.modalBlockedCheck.checked,
-    blockedReason: el.modalBlockedCheck.checked ? el.modalBlockedReasonInput.value.trim() : "",
+    projectKey: taskModalBacklogMode ? normalizeProjectKey(el.modalBacklogProjectSelect.value) : "",
+    responsibles: taskModalBacklogMode ? [] : selected,
+    priority: taskModalBacklogMode ? "normal" : (el.modalHighPriorityCheck.checked ? "high" : "normal"),
+    blocked: taskModalBacklogMode ? false : el.modalBlockedCheck.checked,
+    blockedReason: taskModalBacklogMode ? "" : (el.modalBlockedCheck.checked ? el.modalBlockedReasonInput.value.trim() : ""),
   });
   closeAssigneeModal();
-});
-el.assigneeModal.addEventListener("click", (e) => {
-  if (e.target === el.assigneeModal) closeAssigneeModal();
 });
 el.projectCancelBtn.addEventListener("click", closeProjectModal);
 el.projectKeySelect.addEventListener("change", () => {
@@ -2437,13 +2793,7 @@ el.projectCopyBtn.addEventListener("click", () => {
     closeProjectModal();
   });
 });
-el.projectModal.addEventListener("click", (e) => {
-  if (e.target === el.projectModal) closeProjectModal();
-});
 el.copyTargetCancelBtn.addEventListener("click", closeCopyTargetModal);
-el.copyTargetModal.addEventListener("click", (e) => {
-  if (e.target === el.copyTargetModal) closeCopyTargetModal();
-});
 el.sprintCancelBtn.addEventListener("click", closeSprintModal);
 el.sprintSaveBtn.addEventListener("click", () => {
   if (!sprintModalOnSave) {
@@ -2466,9 +2816,6 @@ el.sprintCopyBtn.addEventListener("click", () => {
 el.sprintCopyMdBtn.addEventListener("click", async () => {
   if (!sprintModalOnCopyMd) return;
   await sprintModalOnCopyMd();
-});
-el.sprintModal.addEventListener("click", (e) => {
-  if (e.target === el.sprintModal) closeSprintModal();
 });
 el.projectsCloseBtn.addEventListener("click", closeProjectsModal);
 el.projectsSaveBtn.addEventListener("click", async () => {
@@ -2524,9 +2871,6 @@ el.createTypeCancelBtn.addEventListener("click", closeCreateTypeModal);
 el.createTypeModal.addEventListener("click", (e) => {
   if (e.target === el.createTypeModal) closeCreateTypeModal();
 });
-el.projectsModal.addEventListener("click", (e) => {
-  if (e.target === el.projectsModal) closeProjectsModal();
-});
 el.pjsCloseBtn.addEventListener("click", closePjsModal);
 el.pjsAddRowBtn.addEventListener("click", () => {
   pjsEntries.push(createEmptyPjEntry());
@@ -2543,9 +2887,6 @@ el.pjsSaveBtn.addEventListener("click", async () => {
   } catch (err) {
     window.alert(`Failed to save PJs: ${err.message}`);
   }
-});
-el.pjsModal.addEventListener("click", (e) => {
-  if (e.target === el.pjsModal) closePjsModal();
 });
 el.teamCloseBtn.addEventListener("click", closeTeamModal);
 el.teamNewBtn.addEventListener("click", async () => {
@@ -2584,9 +2925,6 @@ el.teamSaveBtn.addEventListener("click", async () => {
     window.alert(`Failed to save Team member: ${err.message}`);
   }
 });
-el.teamModal.addEventListener("click", (e) => {
-  if (e.target === el.teamModal) closeTeamModal();
-});
 el.timelineCloseBtn.addEventListener("click", closeTimelineModal);
 el.timelineForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -2618,9 +2956,14 @@ el.timelineForm.addEventListener("submit", async (e) => {
     window.alert(`Failed to save timeline event: ${err.message}`);
   }
 });
-el.timelineModal.addEventListener("click", (e) => {
-  if (e.target === el.timelineModal) closeTimelineModal();
-});
+bindBackdropClose(el.assigneeModal, closeAssigneeModal);
+bindBackdropClose(el.projectModal, closeProjectModal);
+bindBackdropClose(el.copyTargetModal, closeCopyTargetModal);
+bindBackdropClose(el.sprintModal, closeSprintModal);
+bindBackdropClose(el.projectsModal, closeProjectsModal);
+bindBackdropClose(el.pjsModal, closePjsModal);
+bindBackdropClose(el.teamModal, closeTeamModal);
+bindBackdropClose(el.timelineModal, closeTimelineModal);
 
 el.cancelTopicBtn.addEventListener("click", () => {
   el.topicForm.classList.add("hidden");

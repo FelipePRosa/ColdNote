@@ -115,11 +115,29 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-16
 
 ### Genia Web App
+- [x] Testes multimarca + sso + campanha mensais (Nu + Bruf) [HIGH]
+- [x] Hierarquia dev (Bruf) [BLOCKED: Aguardando aprovação]
+- [x] Markdown Genia (Brunin + Bruf)
+- [x] Quick Win 4 + 2 (Bruf)
+- [x] WakeWord (Brunin + Bruf + Hary + Sam)
+- [x] Echo Cancelation (Brunin + Bruf + Sam)
+- [x] Correção de retorno de perguntas (Brunin + Bruf) [HIGH]
+
+## Sprint 26-17
+
+### Genia Web App
+- [x] Hierarquia dev (Bruf) [BLOCKED: Aguardando aprovação]
+- [x] Markdown Genia (Brunin + Bruf)
+- [x] Catálogo Neodent Link (Bruf)
+- [x] Quick Win 4 + 2 (Bruf)
+- [x] Echo Cancelation (Brunin + Bruf + Sam)
+
+## Sprint 26-18
+
+### Genia Web App
 - [ ] Testes multimarca + sso + campanha mensais (Nu + Bruf) [HIGH]
-- [ ] Hierarquia dev (Bruf) [BLOCKED: Aguardando aprovação]
-- [ ] Markdown Genia (Brunin + Bruf)
-- [ ] Catálogo Neodent Link (Bruf)
-- [ ] Quick Win 4 + 2 (Bruf)
-- [ ] WakeWord (Brunin + Bruf + Sam)
-- [ ] Echo Cancelation (Brunin + Bruf + Sam)
-- [ ] Correção de retorno de perguntas (Brunin) [HIGH]
+- [ ] Markdown Genia (Brunin + Bruf + Nu)
+- [ ] Catálogo Neodent Link (Bruf + Nu)
+- [ ] Quick Win 4 + 2 (Bruf + Nu)
+- [x] WakeWord (Brunin + Bruf + Hary + Sam)
+- [ ] Echo Cancelation (Brunin + Bruf + Nu + Sam)

@@ -1,0 +1,92 @@
+{
+  "items": [
+    {
+      "id": "moueaxgk_pl2erd",
+      "text": "Sessão Convidado",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "neodent mobile app",
+      "projectTitle": "Neodent Mobile App"
+    },
+    {
+      "id": "moufasep_vh3cox",
+      "text": "Hierarquia dev",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "genia web app",
+      "projectTitle": "Genia Web App"
+    },
+    {
+      "id": "moufasep_9k7fwn",
+      "text": "Trade Up (?)",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "straumann mobile app",
+      "projectTitle": "Straumann Mobile App"
+    },
+    {
+      "id": "moufasep_cipele",
+      "text": "Straumann Web",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "straumann mobile app",
+      "projectTitle": "Straumann Mobile App"
+    },
+    {
+      "id": "moufasep_uqsqb8",
+      "text": "Formulário de Reclamações",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "clearcorrect automations",
+      "projectTitle": "ClearCorrect Automations"
+    },
+    {
+      "id": "mouhefj2_55hlby",
+      "text": "Revalidar criptografia pagamento",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "clearwallet",
+      "projectTitle": "ClearWallet"
+    },
+    {
+      "id": "moucgf0b_zlan6r",
+      "text": "Botão de \"Quero conhecer a Clear\"",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "neodent mobile app",
+      "projectTitle": "Neodent Mobile App"
+    },
+    {
+      "id": "mouhefj2_c7r4ac",
+      "text": "Dev Back Who is Who",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "straumann mobile app",
+      "projectTitle": "Straumann Mobile App"
+    }
+  ]
+}

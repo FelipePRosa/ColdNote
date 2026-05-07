@@ -74,4 +74,9 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-16
 
 ### Hub
-- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Nuala tá curtindo]
+- [x] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Nuala tá curtindo]
+
+## Sprint 26-18
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu)

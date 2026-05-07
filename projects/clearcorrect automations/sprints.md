@@ -24,5 +24,27 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-16
 
 ### ClearCorrect Automations
-- [ ] Formulário de Reclamações (Nu) [BLOCKED: Sem prioridade]
-- [ ] Automação de Cupons (Fel) [HIGH]
+- [x] Formulário de Reclamações (Nu) [BLOCKED: Sem prioridade]
+- [x] Automação de Cupons (Fel) [HIGH]
+- [x] Envio de link FastStart (Fel + Gui)
+- [x] Envio de reminder FastStart (Fel + Gui)
+- [x] Criação de Voucher FastStart (Fel + Gui) [BLOCKED: Fechar automações anteriores primeiro]
+
+## Sprint 26-17
+
+### ClearCorrect Automations
+- [x] Formulário de Reclamações (Nu) [BLOCKED: Sem prioridade]
+- [x] Automação de Cupons (Fel) [HIGH]
+- [x] Envio de link FastStart (Guto + Fel)
+- [x] Envio de reminder FastStart (Guto + Fel)
+- [x] Criação de Voucher FastStart (Guto + Fel) [BLOCKED: Fechar automações anteriores primeiro]
+- [x] Zoom webhook (Guto + Fel) [HIGH]
+
+## Sprint 26-18
+
+### ClearCorrect Automations
+- [ ] Aguardando decisao do LT
+- [ ] Envio de link FastStart (Guto + Fel)
+- [ ] Envio de reminder FastStart (Guto + Fel)
+- [ ] Criação de Voucher FastStart (Guto + Fel) [BLOCKED: Fechar automações anteriores primeiro]
+- [x] Zoom webhook (Guto + Fel) [HIGH]

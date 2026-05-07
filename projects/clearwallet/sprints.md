@@ -98,7 +98,27 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-16
 
 ### ClearWallet
+- [x] Conexão direta Dr.Portal (Fel + Gui) [HIGH] [BLOCKED: Aguardando aprovação]
+- [x] Revalidar criptografia pagamento (Gui + Nu) [BLOCKED: Nuala tá curtindo]
+- [x] Flexibilização de parcela (Fel + Gui) [HIGH]
+
+## Sprint 26-17
+
+### ClearWallet
+- [x] Conexão direta Dr.Portal (Fel + Gui) [HIGH] [BLOCKED: Aguardando aprovação]
+- [x] Revalidar criptografia pagamento (Gui + Nu) [BLOCKED]
+- [x] Dev Back (Identificação de pagamento) (Maxo) [HIGH]
+- [x] V3 LET'S GOOOO (Bruf + Fel + Maxo + Nu) [HIGH]
+- [x] Transferencia entre recebedores (Fel + Maxo) [HIGH]
+
+## Sprint 26-18
+
+### ClearWallet
 - [ ] Conexão direta Dr.Portal (Fel + Gui) [HIGH] [BLOCKED: Aguardando aprovação]
-- [ ] Revalidar criptografia pagamento (Gui + Nu) [BLOCKED: Nuala tá curtindo]
-- [ ] Flexibilização de parcela (Fel + Gui) [HIGH]
-- [ ] Dev Back (Guto + Gui + Maxo) [HIGH]
+- [ ] Dev Back (Identificação de pagamento) (Maxo) [HIGH]
+- [x] Download csv (Guto + Bruf) [HIGH]
+- [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH]
+- [ ] Tranferencia entre recebedores (Fel + Maxo) [HIGH]
+- [ ] Adicionar autorização na rota de profissionais (Bruf + Gui)
+- [ ] Trocar SAML para OIDC (Bruf + Gui)
+- [ ] Master Login (Bruf + Gui)

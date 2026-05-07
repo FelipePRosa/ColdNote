@@ -12,6 +12,7 @@ TEAM_DIR = ROOT_DIR / "tech" / "team"
 TEAM_METRICS_FILE = ROOT_DIR / "tech" / "métricas.md"
 PJS_FILE = ROOT_DIR / "tech" / "pjs.md"
 PROJECTS_DIR = ROOT_DIR / "projects"
+BACKLOG_FILE = ROOT_DIR / "tech" / "backlog.json"
 HOST = "127.0.0.1"
 PORT = 8765
 PROJECT_SPRINTS_FROM = "26-01"
@@ -282,6 +283,23 @@ def sync_project_sprints_files(files: list):
   return synced
 
 
+def read_backlog_items():
+  if not BACKLOG_FILE.exists() or not BACKLOG_FILE.is_file():
+    return []
+  try:
+    payload = json.loads(BACKLOG_FILE.read_text(encoding="utf-8", errors="ignore"))
+  except Exception:
+    return []
+  items = payload.get("items", [])
+  return items if isinstance(items, list) else []
+
+
+def write_backlog_items(items):
+  BACKLOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+  payload = {"items": items if isinstance(items, list) else []}
+  BACKLOG_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
+
+
 class Handler(SimpleHTTPRequestHandler):
   def translate_path(self, path):
     parsed = urlparse(path).path
@@ -325,7 +343,7 @@ class Handler(SimpleHTTPRequestHandler):
             "content": path.read_text(encoding="utf-8", errors="ignore"),
           }
         )
-      self._json(200, {"files": files})
+      self._json(200, {"files": files, "backlog": read_backlog_items()})
       return
     if parsed == "/api/team-members":
       members = list_team_members()
@@ -417,8 +435,11 @@ class Handler(SimpleHTTPRequestHandler):
         raw = self.rfile.read(length)
         payload = json.loads(raw.decode("utf-8"))
         files = payload.get("files", [])
+        backlog = payload.get("backlog", [])
         if not isinstance(files, list):
           raise ValueError("Invalid files payload")
+        if not isinstance(backlog, list):
+          raise ValueError("Invalid backlog payload")
 
         SPRINTS_DIR.mkdir(parents=True, exist_ok=True)
         for file_data in files:
@@ -427,6 +448,7 @@ class Handler(SimpleHTTPRequestHandler):
           out = SPRINTS_DIR / f"{name}.md"
           out.write_text(content, encoding="utf-8", newline="\n")
 
+        write_backlog_items(backlog)
         synced_projects = sync_project_sprints_files(files)
         self._json(
           200,
