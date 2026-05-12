@@ -42,28 +42,40 @@
 
       <section class="board card">
         <div class="board-head">
-          <div>
-            <div class="board-title-row">
-              <h3 id="boardTitle">Sprint</h3>
+          <div class="board-topline">
+            <div class="board-title-block">
+              <div class="board-title-row">
+                <h3 id="boardTitle">Sprint</h3>
+              </div>
+              <p id="boardMeta" class="muted"></p>
+            </div>
+            <div class="sprint-actions">
               <button id="editSprintBtn" class="icon-btn" type="button" aria-label="Edit sprint" title="Edit sprint">
                 <span aria-hidden="true">✎</span>
               </button>
+              <button id="newTopicBtn" class="btn btn-secondary">New Project</button>
             </div>
-            <p id="boardMeta" class="muted"></p>
           </div>
           <div class="board-actions">
-            <input id="taskSearchInput" type="text" placeholder="Search tasks..." aria-label="Search tasks" />
-            <select id="responsibleFilter" aria-label="Filter by responsible"></select>
-            <select id="projectStatusFilter" aria-label="Filter by project status"></select>
-            <label class="quick-filter">
-              <input id="highOnlyFilter" type="checkbox" />
-              High
-            </label>
-            <label class="quick-filter">
-              <input id="blockedOnlyFilter" type="checkbox" />
-              Blocked
-            </label>
-            <button id="newTopicBtn" class="btn btn-secondary">New Project</button>
+            <div class="task-search-wrap">
+              <input id="taskSearchInput" type="text" placeholder="Search tasks..." aria-label="Search tasks" />
+            </div>
+            <div class="filter-controls" aria-label="Board filters">
+              <div class="filter-selects">
+                <select id="responsibleFilter" aria-label="Filter by responsible"></select>
+                <select id="projectStatusFilter" aria-label="Filter by project status"></select>
+              </div>
+              <div class="filter-toggles">
+                <label class="quick-filter">
+                  <input id="highOnlyFilter" type="checkbox" />
+                  High
+                </label>
+                <label class="quick-filter">
+                  <input id="blockedOnlyFilter" type="checkbox" />
+                  Blocked
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 

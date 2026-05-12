@@ -2,4 +2,8 @@
 
 Regra: inclui apenas sprints depois de 26-01.
 
-_Sem tasks vinculadas neste periodo._
+## Sprint 26-19
+
+### Forecasting
+- [ ] Forecasting Geral (Brunin)
+- [ ] Previsão de comportamento de cliente (Brunin)

@@ -2091,15 +2091,19 @@ function renderBacklog() {
   list.innerHTML = "";
 
   const items = (state.backlog || []).filter((item) => {
-    if (!selectedBacklogProject) return true;
-    return backlogProjectId(item) === selectedBacklogProject;
+    if (selectedBacklogProject && backlogProjectId(item) !== selectedBacklogProject) return false;
+    return backlogItemMatchesSearch(item);
   });
 
   if (!items.length) {
     list.classList.add("empty-drop-zone");
     const empty = document.createElement("li");
     empty.className = "item-empty-hint";
-    empty.textContent = selectedBacklogProject ? "No backlog tasks for this project" : "Drop tasks here";
+    empty.textContent = taskSearchText
+      ? `No backlog tasks found for "${taskSearchText}"`
+      : selectedBacklogProject
+        ? "No backlog tasks for this project"
+        : "Drop tasks here";
     list.appendChild(empty);
   } else {
     list.classList.remove("empty-drop-zone");
@@ -2203,11 +2207,30 @@ function normalizeSearchText(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function searchHaystack(values) {
+  return values
+    .map((value) => String(value || "").toLowerCase())
+    .join(" ");
+}
+
+function backlogItemMatchesSearch(item) {
+  const query = normalizeSearchText(taskSearchText);
+  if (!query) return true;
+
+  return searchHaystack([
+    item.text,
+    ...(item.responsibles || []),
+    item.projectKey,
+    item.projectTitle,
+    backlogProjectLabel(item),
+  ]).includes(query);
+}
+
 function taskMatchesSearch(item, topic, sprint) {
   const query = normalizeSearchText(taskSearchText);
   if (!query) return true;
 
-  const haystack = [
+  return searchHaystack([
     item.text,
     ...(item.responsibles || []),
     item.blockedReason,
@@ -2215,11 +2238,7 @@ function taskMatchesSearch(item, topic, sprint) {
     topic.description,
     topic.projectKey,
     sprint.name,
-  ]
-    .map((value) => String(value || "").toLowerCase())
-    .join(" ");
-
-  return haystack.includes(query);
+  ]).includes(query);
 }
 
 function renderTopics() {

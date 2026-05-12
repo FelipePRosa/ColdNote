@@ -201,4 +201,3 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Lambda Pipeline (Brunin + Bruf + Gui)
 - [ ] Migração Alteryx (Fel) [HIGH]
 - [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
-- [ ] Forecasting (Brunin)
