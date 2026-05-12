@@ -8,6 +8,7 @@ const el = {
   leftPanelSearch: document.getElementById("leftPanelSearch"),
   boardTitle: document.getElementById("boardTitle"),
   boardMeta: document.getElementById("boardMeta"),
+  taskSearchInput: document.getElementById("taskSearchInput"),
   responsibleFilter: document.getElementById("responsibleFilter"),
   projectStatusFilter: document.getElementById("projectStatusFilter"),
   backlogProjectFilter: document.getElementById("backlogProjectFilter"),
@@ -63,6 +64,7 @@ const el = {
   sprintGoalInput: document.getElementById("sprintGoalInput"),
   sprintCopyBtn: document.getElementById("sprintCopyBtn"),
   sprintCopyMdBtn: document.getElementById("sprintCopyMdBtn"),
+  sprintSendTeamsBtn: document.getElementById("sprintSendTeamsBtn"),
   sprintCancelBtn: document.getElementById("sprintCancelBtn"),
   sprintSaveBtn: document.getElementById("sprintSaveBtn"),
   projectsBtn: document.getElementById("projectsBtn"),
@@ -132,6 +134,7 @@ let autoSavePending = false;
 let boardView = "sprints";
 let selectedProjectKey = "";
 let projectSearchText = "";
+let taskSearchText = "";
 let selectedResponsible = "";
 let selectedProjectStatus = "";
 let selectedBacklogProject = "";
@@ -145,6 +148,7 @@ let currentProjectDir = "";
 let sprintModalOnSave = null;
 let sprintModalOnCopy = null;
 let sprintModalOnCopyMd = null;
+let sprintModalOnSendTeams = null;
 let dragTaskState = null;
 let pjsEntries = [];
 let teamEntries = [];
@@ -154,6 +158,7 @@ let currentTimelineProjectKey = "";
 let currentTimelineEntries = [];
 const modalBackdropState = new WeakMap();
 let taskModalBacklogMode = false;
+const TEAMS_WEBHOOK_URL = "https://prod-116.westeurope.logic.azure.com:443/workflows/c6390517ac924f61ba70e7695a392fa6/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zKA-t3iOYLshX2GQBdol1aVMG4zaDu_H7IzjFVrEsmA";
 
 function setStatus(text) {
   const raw = `Mode: ${text}`;
@@ -1356,6 +1361,30 @@ async function copyActiveSprintMarkdown() {
   setStatus(`sprint markdown copied (${sprint.name})`);
 }
 
+async function sendActiveSprintMarkdownToTeams() {
+  const sprint = getActiveSprint();
+  if (!sprint) {
+    window.alert("No active sprint selected.");
+    return;
+  }
+  const message = sprintToMarkdown(sprint);
+  const res = await fetch(TEAMS_WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      target: "Tech Innovation - Lead Team",
+      message,
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  setStatus(`teams sent (${sprint.name})`);
+}
+
 function getActiveSprint() {
   const sprint = state.sprints.find((s) => s.id === state.activeSprintId);
   return sprint || state.sprints[0] || null;
@@ -1676,10 +1705,11 @@ function closeCopyTargetModal() {
   copyTargetOnPick = null;
 }
 
-function openSprintModal(sprint, onSave, onCopy, onCopyMd) {
+function openSprintModal(sprint, onSave, onCopy, onCopyMd, onSendTeams) {
   sprintModalOnSave = onSave;
   sprintModalOnCopy = onCopy;
   sprintModalOnCopyMd = onCopyMd;
+  sprintModalOnSendTeams = onSendTeams;
   el.sprintNameInput.value = sprint?.name || "";
   el.sprintGoalInput.value = sprint?.goal || "";
   el.sprintModal.classList.remove("hidden");
@@ -1690,6 +1720,7 @@ function closeSprintModal() {
   sprintModalOnSave = null;
   sprintModalOnCopy = null;
   sprintModalOnCopyMd = null;
+  sprintModalOnSendTeams = null;
 }
 
 function buildTreeFromPaths(dirPaths, filePaths) {
@@ -2092,18 +2123,14 @@ function renderBacklog() {
 
   items.forEach((item) => {
     const li = document.createElement("li");
-    li.className = "item backlog-item";
+    li.className = "backlog-item";
     li.draggable = true;
     li.innerHTML = `
-      <span class="item-line"><span class="item-text"></span></span>
+      <div class="item-project-meta"></div>
+      <div class="backlog-item-text"></div>
     `;
-    li.querySelector(".item-text").textContent = itemDisplayText(item);
-
-    const itemLine = li.querySelector(".item-line");
-    const projectMeta = document.createElement("div");
-    projectMeta.className = "item-project-meta";
-    projectMeta.textContent = backlogProjectLabel(item);
-    itemLine.prepend(projectMeta);
+    li.querySelector(".backlog-item-text").textContent = itemDisplayText(item);
+    li.querySelector(".item-project-meta").textContent = backlogProjectLabel(item);
 
     li.addEventListener("dragstart", (e) => {
       beginBacklogTaskDrag(item.id);
@@ -2115,7 +2142,7 @@ function renderBacklog() {
     });
     li.addEventListener("dragend", () => {
       li.classList.remove("dragging");
-      document.querySelectorAll(".item.drop-before").forEach((x) => x.classList.remove("drop-before"));
+      document.querySelectorAll(".item.drop-before, .backlog-item.drop-before").forEach((x) => x.classList.remove("drop-before"));
       document.querySelectorAll(".items-list.drop-active, .backlog-list.drop-active").forEach((x) => x.classList.remove("drop-active"));
       endTaskDrag();
     });
@@ -2172,6 +2199,29 @@ function visibleSprints() {
   return active ? [active] : [];
 }
 
+function normalizeSearchText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function taskMatchesSearch(item, topic, sprint) {
+  const query = normalizeSearchText(taskSearchText);
+  if (!query) return true;
+
+  const haystack = [
+    item.text,
+    ...(item.responsibles || []),
+    item.blockedReason,
+    topic.title,
+    topic.description,
+    topic.projectKey,
+    sprint.name,
+  ]
+    .map((value) => String(value || "").toLowerCase())
+    .join(" ");
+
+  return haystack.includes(query);
+}
+
 function renderTopics() {
   const activeSprint = getActiveSprint();
   if (!activeSprint) {
@@ -2204,12 +2254,13 @@ function renderTopics() {
 
       const visibleItems = topic.items.filter((item) => {
         normalizeItem(item);
+        if (!taskMatchesSearch(item, topic, sprint)) return false;
         if (selectedResponsible && !(item.responsibles || []).includes(selectedResponsible)) return false;
         if (filterHighOnly && item.priority !== "high") return false;
         if (filterBlockedOnly && !item.blocked) return false;
         return true;
       });
-      if (selectedResponsible && visibleItems.length === 0) return;
+      if ((taskSearchText || selectedResponsible || filterHighOnly || filterBlockedOnly) && visibleItems.length === 0) return;
 
       const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
       node.querySelector(".topic-title").textContent = topic.title;
@@ -2443,8 +2494,12 @@ function renderTopics() {
   if (renderedTopicCount === 0) {
     const msg = document.createElement("p");
     msg.className = "muted";
-    if (selectedResponsible) {
+    if (taskSearchText) {
+      msg.textContent = `No tasks found for "${taskSearchText}".`;
+    } else if (selectedResponsible) {
       msg.textContent = `No tasks found for ${selectedResponsible} in this view.`;
+    } else if (filterHighOnly || filterBlockedOnly) {
+      msg.textContent = "No tasks found with the current task filters.";
     } else if (selectedProjectStatus) {
       msg.textContent = `No projects found with status ${selectedProjectStatus}.`;
     } else {
@@ -2459,6 +2514,7 @@ function render() {
     selectedProjectKey = "";
   }
   el.leftPanelSearch.value = projectSearchText;
+  el.taskSearchInput.value = taskSearchText;
   renderLeftPanel();
   renderTopicProjectSelect();
   renderTopicStatusSelect(el.topicStatusSelect?.value || "");
@@ -2625,6 +2681,13 @@ el.editSprintBtn.addEventListener("click", () => {
       } catch (err) {
         window.alert(`Failed to copy sprint markdown: ${err.message}`);
       }
+    },
+    async () => {
+      try {
+        await sendActiveSprintMarkdownToTeams();
+      } catch (err) {
+        window.alert(`Failed to send sprint markdown to Teams: ${err.message}`);
+      }
     }
   );
 });
@@ -2642,6 +2705,10 @@ el.viewModeBtn.addEventListener("click", () => {
 });
 el.leftPanelSearch.addEventListener("input", () => {
   projectSearchText = el.leftPanelSearch.value || "";
+  render();
+});
+el.taskSearchInput.addEventListener("input", () => {
+  taskSearchText = el.taskSearchInput.value || "";
   render();
 });
 el.responsibleFilter.addEventListener("change", () => {
@@ -2816,6 +2883,10 @@ el.sprintCopyBtn.addEventListener("click", () => {
 el.sprintCopyMdBtn.addEventListener("click", async () => {
   if (!sprintModalOnCopyMd) return;
   await sprintModalOnCopyMd();
+});
+el.sprintSendTeamsBtn.addEventListener("click", async () => {
+  if (!sprintModalOnSendTeams) return;
+  await sprintModalOnSendTeams();
 });
 el.projectsCloseBtn.addEventListener("click", closeProjectsModal);
 el.projectsSaveBtn.addEventListener("click", async () => {

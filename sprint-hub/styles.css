@@ -406,6 +406,15 @@ main {
   font-size: 0.82rem;
 }
 
+#taskSearchInput {
+  width: 220px;
+  min-width: 180px;
+  max-width: 260px;
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 0.86rem;
+}
+
 .quick-filter {
   display: inline-flex;
   align-items: center;
@@ -613,6 +622,7 @@ main {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
 }
 
@@ -644,8 +654,60 @@ main {
 }
 
 .backlog-item {
-  grid-template-columns: minmax(0, 1fr);
+  display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
+  row-gap: 6px;
   cursor: pointer;
+  min-width: 0;
+  min-height: 96px;
+  height: auto;
+  padding: 16px 12px;
+  border-radius: var(--md-radius-sm);
+  border: 1px solid rgba(202, 196, 208, 0.65);
+  background: var(--md-sys-color-surface-container-lowest);
+  overflow: visible;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.backlog-item:hover {
+  background: var(--md-sys-color-surface-container-low);
+}
+
+.backlog-item.dragging {
+  opacity: 0.5;
+}
+
+.backlog-item.drop-before {
+  box-shadow: inset 0 3px 0 0 var(--md-sys-color-primary);
+}
+
+.backlog-item .item-project-meta,
+.backlog-item .item-text,
+.backlog-item .backlog-item-text {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.backlog-item .backlog-item-text {
+  position: static;
+  white-space: normal;
+  line-height: 1.4;
+  height: auto;
+  color: var(--md-sys-color-on-surface);
+  margin-top: 2px;
+  font-size: 0.96rem;
+  max-height: none;
+}
+
+.backlog-item .item-project-meta {
+  margin-bottom: 0;
+  font-size: 0.74rem;
+  line-height: 1.25;
 }
 
 .item:hover {
@@ -1355,6 +1417,13 @@ textarea:focus {
   .board-actions,
   .modal-actions {
     justify-content: stretch;
+  }
+
+  #taskSearchInput,
+  #responsibleFilter,
+  #projectStatusFilter {
+    max-width: none;
+    width: 100%;
   }
 
   .modal-action-left {

@@ -33,6 +33,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-18
 
 ### Clear Mobile App
+- [x] Layout das telas (Nu + Rich) [HIGH]
+- [x] Dev Mobile (Andy + Dani + Sam + Vicco) [HIGH]
+- [x] Documentação endpoints DrPortal (Gui) [HIGH]
+- [x] Documentação genia Clear (Brunin + Fel) [HIGH]
+
+## Sprint 26-19
+
+### Clear Mobile App
 - [ ] Layout das telas (Nu + Rich) [HIGH]
 - [ ] Dev Mobile (Andy + Dani + Sam + Vicco) [HIGH]
 - [ ] Documentação endpoints DrPortal (Gui) [HIGH]

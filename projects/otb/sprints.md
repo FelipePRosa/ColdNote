@@ -100,6 +100,12 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-18
 
 ### OTB
-- [ ] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED: Falta de prioridade]
-- [ ] Deploy Comunicação WA p/ cliente + Descrições (Gui)
+- [x] Planejamento de correção definitiva de autenticação - KID (Gui) [BLOCKED: Falta de prioridade]
+- [x] Deploy Comunicação WA p/ cliente + Descrições (Gui)
+- [x] Deploy Correção de SKUs (Gui)
+
+## Sprint 26-19
+
+### OTB
+- [ ] Deploy Comunicação WA p/ cliente (Gui)
 - [ ] Deploy Correção de SKUs (Gui)

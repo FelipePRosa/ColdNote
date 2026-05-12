@@ -1,6 +1,61 @@
 {
   "items": [
     {
+      "id": "moxbl67o_lnl9g0",
+      "text": "Acordo ImplantFile",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "straumann mobile app",
+      "projectTitle": "Straumann Mobile App"
+    },
+    {
+      "id": "moxc5ml3_zqtbn3",
+      "text": "Master Login",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "clearwallet",
+      "projectTitle": "ClearWallet"
+    },
+    {
+      "id": "moxbl67o_ezpwqa",
+      "text": "Dev Mobile Who is Who",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "straumann mobile app",
+      "projectTitle": "Straumann Mobile App"
+    },
+    {
+      "id": "moxbl67o_aiqqld",
+      "text": "Refinamento tela de reconhecimento",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "straumann mobile app",
+      "projectTitle": "Straumann Mobile App"
+    },
+    {
+      "id": "moxbluaa_2zmcrc",
+      "text": "Planejamento de correção definitiva de autenticação - KID",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "otb",
+      "projectTitle": "OTB"
+    },
+    {
       "id": "moueaxgk_pl2erd",
       "text": "Sessão Convidado",
       "done": false,
@@ -23,6 +78,17 @@
       "projectTitle": "Genia Web App"
     },
     {
+      "id": "moxbl67o_ax372c",
+      "text": "Buscar região por CEP na criação de lead",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "outros",
+      "projectTitle": "Outros"
+    },
+    {
       "id": "moufasep_9k7fwn",
       "text": "Trade Up (?)",
       "done": false,
@@ -43,6 +109,17 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App"
+    },
+    {
+      "id": "mox6t81b_uryup5",
+      "text": "Roteiro por dia",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "genia web app",
+      "projectTitle": "Genia Web App"
     },
     {
       "id": "moufasep_uqsqb8",
@@ -87,6 +164,17 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App"
+    },
+    {
+      "id": "mp1lao8m_b80bjg",
+      "text": "Extrair dados de material",
+      "done": false,
+      "projectKey": "material data",
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectTitle": "material data"
     }
   ]
 }

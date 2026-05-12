@@ -124,5 +124,10 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-18
 
 ### Neodent Mobile App
-- [ ] GenIA 3.0 markdown (Brunin + Sam) [HIGH]
+- [x] Dev Data Wakeword (Brunin + Hary)
+
+## Sprint 26-19
+
+### Neodent Mobile App
+- [ ] GenIA 3.0 markdown (Vicco) [HIGH]
 - [ ] Dev Data Wakeword (Brunin + Hary)

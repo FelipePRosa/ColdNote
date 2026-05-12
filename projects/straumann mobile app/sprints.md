@@ -136,9 +136,3 @@ Regra: inclui apenas sprints depois de 26-01.
 - [x] Straumann Web (Rich) [BLOCKED: Sem prioridade]
 - [x] Dev Mobile Who is Who (Vicco) [BLOCKED: Sem prioridade]
 - [x] Dev Back Who is Who (Gui) [BLOCKED: Sem prioridade]
-
-## Sprint 26-18
-
-### Straumann Mobile App
-- [ ] Refinamento tela de reconhecimento (Andy + Fel + Nu) [BLOCKED: Aguardando contrato]
-- [ ] Dev Mobile Who is Who (Vicco) [BLOCKED: Sem prioridade]

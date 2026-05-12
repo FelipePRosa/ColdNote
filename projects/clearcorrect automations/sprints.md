@@ -43,8 +43,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-18
 
 ### ClearCorrect Automations
-- [ ] Aguardando decisao do LT
+- [x] Envio de link FastStart (Guto + Fel)
+- [x] Envio de reminder FastStart (Guto + Fel)
+- [x] Criação de Voucher FastStart (Guto + Fel) [BLOCKED: Fechar automações anteriores primeiro]
+- [x] Zoom webhook (Guto + Fel) [HIGH]
+
+## Sprint 26-19
+
+### ClearCorrect Automations
 - [ ] Envio de link FastStart (Guto + Fel)
 - [ ] Envio de reminder FastStart (Guto + Fel)
 - [ ] Criação de Voucher FastStart (Guto + Fel) [BLOCKED: Fechar automações anteriores primeiro]
-- [x] Zoom webhook (Guto + Fel) [HIGH]

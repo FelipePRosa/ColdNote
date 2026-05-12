@@ -169,6 +169,12 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-18
 
 ### Genia Mobile App
+- [x] Filtros V2 (Nu) [BLOCKED]
+- [x] KPIs tela + logicas (Fel) [HIGH]
+- [x] Botão Recomendação Clear (Gui + Nu + Vicco) [HIGH]
+
+## Sprint 26-19
+
+### Genia Mobile App
 - [ ] Filtros V2 (Nu) [BLOCKED]
 - [ ] KPIs tela + logicas (Fel) [HIGH]
-- [ ] Botão Recomendação Clear (Gui + Nu + Vicco) [HIGH] [BLOCKED: Aguardando fluxo de processo]
