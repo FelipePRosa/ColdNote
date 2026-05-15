@@ -34,6 +34,28 @@
       "projectTitle": "Straumann Mobile App"
     },
     {
+      "id": "mp5eugsr_y70w0m",
+      "text": "SAP -> Cotação ClearWallet",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "outros",
+      "projectTitle": "outros"
+    },
+    {
+      "id": "mp5eugsr_74xasz",
+      "text": "Conexão direta Dr.Portal",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "projectKey": "clearwallet",
+      "projectTitle": "ClearWallet"
+    },
+    {
       "id": "moxbl67o_aiqqld",
       "text": "Refinamento tela de reconhecimento",
       "done": false,
@@ -46,14 +68,14 @@
     },
     {
       "id": "moxbluaa_2zmcrc",
-      "text": "Planejamento de correção definitiva de autenticação - KID",
+      "text": "Correção autenticação - KID",
       "done": false,
       "responsibles": [],
       "priority": "normal",
       "blocked": false,
       "blockedReason": "",
       "projectKey": "otb",
-      "projectTitle": "OTB"
+      "projectTitle": "otb"
     },
     {
       "id": "moueaxgk_pl2erd",
@@ -123,14 +145,14 @@
     },
     {
       "id": "moufasep_uqsqb8",
-      "text": "Formulário de Reclamações",
+      "text": "Form de Reclamações",
       "done": false,
       "responsibles": [],
       "priority": "normal",
       "blocked": false,
       "blockedReason": "",
       "projectKey": "clearcorrect automations",
-      "projectTitle": "ClearCorrect Automations"
+      "projectTitle": "clearcorrect automations"
     },
     {
       "id": "mouhefj2_55hlby",

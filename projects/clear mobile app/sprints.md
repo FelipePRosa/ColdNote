@@ -45,3 +45,4 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Dev Mobile (Andy + Dani + Sam + Vicco) [HIGH]
 - [ ] Documentação endpoints DrPortal (Gui) [HIGH]
 - [ ] Documentação genia Clear (Brunin + Fel) [HIGH]
+- [ ] Tradução (Vicco)

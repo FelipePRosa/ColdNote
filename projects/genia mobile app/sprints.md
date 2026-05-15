@@ -178,3 +178,7 @@ Regra: inclui apenas sprints depois de 26-01.
 ### Genia Mobile App
 - [ ] Filtros V2 (Nu) [BLOCKED]
 - [ ] KPIs tela + logicas (Fel) [HIGH]
+- [ ] Trocar tabela digital + campos (Fel)
+- [ ] Criar insights digital (Fel)
+- [ ] Notificações (Fel + Gui + Vicco)
+- [ ] Forecast (Fel)

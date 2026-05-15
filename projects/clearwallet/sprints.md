@@ -124,9 +124,8 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-19
 
 ### ClearWallet
-- [ ] Conexão direta Dr.Portal (Fel + Gui) [HIGH] [BLOCKED: Aguardando aprovação]
 - [ ] Dev Back (Identificação de pagamento) (Maxo) [HIGH]
-- [ ] Download csv (Guto + Bruf + Nu) [HIGH]
+- [x] Download csv (Guto + Bruf + Nu) [HIGH]
 - [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH]
 - [ ] Tranferencia entre recebedores (Fel + Maxo) [HIGH]
 - [ ] Adicionar autorização na rota de profissionais (Bruf + Gui)

@@ -196,8 +196,8 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
 - [ ] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
 - [ ] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
-- [ ] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
 - [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
 - [ ] Lambda Pipeline (Brunin + Bruf + Gui)
 - [ ] Migração Alteryx (Fel) [HIGH]
-- [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+- [x] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+- [x] Documentação de endpoints SAP (Gui) [HIGH]

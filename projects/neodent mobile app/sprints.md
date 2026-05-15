@@ -131,3 +131,4 @@ Regra: inclui apenas sprints depois de 26-01.
 ### Neodent Mobile App
 - [ ] GenIA 3.0 markdown (Vicco) [HIGH]
 - [ ] Dev Data Wakeword (Brunin + Hary)
+- [ ] Briefing comodato digital (Fel)
