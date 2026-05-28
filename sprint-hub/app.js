@@ -2740,11 +2740,11 @@ function renderDeliveryView() {
   el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid");
   el.topicsGrid.classList.add("delivery-grid");
 
-  const sprints = [...state.sprints];
-  const sprintIndex = new Map(sprints.map((sprint, index) => [sprint.id, index]));
+  const allSprints = [...state.sprints];
   const projects = new Map();
+  const usedSprintIds = new Set();
 
-  sprints.forEach((sprint) => {
+  allSprints.forEach((sprint) => {
     sprint.topics.forEach((topic) => {
       normalizeTopic(topic);
       const projectKey = normalizeProjectKey(topic.projectKey);
@@ -2765,16 +2765,143 @@ function renderDeliveryView() {
       const sprintGroup = project.sprints.get(sprint.id) || { sprint, tasks: [] };
       visibleItems.forEach((item) => sprintGroup.tasks.push({ topic, item }));
       project.sprints.set(sprint.id, sprintGroup);
+      usedSprintIds.add(sprint.id);
       projects.set(projectKey, project);
     });
   });
 
+  const firstUsedIndex = allSprints.findIndex((sprint) => usedSprintIds.has(sprint.id));
+  const sprints = firstUsedIndex >= 0 ? allSprints.slice(firstUsedIndex) : allSprints;
+  const sprintIndex = new Map(sprints.map((sprint, index) => [sprint.id, index]));
   const visibleProjects = Array.from(projects.values()).sort((a, b) => a.title.localeCompare(b.title));
   if (!sprints.length || !visibleProjects.length) {
     const msg = document.createElement("p");
     msg.className = "muted";
     msg.textContent = "No delivery items found with the current filters.";
     el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  if (selectedProjectKey && visibleProjects.length === 1) {
+    const project = visibleProjects[0];
+    const detail = document.createElement("section");
+    detail.className = "delivery-detail";
+    detail.style.setProperty("--delivery-columns", String(sprints.length));
+    detail.innerHTML = `
+      <div class="delivery-plan-head"></div>
+      <div class="delivery-detail-body"></div>
+    `;
+    const detailHead = detail.querySelector(".delivery-plan-head");
+    sprints.forEach((sprint) => {
+      const cell = document.createElement("div");
+      cell.className = "delivery-period";
+      cell.innerHTML = `
+        <strong></strong>
+        <span></span>
+      `;
+      cell.querySelector("strong").textContent = sprint.name;
+      cell.querySelector("span").textContent = sprint.goal || "No sprint goal";
+      detailHead.appendChild(cell);
+    });
+
+    const tasksByName = new Map();
+    sprints.forEach((sprint) => {
+      const tasks = project.sprints.get(sprint.id)?.tasks || [];
+      tasks.forEach(({ topic, item }) => {
+        const key = normalizeSearchText(item.text || itemDisplayText(item));
+        if (!key) return;
+        const group = tasksByName.get(key) || { label: itemDisplayText(item), sprints: new Map() };
+        const sprintGroup = group.sprints.get(sprint.id) || { sprint, tasks: [] };
+        sprintGroup.tasks.push({ topic, item });
+        group.sprints.set(sprint.id, sprintGroup);
+        tasksByName.set(key, group);
+      });
+    });
+
+    const body = detail.querySelector(".delivery-detail-body");
+    Array.from(tasksByName.values())
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .forEach((group) => {
+        const activeIndexes = Array.from(group.sprints.keys())
+          .map((id) => sprintIndex.get(id))
+          .filter((index) => Number.isInteger(index))
+          .sort((a, b) => a - b);
+        if (!activeIndexes.length) return;
+
+        const lane = document.createElement("div");
+        lane.className = "delivery-lane delivery-detail-lane";
+        lane.style.setProperty("--delivery-columns", String(sprints.length));
+
+        for (let index = 0; index < sprints.length; index += 1) {
+          const bg = document.createElement("div");
+          bg.className = "delivery-lane-cell";
+          bg.style.gridColumn = `${index + 1}`;
+          lane.appendChild(bg);
+        }
+
+        const flushSegment = (start, end) => {
+          const segmentSprints = sprints.slice(start, end + 1);
+          const segmentTasks = segmentSprints.flatMap((sprint) => group.sprints.get(sprint.id)?.tasks || []);
+          const doneCount = segmentTasks.filter(({ item }) => item.done).length;
+          const totalCount = segmentTasks.length;
+          const progress = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
+          const card = document.createElement("article");
+          const blocked = segmentTasks.some(({ item }) => item.blocked);
+          const high = segmentTasks.some(({ item }) => item.priority === "high");
+          card.className = `delivery-detail-task ${doneCount === totalCount ? "done" : ""} ${blocked ? "item-blocked" : ""}`;
+          card.style.gridColumn = `${start + 1} / ${end + 2}`;
+          card.innerHTML = `
+            <strong></strong>
+            <span></span>
+            <div class="delivery-detail-task-tags"></div>
+            <div class="delivery-progress"><span></span></div>
+          `;
+          card.querySelector("strong").textContent = group.label;
+          card.querySelector("span").textContent =
+            start === end ? `Sprint ${sprints[start].name}` : `Sprint ${sprints[start].name} - ${sprints[end].name}`;
+          const tags = card.querySelector(".delivery-detail-task-tags");
+          if (high) {
+            const tag = document.createElement("span");
+            tag.className = "tag tag-high";
+            tag.textContent = "HIGH";
+            tags.appendChild(tag);
+          }
+          if (blocked) {
+            const tag = document.createElement("span");
+            tag.className = "tag tag-blocked";
+            tag.textContent = "BLOCKED";
+            tags.appendChild(tag);
+          }
+          if (doneCount === totalCount) {
+            const tag = document.createElement("span");
+            tag.className = "tag";
+            tag.textContent = "DONE";
+            tags.appendChild(tag);
+          }
+          const count = document.createElement("span");
+          count.className = "tag";
+          count.textContent = `${doneCount}/${totalCount}`;
+          tags.appendChild(count);
+          card.querySelector(".delivery-progress span").style.width = `${progress}%`;
+          lane.appendChild(card);
+        };
+
+        let segmentStart = activeIndexes[0];
+        let previous = activeIndexes[0];
+        activeIndexes.slice(1).forEach((index) => {
+          if (index === previous + 1) {
+            previous = index;
+            return;
+          }
+          flushSegment(segmentStart, previous);
+          segmentStart = index;
+          previous = index;
+        });
+        flushSegment(segmentStart, previous);
+        body.appendChild(lane);
+      });
+
+    el.topicsGrid.appendChild(detail);
     return;
   }
 
@@ -3178,6 +3305,7 @@ function render() {
   renderBacklog();
   const projectsMode = boardView === "projects";
   const deliveryMode = taskLayoutView === "delivery";
+  el.topicsGrid.closest(".workspace")?.classList.toggle("workspace-delivery", deliveryMode);
   el.newSprintBtn.classList.toggle("hidden", projectsMode);
   el.newTopicBtn.disabled = projectsMode;
   el.editSprintBtn.disabled = projectsMode;

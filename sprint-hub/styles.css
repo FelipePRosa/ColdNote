@@ -210,6 +210,10 @@ main {
   align-items: start;
 }
 
+.workspace.workspace-delivery {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .board,
 .backlog-panel {
   padding: 16px;
@@ -653,7 +657,8 @@ main {
   overscroll-behavior-inline: contain;
 }
 
-.delivery-plan {
+.delivery-plan,
+.delivery-detail {
   --delivery-column-width: 168px;
   min-width: calc(var(--delivery-columns) * var(--delivery-column-width));
   display: grid;
@@ -804,6 +809,83 @@ main {
   height: 100%;
   border-radius: inherit;
   background: rgba(255, 255, 255, 0.62);
+}
+
+.delivery-detail-body {
+  display: grid;
+  gap: 0;
+}
+
+.delivery-detail-column {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  min-height: 360px;
+  padding: 10px;
+  border-right: 1px solid rgba(202, 196, 208, 0.52);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(202, 196, 208, 0.12) 0,
+      rgba(202, 196, 208, 0.12) 4px,
+      transparent 4px,
+      transparent 9px
+    );
+}
+
+.delivery-detail-column-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.78rem;
+}
+
+.delivery-detail-tasks {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.delivery-detail-task {
+  grid-row: 1;
+  z-index: 1;
+  align-self: start;
+  margin: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-left: 4px solid var(--md-sys-color-primary);
+  border-radius: var(--md-radius-sm);
+  background: var(--md-sys-color-surface-container-lowest);
+  border-top: 1px solid rgba(202, 196, 208, 0.64);
+  border-right: 1px solid rgba(202, 196, 208, 0.64);
+  border-bottom: 1px solid rgba(202, 196, 208, 0.64);
+}
+
+.delivery-detail-task.done {
+  opacity: 0.72;
+}
+
+.delivery-detail-task strong,
+.delivery-detail-task span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.delivery-detail-task strong {
+  font-size: 0.82rem;
+}
+
+.delivery-detail-task span {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.8rem;
+}
+
+.delivery-detail-task-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .topic-card {
