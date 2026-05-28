@@ -25,6 +25,7 @@ const el = {
   topicStatusSelect: document.getElementById("topicStatusSelect"),
   topicDescInput: document.getElementById("topicDescInput"),
   newTopicBtn: document.getElementById("newTopicBtn"),
+  taskboardViewBtn: document.getElementById("taskboardViewBtn"),
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
@@ -132,6 +133,7 @@ let autoSaveTimer = null;
 let autoSaveInFlight = false;
 let autoSavePending = false;
 let boardView = "sprints";
+let taskLayoutView = "projects";
 let selectedProjectKey = "";
 let projectSearchText = "";
 let taskSearchText = "";
@@ -2241,6 +2243,176 @@ function taskMatchesSearch(item, topic, sprint) {
   ]).includes(query);
 }
 
+function taskPassesBoardFilters(item, topic, sprint) {
+  normalizeItem(item);
+  if (!taskMatchesSearch(item, topic, sprint)) return false;
+  if (selectedResponsible && !(item.responsibles || []).includes(selectedResponsible)) return false;
+  if (filterHighOnly && item.priority !== "high") return false;
+  if (filterBlockedOnly && !item.blocked) return false;
+  return true;
+}
+
+function openTopicTaskEditor(topic, item) {
+  openTaskModal({
+    title: "Edit Task",
+    saveLabel: "Apply",
+    currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason },
+    currentNames: item.responsibles || [],
+    onDelete: () => {
+      topic.items = topic.items.filter((x) => x.id !== item.id);
+      persistState();
+      render();
+    },
+    onSave: ({ text, responsibles, priority, blocked, blockedReason }) => {
+      item.text = text;
+      item.responsibles = responsibles;
+      item.priority = priority;
+      item.blocked = blocked;
+      item.blockedReason = blockedReason;
+      persistState();
+      render();
+    },
+  });
+}
+
+function renderTaskboard() {
+  const activeSprint = getActiveSprint();
+  if (!activeSprint) {
+    el.boardTitle.textContent = "No sprints yet";
+    el.boardMeta.textContent = "Create your first sprint.";
+    el.topicsGrid.innerHTML = "";
+    el.topicsGrid.classList.remove("taskboard-grid");
+    return;
+  }
+
+  if (boardView === "projects") {
+    el.boardTitle.textContent = "All sprints";
+    el.boardMeta.textContent = selectedProjectKey
+      ? `Project: ${selectedProjectKey}`
+      : "Showing tasks across every sprint.";
+  } else {
+    el.boardTitle.textContent = `Sprint ${activeSprint.name}`;
+    el.boardMeta.textContent = activeSprint.goal || "No sprint goal defined.";
+  }
+
+  const columns = [
+    { id: "blocked", title: "Blocked", items: [] },
+    { id: "open", title: "Open", items: [] },
+    { id: "doing", title: "Doing", items: [] },
+    { id: "testing", title: "Testing", items: [] },
+    { id: "done", title: "Done", items: [] },
+  ];
+  const columnMap = Object.fromEntries(columns.map((column) => [column.id, column]));
+  const multiSprintMode = boardView === "projects";
+
+  visibleSprints().forEach((sprint) => {
+    sprint.topics.forEach((topic) => {
+      normalizeTopic(topic);
+      if (boardView === "projects" && selectedProjectKey && topic.projectKey !== selectedProjectKey) return;
+      if (selectedProjectStatus && topic.status !== selectedProjectStatus) return;
+
+      topic.items.forEach((item) => {
+        if (!taskPassesBoardFilters(item, topic, sprint)) return;
+        let columnId = "open";
+        if (item.done) columnId = "done";
+        else if (item.blocked) columnId = "blocked";
+        else if (topic.status === "Desenvolvimento") columnId = "doing";
+        else if (topic.status === "Teste") columnId = "testing";
+        columnMap[columnId].items.push({ sprint, topic, item });
+      });
+    });
+  });
+
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.add("taskboard-grid");
+
+  const totalTasks = columns.reduce((total, column) => total + column.items.length, 0);
+  if (!totalTasks) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = taskSearchText
+      ? `No tasks found for "${taskSearchText}".`
+      : "No tasks found with the current filters.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  columns.forEach((column) => {
+    const section = document.createElement("section");
+    section.className = `taskboard-column taskboard-column-${column.id}`;
+    section.innerHTML = `
+      <div class="taskboard-column-head">
+        <h4></h4>
+        <span class="taskboard-count"></span>
+      </div>
+      <div class="taskboard-list"></div>
+    `;
+    section.querySelector("h4").textContent = column.title;
+    section.querySelector(".taskboard-count").textContent = column.items.length;
+    const list = section.querySelector(".taskboard-list");
+
+    if (!column.items.length) {
+      const empty = document.createElement("div");
+      empty.className = "item-empty-hint";
+      empty.textContent = "No tasks";
+      list.appendChild(empty);
+    }
+
+    column.items.forEach(({ sprint, topic, item }) => {
+      const card = document.createElement("article");
+      card.className = `taskboard-task ${item.done ? "done" : ""} ${item.priority === "high" ? "item-high" : ""} ${item.blocked ? "item-blocked" : ""}`;
+      card.innerHTML = `
+        <div class="taskboard-task-head">
+          <span class="taskboard-project"></span>
+          <button type="button" class="btn-link btn-link-neutral taskboard-edit" aria-label="Edit task" title="Edit task">✎</button>
+        </div>
+        <label class="taskboard-task-line">
+          <input type="checkbox" ${item.done ? "checked" : ""} />
+          <span class="taskboard-task-text"></span>
+        </label>
+        <div class="taskboard-tags"></div>
+      `;
+      const projectText = projectLabel(topic.projectKey) || topic.title || "No project";
+      card.querySelector(".taskboard-project").textContent = multiSprintMode
+        ? `${projectText} | Sprint ${sprint.name}`
+        : projectText;
+      card.querySelector(".taskboard-task-text").textContent = itemDisplayText(item);
+
+      const tags = card.querySelector(".taskboard-tags");
+      if (item.priority === "high") {
+        const tag = document.createElement("span");
+        tag.className = "tag tag-high";
+        tag.textContent = "HIGH";
+        tags.appendChild(tag);
+      }
+      if (item.blocked) {
+        const tag = document.createElement("span");
+        tag.className = "tag tag-blocked";
+        tag.textContent = "BLOCKED";
+        tags.appendChild(tag);
+      }
+      if (item.blocked && item.blockedReason) {
+        const reason = document.createElement("div");
+        reason.className = "item-blocked-reason";
+        reason.textContent = `Reason: ${item.blockedReason}`;
+        tags.appendChild(reason);
+      }
+
+      card.querySelector("input").addEventListener("change", (e) => {
+        item.done = e.target.checked;
+        persistState();
+        render();
+      });
+      card.querySelector(".taskboard-edit").addEventListener("click", () => {
+        openTopicTaskEditor(topic, item);
+      });
+      list.appendChild(card);
+    });
+
+    el.topicsGrid.appendChild(section);
+  });
+}
+
 function renderTopics() {
   const activeSprint = getActiveSprint();
   if (!activeSprint) {
@@ -2249,6 +2421,7 @@ function renderTopics() {
     el.topicsGrid.innerHTML = "";
     return;
   }
+  el.topicsGrid.classList.remove("taskboard-grid");
 
   if (boardView === "projects") {
     el.boardTitle.textContent = "All sprints";
@@ -2272,12 +2445,7 @@ function renderTopics() {
       if (selectedProjectStatus && topic.status !== selectedProjectStatus) return;
 
       const visibleItems = topic.items.filter((item) => {
-        normalizeItem(item);
-        if (!taskMatchesSearch(item, topic, sprint)) return false;
-        if (selectedResponsible && !(item.responsibles || []).includes(selectedResponsible)) return false;
-        if (filterHighOnly && item.priority !== "high") return false;
-        if (filterBlockedOnly && !item.blocked) return false;
-        return true;
+        return taskPassesBoardFilters(item, topic, sprint);
       });
       if ((taskSearchText || selectedResponsible || filterHighOnly || filterBlockedOnly) && visibleItems.length === 0) return;
 
@@ -2457,26 +2625,7 @@ function renderTopics() {
         });
 
         li.querySelector(".item-edit").addEventListener("click", () => {
-          openTaskModal({
-            title: "Edit Task",
-            saveLabel: "Apply",
-            currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason },
-            currentNames: item.responsibles || [],
-            onDelete: () => {
-              topic.items = topic.items.filter((x) => x.id !== item.id);
-              persistState();
-              render();
-            },
-            onSave: ({ text, responsibles, priority, blocked, blockedReason }) => {
-              item.text = text;
-              item.responsibles = responsibles;
-              item.priority = priority;
-              item.blocked = blocked;
-              item.blockedReason = blockedReason;
-              persistState();
-              render();
-            },
-          });
+          openTopicTaskEditor(topic, item);
         });
 
         itemsList.appendChild(li);
@@ -2540,11 +2689,14 @@ function render() {
   renderResponsibleFilter();
   renderProjectStatusFilter();
   renderBacklogProjectFilter();
-  renderTopics();
+  if (taskLayoutView === "taskboard") renderTaskboard();
+  else renderTopics();
   renderBacklog();
   const projectsMode = boardView === "projects";
   el.newTopicBtn.disabled = projectsMode;
   el.editSprintBtn.disabled = projectsMode;
+  el.taskboardViewBtn.textContent = taskLayoutView === "taskboard" ? "Project Cards" : "Taskboard";
+  el.taskboardViewBtn.classList.toggle("active", taskLayoutView === "taskboard");
   el.viewModeBtn.textContent = projectsMode ? "Sprints View" : "Projects View";
   if (projectsMode) {
     el.topicForm.classList.add("hidden");
@@ -2712,6 +2864,10 @@ el.editSprintBtn.addEventListener("click", () => {
 });
 el.pjsBtn.addEventListener("click", openPjsModal);
 el.projectsBtn.addEventListener("click", openProjectsModal);
+el.taskboardViewBtn.addEventListener("click", () => {
+  taskLayoutView = taskLayoutView === "taskboard" ? "projects" : "taskboard";
+  render();
+});
 el.viewModeBtn.addEventListener("click", () => {
   if (boardView === "projects") {
     boardView = "sprints";

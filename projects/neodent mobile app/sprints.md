@@ -129,6 +129,23 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-19
 
 ### Neodent Mobile App
-- [ ] GenIA 3.0 markdown (Vicco) [HIGH]
+- [x] GenIA 3.0 markdown (Vicco) [HIGH]
+- [x] Dev Data Wakeword (Brunin + Hary)
+- [x] Briefing comodato digital (Fel)
+
+## Sprint 26-20
+
+### Neodent Mobile App
+- [x] GenIA 3.0 markdown (Vicco) [HIGH]
+- [x] Dev Data Wakeword (Brunin + Hary)
+- [x] Briefing comodato digital (Fel)
+- [x] Openai revoke beta (Brunin + Bruf + Fel + Sam + Vicco) [HIGH]
+- [x] Embbeding eshop (Vicco)
+
+## Sprint 26-21
+
+### Neodent Mobile App
+- [ ] Deploy markdown (Brunin + Vicco) [HIGH]
 - [ ] Dev Data Wakeword (Brunin + Hary)
 - [ ] Briefing comodato digital (Fel)
+- [ ] Deploy prod (Vicco) [HIGH]

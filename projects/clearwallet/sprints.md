@@ -124,8 +124,27 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-19
 
 ### ClearWallet
-- [ ] Dev Back (Identificação de pagamento) (Maxo) [HIGH]
+- [x] Dev Back (Identificação de pagamento) (Maxo) [HIGH]
 - [x] Download csv (Guto + Bruf + Nu) [HIGH]
+- [x] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH]
+- [x] Tranferencia entre recebedores (Fel + Maxo) [HIGH]
+- [x] Adicionar autorização na rota de profissionais (Bruf + Gui)
+- [x] Trocar SAML para OIDC (Bruf + Gui)
+
+## Sprint 26-20
+
+### ClearWallet
+- [x] Deploy csv (Guto + Bruf)
+- [x] Dev Back (Identificação de pagamento) (Maxo) [HIGH]
+- [x] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH]
+- [x] Tranferencia entre recebedores (Fel + Maxo) [HIGH]
+- [x] Adicionar autorização na rota de profissionais (Bruf + Gui)
+- [x] Trocar SAML para OIDC (Bruf + Gui)
+
+## Sprint 26-21
+
+### ClearWallet
+- [ ] Dev Back (Identificação de pagamento) (Maxo) [HIGH]
 - [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH]
 - [ ] Tranferencia entre recebedores (Fel + Maxo) [HIGH]
 - [ ] Adicionar autorização na rota de profissionais (Bruf + Gui)

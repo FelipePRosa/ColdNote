@@ -84,4 +84,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-19
 
 ### Hub
+- [x] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade]
+
+## Sprint 26-20
+
+### Hub
+- [x] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade]
+
+## Sprint 26-21
+
+### Hub
 - [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade]

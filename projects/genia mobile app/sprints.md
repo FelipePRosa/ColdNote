@@ -176,9 +176,30 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-19
 
 ### Genia Mobile App
+- [x] Filtros V2 (Nu) [BLOCKED]
+- [x] KPIs tela + logicas (Fel) [HIGH]
+- [x] Trocar tabela digital + campos (Fel)
+- [x] Criar insights digital (Fel)
+- [x] Notificações (Fel + Gui + Vicco)
+- [x] Forecast (Fel)
+
+## Sprint 26-20
+
+### Genia Mobile App
+- [x] Filtros V2 (Nu) [BLOCKED]
+- [x] KPIs tela + logicas (Fel) [HIGH]
+- [x] Trocar tabela digital + campos (Fel)
+- [x] Criar insights digital (Fel)
+- [x] Notificações (Fel + Gui + Vicco)
+- [x] Forecast (Fel)
+
+## Sprint 26-21
+
+### Genia Mobile App
 - [ ] Filtros V2 (Nu) [BLOCKED]
 - [ ] KPIs tela + logicas (Fel) [HIGH]
 - [ ] Trocar tabela digital + campos (Fel)
 - [ ] Criar insights digital (Fel)
 - [ ] Notificações (Fel + Gui + Vicco)
 - [ ] Forecast (Fel)
+- [ ] Hotfix genia [HIGH]

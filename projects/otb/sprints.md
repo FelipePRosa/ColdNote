@@ -107,5 +107,12 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-19
 
 ### OTB
-- [ ] Deploy Comunicação WA p/ cliente (Gui)
-- [ ] Deploy Correção de SKUs (Gui)
+- [x] Deploy Comunicação WA p/ cliente (Gui)
+- [x] Deploy Correção de SKUs (Gui)
+
+## Sprint 26-20
+
+### OTB
+- [x] Deploy Comunicação WA p/ cliente (Gui)
+- [x] Deploy Correção de SKUs (Gui)
+- [x] Deploy descrição dos arquivos (Gui)

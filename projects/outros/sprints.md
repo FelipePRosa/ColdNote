@@ -193,11 +193,34 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-19
 
 ### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+- [x] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+- [x] Documentação de endpoints SAP (Gui) [HIGH]
+
+## Sprint 26-20
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+- [x] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+- [x] Documentação de endpoints SAP (Gui) [HIGH]
+
+## Sprint 26-21
+
+### Outros
 - [ ] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
 - [ ] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
 - [ ] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
 - [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
 - [ ] Lambda Pipeline (Brunin + Bruf + Gui)
-- [ ] Migração Alteryx (Fel) [HIGH]
-- [x] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
-- [x] Documentação de endpoints SAP (Gui) [HIGH]
+- [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+- [ ] Documentação de endpoints SAP (Gui) [HIGH]
