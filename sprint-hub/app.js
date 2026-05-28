@@ -1,6 +1,7 @@
 ﻿const STORAGE_KEY = "sprint_hub_v1";
 
-const PROJECT_STATUS_OPTIONS = ["Planejamento", "Desenvolvimento", "Teste", "Acompanhamento", "Bloqueado"];
+const PROJECT_STATUS_OPTIONS = ["Planejamento", "Desenvolvimento", "Teste", "Acompanhamento", "Bloqueado", "Finalizado"];
+const PROJECT_CONTROL_FILE = "project.json";
 
 const el = {
   sprintsList: document.getElementById("sprintsList"),
@@ -8,6 +9,8 @@ const el = {
   leftPanelSearch: document.getElementById("leftPanelSearch"),
   boardTitle: document.getElementById("boardTitle"),
   boardMeta: document.getElementById("boardMeta"),
+  boardSprintSelect: document.getElementById("boardSprintSelect"),
+  boardProjectSelect: document.getElementById("boardProjectSelect"),
   taskSearchInput: document.getElementById("taskSearchInput"),
   responsibleFilter: document.getElementById("responsibleFilter"),
   projectStatusFilter: document.getElementById("projectStatusFilter"),
@@ -26,6 +29,7 @@ const el = {
   topicDescInput: document.getElementById("topicDescInput"),
   newTopicBtn: document.getElementById("newTopicBtn"),
   taskboardViewBtn: document.getElementById("taskboardViewBtn"),
+  deliveryViewBtn: document.getElementById("deliveryViewBtn"),
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
@@ -143,6 +147,7 @@ let selectedBacklogProject = "";
 let filterHighOnly = false;
 let filterBlockedOnly = false;
 let projectCatalog = [];
+let projectControls = {};
 let projectsTreeDirs = [];
 let projectsTreeFiles = [];
 let currentProjectFile = "";
@@ -152,6 +157,7 @@ let sprintModalOnCopy = null;
 let sprintModalOnCopyMd = null;
 let sprintModalOnSendTeams = null;
 let dragTaskState = null;
+let dragProjectKey = "";
 let pjsEntries = [];
 let teamEntries = [];
 let currentTeamFile = "";
@@ -292,6 +298,7 @@ function normalizeItem(item) {
   if (item.priority !== "high") item.priority = "normal";
   item.blocked = Boolean(item.blocked);
   item.blockedReason = item.blocked ? String(item.blockedReason || "").trim() : "";
+  item.followed = Boolean(item.followed);
   return item;
 }
 
@@ -323,6 +330,40 @@ function normalizeProjectStatus(raw) {
   if (!value) return "";
   const match = PROJECT_STATUS_OPTIONS.find((status) => status.toLowerCase() === value);
   return match || "";
+}
+
+function normalizeProjectControl(projectKey, raw = {}) {
+  return {
+    name: normalizeProjectKey(raw.name || projectKey),
+    status: normalizeProjectStatus(raw.status),
+  };
+}
+
+function inferProjectStatusFromSprints(projectKey) {
+  const key = normalizeProjectKey(projectKey);
+  if (!key) return "";
+  for (const sprint of [...state.sprints].reverse()) {
+    for (const topic of [...(sprint.topics || [])].reverse()) {
+      normalizeTopic(topic);
+      if (topic.projectKey === key && topic.status) return topic.status;
+    }
+  }
+  return "";
+}
+
+function getProjectCurrentStatus(projectKey) {
+  const key = normalizeProjectKey(projectKey);
+  if (!key) return "";
+  return normalizeProjectStatus(projectControls[key]?.status) || inferProjectStatusFromSprints(key);
+}
+
+async function saveProjectControl(projectKey, patch = {}) {
+  const key = normalizeProjectKey(projectKey);
+  if (!key) return;
+  const current = normalizeProjectControl(key, projectControls[key] || {});
+  const next = normalizeProjectControl(key, { ...current, ...patch, name: patch.name || current.name || key });
+  projectControls[key] = next;
+  await saveProjectFile(`${key}/${PROJECT_CONTROL_FILE}`, JSON.stringify(next, null, 2) + "\n");
 }
 
 function normalizeTimelineEntry(entry) {
@@ -488,12 +529,34 @@ function updateProjectCatalogFromTree(dirs, files) {
   normalizeAllTopics();
 }
 
+async function refreshProjectControls() {
+  const next = {};
+  await Promise.all(
+    projectCatalog.map(async (projectKey) => {
+      try {
+        const payload = await fetchProjectFile(`${projectKey}/${PROJECT_CONTROL_FILE}`);
+        const control = normalizeProjectControl(projectKey, JSON.parse(payload.content || "{}"));
+        if (!control.status) control.status = inferProjectStatusFromSprints(projectKey);
+        next[projectKey] = control;
+      } catch {
+        next[projectKey] = normalizeProjectControl(projectKey, {
+          name: projectKey,
+          status: inferProjectStatusFromSprints(projectKey),
+        });
+      }
+    })
+  );
+  projectControls = next;
+}
+
 async function refreshProjectCatalog() {
   try {
     const payload = await fetchProjectsTree();
     updateProjectCatalogFromTree(payload.dirs || [], payload.files || []);
+    await refreshProjectControls();
   } catch {
     projectCatalog = [];
+    projectControls = {};
   }
 }
 
@@ -508,6 +571,7 @@ function parseItemTextAndResponsibles(rawText) {
   let priority = "normal";
   let blocked = false;
   let blockedReason = "";
+  let followed = false;
 
   const blockedReasonMatch = text.match(/\[BLOCKED\s*:\s*([^\]]+)\]/i);
   if (blockedReasonMatch) {
@@ -515,30 +579,31 @@ function parseItemTextAndResponsibles(rawText) {
     blockedReason = String(blockedReasonMatch[1] || "").trim();
   }
 
-  const metaMatches = text.match(/\[(HIGH|BLOCKED)\]/gi) || [];
+  const metaMatches = text.match(/\[(HIGH|BLOCKED|FOLLOWED)\]/gi) || [];
   metaMatches.forEach((m) => {
     if (/HIGH/i.test(m)) priority = "high";
     if (/BLOCKED/i.test(m)) blocked = true;
+    if (/FOLLOWED/i.test(m)) followed = true;
   });
   text = text
     .replace(/\s*\[BLOCKED\s*:\s*[^\]]+\]/gi, "")
-    .replace(/\s*\[(HIGH|BLOCKED)\]/gi, "")
+    .replace(/\s*\[(HIGH|BLOCKED|FOLLOWED)\]/gi, "")
     .trim();
 
   const m = text.match(/^(.*)\(([^()]*)\)\s*$/);
-  if (!m) return { text, responsibles: [], priority, blocked, blockedReason };
+  if (!m) return { text, responsibles: [], priority, blocked, blockedReason, followed };
 
   const body = m[1].trim();
   const namesRaw = m[2].trim();
-  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked, blockedReason };
+  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked, blockedReason, followed };
 
   const responsibles = namesRaw
     .split(/\s*\+\s*|\s*,\s*/)
     .map((x) => x.trim())
     .filter(Boolean);
 
-  if (!responsibles.length) return { text, responsibles: [], priority, blocked, blockedReason };
-  return { text: body || text, responsibles, priority, blocked, blockedReason };
+  if (!responsibles.length) return { text, responsibles: [], priority, blocked, blockedReason, followed };
+  return { text: body || text, responsibles, priority, blocked, blockedReason, followed };
 }
 
 function parseSprintMarkdown(fileName, markdown) {
@@ -593,6 +658,7 @@ function parseSprintMarkdown(fileName, markdown) {
           priority: parsed.priority,
           blocked: parsed.blocked,
           blockedReason: parsed.blockedReason,
+          followed: parsed.followed,
         });
       }
       continue;
@@ -613,6 +679,7 @@ function parseSprintMarkdown(fileName, markdown) {
           priority: parsed.priority,
           blocked: parsed.blocked,
           blockedReason: parsed.blockedReason,
+          followed: parsed.followed,
         });
       }
       continue;
@@ -668,6 +735,7 @@ function sprintToMarkdown(sprint) {
         const blockedReason = String(item.blockedReason || "").trim().replace(/\]/g, ")");
         lineText += blockedReason ? ` [BLOCKED: ${blockedReason}]` : " [BLOCKED]";
       }
+      if (item.followed) lineText += " [FOLLOWED]";
       lines.push(`- [${item.done ? "x" : " "}] ${lineText}`);
     });
     lines.push("");
@@ -1270,6 +1338,7 @@ async function runCreateFolderFlow() {
   if (!rel) return;
 
   await createProjectFolder(rel);
+  await saveProjectControl(rel, { name: rel, status: "" });
   await refreshProjectsModalData();
   setStatus("file-based (`tech/sprints/*.md`) - folder created");
 }
@@ -1819,6 +1888,7 @@ async function refreshProjectsModalData() {
   projectsTreeDirs = payload.dirs || [];
   projectsTreeFiles = payload.files || [];
   updateProjectCatalogFromTree(projectsTreeDirs, projectsTreeFiles);
+  await refreshProjectControls();
   if (currentProjectFile && !projectsTreeFiles.includes(currentProjectFile)) {
     currentProjectFile = "";
   }
@@ -1857,6 +1927,7 @@ function closeCreateTypeModal() {
 }
 
 function renderSprintsList() {
+  if (!el.sprintsList) return;
   el.sprintsList.innerHTML = "";
   [...state.sprints].reverse().forEach((sprint) => {
     const btn = document.createElement("button");
@@ -1874,6 +1945,7 @@ function renderSprintsList() {
 }
 
 function renderProjectsList() {
+  if (!el.sprintsList) return;
   el.sprintsList.innerHTML = "";
   const search = projectSearchText.trim().toLowerCase();
   const items = projectCatalog.filter((name) => !search || name.toLowerCase().includes(search));
@@ -1904,9 +1976,9 @@ function renderProjectsList() {
 }
 
 function renderLeftPanel() {
+  if (!el.leftPanelTitle || !el.leftPanelSearch || !el.sprintsList) return;
   const projectsMode = boardView === "projects";
   el.leftPanelTitle.textContent = projectsMode ? "Projects" : "Sprints";
-  el.newSprintBtn.classList.toggle("hidden", projectsMode);
   el.leftPanelSearch.classList.toggle("hidden", !projectsMode);
   if (projectsMode) renderProjectsList();
   else renderSprintsList();
@@ -1955,6 +2027,47 @@ function renderProjectStatusFilter() {
   });
 
   select.value = normalizeProjectStatus(selectedProjectStatus);
+}
+
+function renderBoardSprintSelect() {
+  const select = el.boardSprintSelect;
+  if (!select) return;
+  select.innerHTML = "";
+
+  state.sprints.forEach((sprint) => {
+    const option = document.createElement("option");
+    option.value = sprint.id;
+    option.textContent = `Sprint ${sprint.name}`;
+    select.appendChild(option);
+  });
+
+  const active = getActiveSprint();
+  select.value = active?.id || "";
+  select.classList.toggle("hidden", boardView === "projects" || state.sprints.length === 0);
+  select.disabled = boardView === "projects" || state.sprints.length === 0;
+}
+
+function renderBoardProjectSelect() {
+  const select = el.boardProjectSelect;
+  if (!select) return;
+  select.innerHTML = "";
+
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "All projects";
+  select.appendChild(all);
+
+  projectCatalog.forEach((name) => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
+
+  select.value = projectCatalog.includes(selectedProjectKey) ? selectedProjectKey : "";
+  const hidden = boardView !== "projects" || taskLayoutView === "taskboard";
+  select.classList.toggle("hidden", hidden);
+  select.disabled = hidden;
 }
 
 function renderTopicProjectSelect() {
@@ -2275,13 +2388,158 @@ function openTopicTaskEditor(topic, item) {
   });
 }
 
+function collectProjectDeliveryItems({ projectFilter = selectedProjectKey } = {}) {
+  const map = new Map();
+  state.sprints.forEach((sprint) => {
+    sprint.topics.forEach((topic) => {
+      normalizeTopic(topic);
+      const projectKey = normalizeProjectKey(topic.projectKey);
+      if (!projectKey) return;
+      if (projectFilter && projectKey !== projectFilter) return;
+
+      topic.items.forEach((item) => {
+        if (!taskPassesBoardFilters(item, topic, sprint)) return;
+        const project = map.get(projectKey) || {
+          projectKey,
+          title: projectLabel(projectKey),
+          status: getProjectCurrentStatus(projectKey),
+          sprints: new Map(),
+          tasks: [],
+        };
+        project.status = getProjectCurrentStatus(projectKey);
+        const task = { sprint, topic, item };
+        project.tasks.push(task);
+        const sprintGroup = project.sprints.get(sprint.id) || { sprint, tasks: [] };
+        sprintGroup.tasks.push(task);
+        project.sprints.set(sprint.id, sprintGroup);
+        map.set(projectKey, project);
+      });
+    });
+  });
+  return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title));
+}
+
+function renderProjectTaskboard() {
+  el.boardTitle.textContent = "Project Taskboard";
+  el.boardMeta.textContent = "All projects grouped by current project status.";
+  const columns = PROJECT_STATUS_OPTIONS.map((status) => ({ id: status, title: status, projects: [] }));
+  const columnMap = Object.fromEntries(columns.map((column) => [column.id, column]));
+
+  collectProjectDeliveryItems({ projectFilter: "" }).forEach((project) => {
+    if (!project.status) return;
+    if (selectedProjectStatus && project.status !== selectedProjectStatus) return;
+    columnMap[project.status]?.projects.push(project);
+  });
+
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.remove("delivery-grid");
+  el.topicsGrid.classList.add("taskboard-grid", "project-taskboard-grid");
+
+  const totalProjects = columns.reduce((total, column) => total + column.projects.length, 0);
+  if (!totalProjects) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "No projects found with the current filters.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  columns.forEach((column) => {
+    const section = document.createElement("section");
+    section.className = `taskboard-column taskboard-column-${column.id || "none"}`;
+    section.innerHTML = `
+      <div class="taskboard-column-head">
+        <h4></h4>
+        <span class="taskboard-count"></span>
+      </div>
+      <div class="taskboard-list"></div>
+    `;
+    section.querySelector("h4").textContent = column.title;
+    section.querySelector(".taskboard-count").textContent = column.projects.length;
+    const list = section.querySelector(".taskboard-list");
+
+    list.addEventListener("dragover", (e) => {
+      if (!dragProjectKey) return;
+      e.preventDefault();
+      list.classList.add("drop-active");
+    });
+    list.addEventListener("dragleave", (e) => {
+      if (e.relatedTarget && list.contains(e.relatedTarget)) return;
+      list.classList.remove("drop-active");
+    });
+    list.addEventListener("drop", (e) => {
+      e.preventDefault();
+      list.classList.remove("drop-active");
+      const projectKey = normalizeProjectKey(dragProjectKey);
+      dragProjectKey = "";
+      if (!projectKey) return;
+      projectControls[projectKey] = normalizeProjectControl(projectKey, { name: projectKey, status: column.id });
+      saveProjectControl(projectKey, { status: column.id }).catch(() => {});
+      render();
+    });
+
+    if (!column.projects.length) {
+      const empty = document.createElement("div");
+      empty.className = "item-empty-hint";
+      empty.textContent = "No projects";
+      list.appendChild(empty);
+    }
+
+    column.projects.forEach((project) => {
+      const card = document.createElement("article");
+      card.className = "taskboard-task project-taskboard-card";
+      card.draggable = true;
+      card.innerHTML = `
+        <div class="taskboard-task-head">
+          <span class="taskboard-project"></span>
+          <span class="taskboard-count"></span>
+        </div>
+        <div class="project-taskboard-sprints"></div>
+      `;
+      card.querySelector(".taskboard-project").textContent = project.title;
+      card.querySelector(".taskboard-count").textContent = project.tasks.length;
+      const sprintList = card.querySelector(".project-taskboard-sprints");
+      Array.from(project.sprints.values())
+        .reverse()
+        .slice(0, 4)
+        .forEach(({ sprint, tasks }) => {
+          const row = document.createElement("div");
+          row.className = "project-taskboard-sprint";
+          row.textContent = `Sprint ${sprint.name}: ${tasks.length} task${tasks.length === 1 ? "" : "s"}`;
+          sprintList.appendChild(row);
+        });
+      card.addEventListener("dragstart", (e) => {
+        dragProjectKey = project.projectKey;
+        card.classList.add("dragging");
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", project.projectKey);
+        }
+      });
+      card.addEventListener("dragend", () => {
+        dragProjectKey = "";
+        card.classList.remove("dragging");
+        document.querySelectorAll(".taskboard-list.drop-active").forEach((x) => x.classList.remove("drop-active"));
+      });
+      list.appendChild(card);
+    });
+
+    el.topicsGrid.appendChild(section);
+  });
+}
+
 function renderTaskboard() {
   const activeSprint = getActiveSprint();
   if (!activeSprint) {
     el.boardTitle.textContent = "No sprints yet";
     el.boardMeta.textContent = "Create your first sprint.";
     el.topicsGrid.innerHTML = "";
-    el.topicsGrid.classList.remove("taskboard-grid");
+    el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid");
+    return;
+  }
+
+  if (boardView === "projects") {
+    renderProjectTaskboard();
     return;
   }
 
@@ -2324,6 +2582,7 @@ function renderTaskboard() {
   });
 
   el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.remove("delivery-grid", "project-taskboard-grid");
   el.topicsGrid.classList.add("taskboard-grid");
 
   const totalTasks = columns.reduce((total, column) => total + column.items.length, 0);
@@ -2351,6 +2610,22 @@ function renderTaskboard() {
     section.querySelector(".taskboard-count").textContent = column.items.length;
     const list = section.querySelector(".taskboard-list");
 
+    list.addEventListener("dragover", (e) => {
+      if (!dragTaskState) return;
+      e.preventDefault();
+      list.classList.add("drop-active");
+    });
+    list.addEventListener("dragleave", (e) => {
+      if (e.relatedTarget && list.contains(e.relatedTarget)) return;
+      list.classList.remove("drop-active");
+    });
+    list.addEventListener("drop", (e) => {
+      e.preventDefault();
+      list.classList.remove("drop-active");
+      moveDraggedTaskToTaskboardColumn(column.id);
+      endTaskDrag();
+    });
+
     if (!column.items.length) {
       const empty = document.createElement("div");
       empty.className = "item-empty-hint";
@@ -2361,13 +2636,14 @@ function renderTaskboard() {
     column.items.forEach(({ sprint, topic, item }) => {
       const card = document.createElement("article");
       card.className = `taskboard-task ${item.done ? "done" : ""} ${item.priority === "high" ? "item-high" : ""} ${item.blocked ? "item-blocked" : ""}`;
+      card.draggable = true;
       card.innerHTML = `
         <div class="taskboard-task-head">
           <span class="taskboard-project"></span>
           <button type="button" class="btn-link btn-link-neutral taskboard-edit" aria-label="Edit task" title="Edit task">✎</button>
         </div>
         <label class="taskboard-task-line">
-          <input type="checkbox" ${item.done ? "checked" : ""} />
+          <input type="checkbox" ${item.followed ? "checked" : ""} title="Followed this week" aria-label="Followed this week" />
           <span class="taskboard-task-text"></span>
         </label>
         <div class="taskboard-tags"></div>
@@ -2399,9 +2675,22 @@ function renderTaskboard() {
       }
 
       card.querySelector("input").addEventListener("change", (e) => {
-        item.done = e.target.checked;
+        item.followed = e.target.checked;
         persistState();
         render();
+      });
+      card.addEventListener("dragstart", (e) => {
+        beginTopicTaskDrag(topic.id, item.id);
+        card.classList.add("dragging");
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", item.id);
+        }
+      });
+      card.addEventListener("dragend", () => {
+        card.classList.remove("dragging");
+        document.querySelectorAll(".taskboard-list.drop-active").forEach((x) => x.classList.remove("drop-active"));
+        endTaskDrag();
       });
       card.querySelector(".taskboard-edit").addEventListener("click", () => {
         openTopicTaskEditor(topic, item);
@@ -2413,6 +2702,189 @@ function renderTaskboard() {
   });
 }
 
+function moveDraggedTaskToTaskboardColumn(columnId) {
+  if (!dragTaskState || dragTaskState.sourceType !== "topic") return false;
+  const sprint = getActiveSprint();
+  if (!sprint) return false;
+  const topic = sprint.topics.find((t) => t.id === dragTaskState.topicId);
+  if (!topic) return false;
+  const item = topic.items.find((i) => i.id === dragTaskState.itemId);
+  if (!item) return false;
+
+  if (columnId === "done") {
+    item.done = true;
+    item.blocked = false;
+    item.blockedReason = "";
+  } else if (columnId === "blocked") {
+    item.done = false;
+    item.blocked = true;
+  } else {
+    item.done = false;
+    item.blocked = false;
+    item.blockedReason = "";
+    if (columnId === "doing") topic.status = "Desenvolvimento";
+    else if (columnId === "testing") topic.status = "Teste";
+  }
+
+  persistState();
+  render();
+  return true;
+}
+
+function renderDeliveryView() {
+  el.boardTitle.textContent = "Delivery";
+  el.boardMeta.textContent = selectedProjectKey
+    ? `Delivery plan for ${selectedProjectKey} across sprints.`
+    : "Delivery plan across sprints and projects.";
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid");
+  el.topicsGrid.classList.add("delivery-grid");
+
+  const sprints = [...state.sprints];
+  const sprintIndex = new Map(sprints.map((sprint, index) => [sprint.id, index]));
+  const projects = new Map();
+
+  sprints.forEach((sprint) => {
+    sprint.topics.forEach((topic) => {
+      normalizeTopic(topic);
+      const projectKey = normalizeProjectKey(topic.projectKey);
+      if (!projectKey) return;
+      if (selectedProjectKey && projectKey !== selectedProjectKey) return;
+      const projectStatus = getProjectCurrentStatus(projectKey);
+      if (selectedProjectStatus && projectStatus !== selectedProjectStatus) return;
+
+      const visibleItems = topic.items.filter((item) => taskPassesBoardFilters(item, topic, sprint));
+      if (!visibleItems.length) return;
+
+      const project = projects.get(projectKey) || {
+        projectKey,
+        title: projectLabel(projectKey),
+        status: projectStatus,
+        sprints: new Map(),
+      };
+      const sprintGroup = project.sprints.get(sprint.id) || { sprint, tasks: [] };
+      visibleItems.forEach((item) => sprintGroup.tasks.push({ topic, item }));
+      project.sprints.set(sprint.id, sprintGroup);
+      projects.set(projectKey, project);
+    });
+  });
+
+  const visibleProjects = Array.from(projects.values()).sort((a, b) => a.title.localeCompare(b.title));
+  if (!sprints.length || !visibleProjects.length) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "No delivery items found with the current filters.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  const plan = document.createElement("section");
+  plan.className = "delivery-plan";
+  plan.style.setProperty("--delivery-columns", String(sprints.length));
+  plan.innerHTML = `
+    <div class="delivery-plan-head"></div>
+    <div class="delivery-plan-body"></div>
+  `;
+
+  const head = plan.querySelector(".delivery-plan-head");
+  sprints.forEach((sprint) => {
+    const cell = document.createElement("div");
+    cell.className = "delivery-period";
+    cell.innerHTML = `
+      <strong></strong>
+      <span></span>
+    `;
+    cell.querySelector("strong").textContent = sprint.name;
+    cell.querySelector("span").textContent = sprint.goal || "No sprint goal";
+    head.appendChild(cell);
+  });
+
+  const body = plan.querySelector(".delivery-plan-body");
+  visibleProjects.forEach((project) => {
+    const activeIndexes = Array.from(project.sprints.keys())
+      .map((id) => sprintIndex.get(id))
+      .filter((index) => Number.isInteger(index))
+      .sort((a, b) => a - b);
+    if (!activeIndexes.length) return;
+
+    const lane = document.createElement("div");
+    lane.className = "delivery-lane";
+    lane.style.setProperty("--delivery-columns", String(sprints.length));
+
+    for (let index = 0; index < sprints.length; index += 1) {
+      const bg = document.createElement("div");
+      bg.className = "delivery-lane-cell";
+      bg.style.gridColumn = `${index + 1}`;
+      lane.appendChild(bg);
+    }
+
+    const flushSegment = (start, end) => {
+      const segmentSprints = sprints.slice(start, end + 1);
+      const segmentTasks = segmentSprints.flatMap((sprint) => project.sprints.get(sprint.id)?.tasks || []);
+      const doneCount = segmentTasks.filter(({ item }) => item.done).length;
+      const totalCount = segmentTasks.length;
+      const progress = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
+      const card = document.createElement("article");
+      card.className = `delivery-plan-card ${project.status === "Bloqueado" ? "is-blocked" : ""}`;
+      card.style.gridColumn = `${start + 1} / ${end + 2}`;
+      card.innerHTML = `
+        <div class="delivery-plan-card-head">
+          <strong></strong>
+          <span></span>
+        </div>
+        <div class="delivery-plan-meta">
+          <span class="topic-status-tag hidden"></span>
+          <span class="delivery-plan-count"></span>
+        </div>
+        <ul class="delivery-plan-tasks"></ul>
+        <div class="delivery-progress"><span></span></div>
+      `;
+      card.querySelector(".delivery-plan-card-head strong").textContent = project.title;
+      card.querySelector(".delivery-plan-card-head span").textContent =
+        start === end ? `Sprint ${sprints[start].name}` : `Sprint ${sprints[start].name} - ${sprints[end].name}`;
+      const statusTag = card.querySelector(".topic-status-tag");
+      if (project.status) {
+        statusTag.textContent = project.status;
+        statusTag.dataset.status = project.status;
+        statusTag.classList.remove("hidden");
+      }
+      card.querySelector(".delivery-plan-count").textContent = `${doneCount}/${totalCount} done`;
+      const taskList = card.querySelector(".delivery-plan-tasks");
+      segmentTasks.slice(0, 4).forEach(({ topic, item }) => {
+        const li = document.createElement("li");
+        li.className = item.done ? "done" : "";
+        li.textContent = `${topic.title}: ${itemDisplayText(item)}`;
+        taskList.appendChild(li);
+      });
+      if (segmentTasks.length > 4) {
+        const li = document.createElement("li");
+        li.className = "muted";
+        li.textContent = `+${segmentTasks.length - 4} more`;
+        taskList.appendChild(li);
+      }
+      card.querySelector(".delivery-progress span").style.width = `${progress}%`;
+      lane.appendChild(card);
+    };
+
+    let segmentStart = activeIndexes[0];
+    let previous = activeIndexes[0];
+    activeIndexes.slice(1).forEach((index) => {
+      if (index === previous + 1) {
+        previous = index;
+        return;
+      }
+      flushSegment(segmentStart, previous);
+      segmentStart = index;
+      previous = index;
+    });
+    flushSegment(segmentStart, previous);
+
+    body.appendChild(lane);
+  });
+
+  el.topicsGrid.appendChild(plan);
+}
+
 function renderTopics() {
   const activeSprint = getActiveSprint();
   if (!activeSprint) {
@@ -2422,6 +2894,7 @@ function renderTopics() {
     return;
   }
   el.topicsGrid.classList.remove("taskboard-grid");
+  el.topicsGrid.classList.remove("project-taskboard-grid", "delivery-grid");
 
   if (boardView === "projects") {
     el.boardTitle.textContent = "All sprints";
@@ -2475,6 +2948,13 @@ function renderTopics() {
             topic.description = description;
             topic.projectKey = normalizeProjectKey(projectKey);
             topic.status = normalizeProjectStatus(status);
+            if (topic.projectKey) {
+              projectControls[topic.projectKey] = normalizeProjectControl(topic.projectKey, {
+                name: topic.projectKey,
+                status: topic.status,
+              });
+              saveProjectControl(topic.projectKey, { status: topic.status }).catch(() => {});
+            }
             persistState();
             render();
           },
@@ -2501,6 +2981,7 @@ function renderTopics() {
                 id: uid(),
                 text: item.text,
                 done: item.done,
+                followed: Boolean(item.followed),
                 responsibles: [...(item.responsibles || [])],
                 priority: item.priority === "high" ? "high" : "normal",
                 blocked: Boolean(item.blocked),
@@ -2550,7 +3031,7 @@ function renderTopics() {
         li.draggable = canDrag;
         normalizeItem(item);
         li.innerHTML = `
-          <input type="checkbox" ${item.done ? "checked" : ""} />
+          <input type="checkbox" ${item.followed ? "checked" : ""} title="Followed this week" aria-label="Followed this week" />
           <span class="item-line"><span class="item-text"></span></span>
           <div>
             <button type="button" class="btn-link btn-link-neutral item-edit" aria-label="Edit task" title="Edit task">✎</button>
@@ -2613,13 +3094,13 @@ function renderTopics() {
         }
 
         li.querySelector("input").addEventListener("change", (e) => {
-          item.done = e.target.checked;
+          item.followed = e.target.checked;
           persistState();
           render();
         });
 
         li.querySelector(".item-text").addEventListener("click", () => {
-          item.done = !item.done;
+          item.followed = !item.followed;
           persistState();
           render();
         });
@@ -2681,22 +3162,30 @@ function render() {
   if (boardView === "projects" && selectedProjectKey && !projectCatalog.includes(selectedProjectKey)) {
     selectedProjectKey = "";
   }
-  el.leftPanelSearch.value = projectSearchText;
+  if (el.leftPanelSearch) el.leftPanelSearch.value = projectSearchText;
   el.taskSearchInput.value = taskSearchText;
   renderLeftPanel();
   renderTopicProjectSelect();
   renderTopicStatusSelect(el.topicStatusSelect?.value || "");
   renderResponsibleFilter();
   renderProjectStatusFilter();
+  renderBoardSprintSelect();
+  renderBoardProjectSelect();
   renderBacklogProjectFilter();
   if (taskLayoutView === "taskboard") renderTaskboard();
+  else if (taskLayoutView === "delivery") renderDeliveryView();
   else renderTopics();
   renderBacklog();
   const projectsMode = boardView === "projects";
+  const deliveryMode = taskLayoutView === "delivery";
+  el.newSprintBtn.classList.toggle("hidden", projectsMode);
   el.newTopicBtn.disabled = projectsMode;
   el.editSprintBtn.disabled = projectsMode;
   el.taskboardViewBtn.textContent = taskLayoutView === "taskboard" ? "Project Cards" : "Taskboard";
   el.taskboardViewBtn.classList.toggle("active", taskLayoutView === "taskboard");
+  el.deliveryViewBtn.classList.toggle("hidden", !projectsMode);
+  el.deliveryViewBtn.classList.toggle("active", taskLayoutView === "delivery");
+  el.backlogList.closest(".backlog-panel")?.classList.toggle("hidden", deliveryMode);
   el.viewModeBtn.textContent = projectsMode ? "Sprints View" : "Projects View";
   if (projectsMode) {
     el.topicForm.classList.add("hidden");
@@ -2748,6 +3237,7 @@ function copySprintFromSource(source, sprintName, includeDone) {
       id: uid(),
       text: item.text,
       done: includeDone ? item.done : false,
+      followed: Boolean(item.followed),
       responsibles: [...(item.responsibles || [])],
       priority: item.priority === "high" ? "high" : "normal",
       blocked: Boolean(item.blocked),
@@ -2868,20 +3358,41 @@ el.taskboardViewBtn.addEventListener("click", () => {
   taskLayoutView = taskLayoutView === "taskboard" ? "projects" : "taskboard";
   render();
 });
+el.deliveryViewBtn.addEventListener("click", () => {
+  boardView = "projects";
+  taskLayoutView = taskLayoutView === "delivery" ? "projects" : "delivery";
+  render();
+});
 el.viewModeBtn.addEventListener("click", () => {
   if (boardView === "projects") {
     boardView = "sprints";
     projectSearchText = "";
+    selectedProjectKey = "";
+    if (taskLayoutView === "delivery") taskLayoutView = "projects";
   } else {
     boardView = "projects";
-    if (!selectedProjectKey && projectCatalog.length) selectedProjectKey = projectCatalog[0];
+    selectedProjectKey = "";
   }
   render();
 });
-el.leftPanelSearch.addEventListener("input", () => {
-  projectSearchText = el.leftPanelSearch.value || "";
-  render();
-});
+if (el.leftPanelSearch) {
+  el.leftPanelSearch.addEventListener("input", () => {
+    projectSearchText = el.leftPanelSearch.value || "";
+    render();
+  });
+}
+if (el.boardSprintSelect) {
+  el.boardSprintSelect.addEventListener("change", () => {
+    state.activeSprintId = el.boardSprintSelect.value || state.activeSprintId;
+    render();
+  });
+}
+if (el.boardProjectSelect) {
+  el.boardProjectSelect.addEventListener("change", () => {
+    selectedProjectKey = normalizeProjectKey(el.boardProjectSelect.value);
+    render();
+  });
+}
 el.taskSearchInput.addEventListener("input", () => {
   taskSearchText = el.taskSearchInput.value || "";
   render();

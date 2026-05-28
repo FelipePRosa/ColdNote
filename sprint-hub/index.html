@@ -31,21 +31,15 @@
 
   <main>
     <section class="workspace">
-      <aside class="sprints-panel card">
-        <div class="panel-head">
-          <h3 id="leftPanelTitle">Sprints</h3>
-          <button id="newSprintBtn" class="btn btn-primary">New Sprint</button>
-        </div>
-        <input id="leftPanelSearch" class="hidden" type="text" placeholder="Search project..." />
-        <ul id="sprintsList" class="sprints-list"></ul>
-      </aside>
-
       <section class="board card">
         <div class="board-head">
           <div class="board-topline">
             <div class="board-title-block">
               <div class="board-title-row">
                 <h3 id="boardTitle">Sprint</h3>
+                <select id="boardSprintSelect" class="board-sprint-select" aria-label="Select sprint"></select>
+                <select id="boardProjectSelect" class="board-project-select hidden" aria-label="Select project"></select>
+                <button id="newSprintBtn" class="btn btn-primary">New Sprint</button>
               </div>
               <p id="boardMeta" class="muted"></p>
             </div>
@@ -54,6 +48,7 @@
                 <span aria-hidden="true">✎</span>
               </button>
               <button id="taskboardViewBtn" class="btn btn-ghost" type="button">Taskboard</button>
+              <button id="deliveryViewBtn" class="btn btn-ghost" type="button">Delivery</button>
               <button id="newTopicBtn" class="btn btn-secondary">New Project</button>
             </div>
           </div>

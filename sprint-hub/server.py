@@ -17,6 +17,7 @@ HOST = "127.0.0.1"
 PORT = 8765
 PROJECT_SPRINTS_FROM = "26-01"
 TIMELINE_FILE_NAME = "timeline.md"
+PROJECT_CONTROL_FILE_NAME = "project.json"
 
 
 def safe_name(name: str) -> str:
@@ -223,6 +224,17 @@ def build_project_timeline_markdown(project_name: str) -> str:
   return "\n".join(lines)
 
 
+def build_project_control_json(project_name: str) -> str:
+  return json.dumps(
+    {
+      "name": project_name,
+      "status": "",
+    },
+    ensure_ascii=False,
+    indent=2,
+  ) + "\n"
+
+
 def ensure_project_timeline_file(project_dir: Path):
   if not project_dir.exists() or not project_dir.is_dir():
     return
@@ -236,12 +248,26 @@ def ensure_project_timeline_file(project_dir: Path):
   )
 
 
+def ensure_project_control_file(project_dir: Path):
+  if not project_dir.exists() or not project_dir.is_dir():
+    return
+  control_file = project_dir / PROJECT_CONTROL_FILE_NAME
+  if control_file.exists():
+    return
+  control_file.write_text(
+    build_project_control_json(project_dir.name),
+    encoding="utf-8",
+    newline="\n",
+  )
+
+
 def ensure_project_support_files():
   PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
   for path in sorted(PROJECTS_DIR.iterdir()):
     if not path.is_dir():
       continue
     ensure_project_timeline_file(path)
+    ensure_project_control_file(path)
 
 
 def sync_project_sprints_files(files: list):
@@ -490,6 +516,7 @@ class Handler(SimpleHTTPRequestHandler):
           raise ValueError("A file already exists with this name")
         out.mkdir(parents=True, exist_ok=True)
         ensure_project_timeline_file(out)
+        ensure_project_control_file(out)
         self._json(200, {"ok": True, "path": rel})
       except Exception as exc:
         self._json(400, {"error": str(exc)})

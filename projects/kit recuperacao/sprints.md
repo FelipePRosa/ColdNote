@@ -37,6 +37,37 @@ Regra: inclui apenas sprints depois de 26-01.
 - [x] Desenvolvimento mobile (Dani)
 - [x] Desenvolvimento Front (Berg)
 
+## Sprint 26-12
+
+### Kit Resgate
+- [x] Aprovação tela do hub admin (Nu)
+- [x] Arquitetura BD (Guto)
+- [x] Desenvolvimento mobile (Dani)
+- [x] Desenvolvimento Front (Berg)
+
+## Sprint 26-13
+
+### Kit Resgate
+- [x] Aprovação tela do hub admin (Nu)
+- [x] Arquitetura BD (Guto)
+- [x] Desenvolvimento mobile (Dani)
+- [x] Desenvolvimento Front (Berg)
+
+## Sprint 26-14
+
+### Kit Resgate
+- [x] Verificar + templates (Nu)
+- [x] Arquitetura BD (Guto)
+- [x] Desenvolvimento mobile (Dani)
+- [x] Desenvolvimento Front (Berg)
+
+## Sprint 26-15
+
+### Kit Resgate
+- [x] Arquitetura BD (Guto)
+- [x] Desenvolvimento mobile (Dani)
+- [x] Desenvolvimento Front (Berg)
+
 ## Sprint 26-16
 
 ### Kit Resgate
