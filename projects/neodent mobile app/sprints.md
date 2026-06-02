@@ -145,7 +145,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-21
 
 ### Neodent Mobile App
-- [ ] Deploy markdown (Brunin + Vicco) [HIGH]
-- [ ] Dev Data Wakeword (Brunin + Hary)
-- [ ] Briefing comodato digital (Fel)
+- [ ] Deploy markdown (Brunin + Vicco) [HIGH] [FOLLOWED]
+- [ ] Deploy prod (Vicco) [HIGH] [FOLLOWED]
+
+## Sprint 26-22
+
+### Neodent Mobile App
+- [x] Deploy markdown (Brunin + Vicco) [HIGH] [FOLLOWED]
 - [ ] Deploy prod (Vicco) [HIGH]

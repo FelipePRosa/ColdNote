@@ -742,15 +742,36 @@ main {
   background: #1f7f55;
   color: white;
   box-shadow: 0 8px 18px rgba(31, 41, 55, 0.12);
-}
-
-.delivery-plan-card.is-blocked {
-  background: #b3261e;
+  cursor: pointer;
 }
 
 .delivery-plan-card .topic-status-tag {
   background: rgba(255, 255, 255, 0.14);
   color: white;
+}
+
+.delivery-status-bloqueado {
+  background: #b3261e;
+}
+
+.delivery-status-planejamento {
+  background: #d99a1e;
+}
+
+.delivery-status-desenvolvimento {
+  background: #1565c0;
+}
+
+.delivery-status-acompanhamento {
+  background: #c46210;
+}
+
+.delivery-status-finalizado {
+  background: #1f7f55;
+}
+
+.delivery-status-teste {
+  background: #6f3cc3;
 }
 
 .delivery-plan-card-head,
@@ -861,6 +882,7 @@ main {
   border-top: 1px solid rgba(202, 196, 208, 0.64);
   border-right: 1px solid rgba(202, 196, 208, 0.64);
   border-bottom: 1px solid rgba(202, 196, 208, 0.64);
+  cursor: pointer;
 }
 
 .delivery-detail-task.done {
@@ -886,6 +908,51 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.delivery-info-modal-card {
+  width: min(760px, 94vw);
+}
+
+.delivery-info-list {
+  display: grid;
+  gap: 10px;
+  max-height: 62vh;
+  overflow-y: auto;
+}
+
+.delivery-info-section {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(202, 196, 208, 0.72);
+  border-radius: var(--md-radius-sm);
+  background: var(--md-sys-color-surface-container-lowest);
+}
+
+.delivery-info-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.delivery-info-section-head span {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.delivery-info-section ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.delivery-info-section li {
+  overflow-wrap: anywhere;
 }
 
 .topic-card {

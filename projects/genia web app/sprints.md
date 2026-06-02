@@ -165,9 +165,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-21
 
 ### Genia Web App
-- [ ] Testes multimarca + sso + campanha mensais (Nu + Bruf) [HIGH]
-- [ ] Markdown Genia (Brunin + Bruf + Nu)
-- [ ] Catálogo Neodent Link (Bruf + Nu)
-- [ ] Quick Win 4 + 2 (Bruf + Nu)
-- [ ] WakeWord (Brunin + Bruf + Hary + Sam)
-- [ ] Echo Cancelation (Brunin + Bruf + Nu + Sam)
+- [ ] Testes multimarca + sso + campanha mensais (Nu + Bruf) [HIGH] [FOLLOWED]
+- [ ] Markdown Genia (Brunin + Bruf + Nu) [FOLLOWED]
+- [ ] Catálogo Neodent Link (Bruf + Nu) [FOLLOWED]
+- [ ] Quick Win 4 + 2 (Bruf + Nu) [FOLLOWED]
+- [ ] WakeWord (Brunin + Bruf + Hary + Sam) [BLOCKED] [FOLLOWED]
+
+## Sprint 26-22
+
+### Genia Web App
+- [ ] WakeWord (Brunin + Bruf + Hary + Sam) [BLOCKED] [FOLLOWED]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu + Sam) [BLOCKED] [FOLLOWED]

@@ -17,5 +17,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-21
 
 ### Forecasting
-- [ ] Forecasting Geral (Brunin)
-- [ ] Previsão de comportamento de cliente (Brunin)
+- [ ] Forecasting Geral (Brunin) [FOLLOWED]
+- [ ] Previsão de comportamento de cliente (Brunin) [FOLLOWED]
+
+## Sprint 26-22
+
+### Forecasting
+- [ ] Forecasting Geral (Brunin) [FOLLOWED]
+- [ ] Previsão de comportamento de cliente (Brunin) [FOLLOWED]
