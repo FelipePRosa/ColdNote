@@ -25,6 +25,18 @@
       "followed": false
     },
     {
+      "id": "mq59lq09_1gyb1v",
+      "text": "Gravar roteiro do dia",
+      "done": false,
+      "responsibles": [],
+      "priority": "normal",
+      "blocked": false,
+      "blockedReason": "",
+      "followed": false,
+      "projectKey": "genia mobile app",
+      "projectTitle": "Genia Mobile App"
+    },
+    {
       "id": "mppr1mbm_jxb3b9",
       "text": "Forecast",
       "done": false,

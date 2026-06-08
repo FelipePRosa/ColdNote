@@ -238,10 +238,8 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-23
 
 ### Outros
-- [ ] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
-- [ ] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
-- [ ] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [ ] Bloqueio ZSEB, Cotação, Rastreio (Fel) [BLOCKED]
 - [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
 - [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED]
 - [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
-- [ ] Base CNES - Digital (Fel)
+- [ ] Revisão CNPJ (Bruf + Fel + Gui + Vicco) [HIGH]
