@@ -153,6 +153,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-22
 
 ### ClearWallet
+- [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH] [FOLLOWED]
+- [ ] Tranferencia entre recebedores (Fel + Maxo) [HIGH] [FOLLOWED]
+- [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu) [FOLLOWED]
+- [ ] Trocar SAML para OIDC (Bruf + Gui) [FOLLOWED]
+
+## Sprint 26-23
+
+### ClearWallet
 - [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH]
 - [ ] Tranferencia entre recebedores (Fel + Maxo) [HIGH]
 - [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu)

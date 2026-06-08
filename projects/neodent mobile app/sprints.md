@@ -152,4 +152,11 @@ Regra: inclui apenas sprints depois de 26-01.
 
 ### Neodent Mobile App
 - [x] Deploy markdown (Brunin + Vicco) [HIGH] [FOLLOWED]
-- [ ] Deploy prod (Vicco) [HIGH]
+- [x] Deploy prod (Vicco) [HIGH] [FOLLOWED]
+
+## Sprint 26-23
+
+### Neodent Mobile App
+- [ ] Bug cadastrar conta (Vicco)
+- [ ] Bug assessores (Vicco)
+- [ ] Boleto Clear (Fel + Gui + Vicco)
