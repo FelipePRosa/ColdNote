@@ -18,6 +18,7 @@ PORT = 8765
 PROJECT_SPRINTS_FROM = "26-01"
 TIMELINE_FILE_NAME = "timeline.md"
 PROJECT_CONTROL_FILE_NAME = "project.json"
+PROJECT_FEATURES_FILE_NAME = "features.md"
 
 
 def safe_name(name: str) -> str:
@@ -235,6 +236,16 @@ def build_project_control_json(project_name: str) -> str:
   ) + "\n"
 
 
+def build_project_features_markdown(project_name: str) -> str:
+  lines = [
+    f"# Features - {project_name}",
+    "",
+    "_Liste aqui features, capacidades e entregas importantes deste projeto._",
+    "",
+  ]
+  return "\n".join(lines)
+
+
 def ensure_project_timeline_file(project_dir: Path):
   if not project_dir.exists() or not project_dir.is_dir():
     return
@@ -243,6 +254,19 @@ def ensure_project_timeline_file(project_dir: Path):
     return
   timeline_file.write_text(
     build_project_timeline_markdown(project_dir.name),
+    encoding="utf-8",
+    newline="\n",
+  )
+
+
+def ensure_project_features_file(project_dir: Path):
+  if not project_dir.exists() or not project_dir.is_dir():
+    return
+  features_file = project_dir / PROJECT_FEATURES_FILE_NAME
+  if features_file.exists():
+    return
+  features_file.write_text(
+    build_project_features_markdown(project_dir.name),
     encoding="utf-8",
     newline="\n",
   )
@@ -267,6 +291,7 @@ def ensure_project_support_files():
     if not path.is_dir():
       continue
     ensure_project_timeline_file(path)
+    ensure_project_features_file(path)
     ensure_project_control_file(path)
 
 
@@ -516,6 +541,7 @@ class Handler(SimpleHTTPRequestHandler):
           raise ValueError("A file already exists with this name")
         out.mkdir(parents=True, exist_ok=True)
         ensure_project_timeline_file(out)
+        ensure_project_features_file(out)
         ensure_project_control_file(out)
         self._json(200, {"ok": True, "path": rel})
       except Exception as exc:

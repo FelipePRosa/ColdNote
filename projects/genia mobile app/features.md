@@ -1,62 +1,22 @@
-# Features
+# Features - genia mobile app
 
-- Clientes
--- Pedidos
---- Frequência
---- Gastos
---- Preferências
---- Status
--- ASP
--- X Boletos
--- Acordos
---- Metas
--- Comodato ?
--- Consignado ?
--- Interesses (Usabilidade do App)
---- Banner
---- Catálogo
---- Genia
--- Classificação
--- Informações(Endereço, telefone, email, etc.)
--- Insights **
--- Relatório **
--- Abrir ticket
--- Tipos de entrega + prazo médio de entrega?
+_Liste aqui features, capacidades e entregas importantes deste projeto._
 
-- Roteiro
--- Rotas
--- Busca por localização
--- Sugestão de visita próxima
--- Endereço residencial / comercial
-
-- Pedido
--- Criação de Cotação (Simulação**)
--- Criação de Pedido
--- Envio de Cotação e Pedido
--- Campanhas
--- Estoque (abertura automática de tickets)
-
-- Assistente
--- Simulação de venda
--- Tomador de notas (live listener)
--- Adicionar notas para cliente
--- Pitch Sniper (Recomendação de resposta)
--- Envio de push / email / whats
--- Lançamento de visita e metas
--- Genia + Catálogo
--- Conhecimento do Grupo Straumann e produtos
--- Catálogo geral da Neo + Straumann
-
-- Assessor
--- Prazo médio de pagamento
--- ASP (average sales price)
--- Status do pedido
--- Gestão de Tickets
--- Forecast
--- Notificação Atenção!
--- Assessores da MR
--- Vídeos
--- Catálogos
--- Contatos + Hub
--- Meta
--- Lembretes
+## Atualização campos digital
+Novos campos para serem usados no fluxo digital:
+Grupo de Venda: Farmer ou Hunter ( Segmento Digital)
+Grupo Macro - GrupoMacro
+Grupo do Cliente – Customer Gruop:
+Grupo de Franquias – Grupo Franquias
+Nome da Franquias – Franqueadora
+Ultima Visita – ultima visita
+Próxima Visita – Prox Visita
+Visita mais de 90 dias -
+Possui IOS – Scanner
+Detalhes: 3Shape, Virtuo Vivo, Sirios, X3, Midas,Impressora, espectra
+e Quantidade de Dongle, SIAB, UN!q
+Consumo do ano atual da empresa ( NetSales) ( NetSales26)
+Volume total implante: Vol total
+Cliente Clearcorrect: Sim ou não
+Etapa do IANOS e Produto. CurrentStage
+Assessor da marca: Neodent, Straumann,ClearCorrect

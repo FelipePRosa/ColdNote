@@ -133,23 +133,41 @@
       <h3 id="modalTitle">Edit Task</h3>
       <p id="modalSubtitle" class="muted">Update task text and responsibles.</p>
       <input id="modalItemText" type="text" placeholder="Task text" />
-      <label id="modalBacklogProjectField" class="field-block hidden">
+      <label id="modalBacklogProjectField" class="field-block hidden" hidden aria-hidden="true" style="display: none;">
         <span class="field-label">Project</span>
         <select id="modalBacklogProjectSelect" aria-label="Backlog project">
           <option value="">No project</option>
         </select>
       </label>
+      <label id="modalFeatureField" class="field-block hidden">
+        <span class="field-label">Feature</span>
+        <select id="modalFeatureSelect" aria-label="Task feature">
+          <option value="">No feature</option>
+        </select>
+      </label>
       <div id="taskMetaRow" class="task-meta-row">
+        <label class="field-block task-status-field">
+          <span class="field-label">Status</span>
+          <select id="modalTaskStatusSelect" aria-label="Task status">
+            <option value="open">Open</option>
+            <option value="doing">Doing</option>
+            <option value="testing">Testing</option>
+            <option value="blocked">Blocked</option>
+            <option value="done">Done</option>
+          </select>
+        </label>
         <label class="copy-options">
           <input id="modalHighPriorityCheck" type="checkbox" />
           High Priority
         </label>
-        <label class="copy-options">
-          <input id="modalBlockedCheck" type="checkbox" />
-          Blocked
-        </label>
       </div>
-      <input id="modalBlockedReasonInput" class="hidden" type="text" placeholder="Blocked reason" />
+      <div id="modalBlockedReasonBlock" class="field-block hidden">
+        <input 
+          id="modalBlockedReasonInput"
+          type="text"
+          placeholder="Blocked reason" 
+        />
+      </div>
       <select id="modalAssigneeSelect" multiple size="8"></select>
       <div class="modal-actions">
         <button id="modalDeleteBtn" class="btn btn-danger modal-action-left hidden" type="button">Remove</button>
@@ -189,6 +207,7 @@
       </div>
       <div class="modal-actions">
         <button id="projectDeliveryBtn" class="btn btn-ghost" type="button">Delivery</button>
+        <button id="projectFeaturesBtn" class="btn btn-ghost" type="button">Features</button>
         <button id="projectTimelineBtn" class="btn btn-ghost" type="button">Timeline</button>
         <button id="projectCopyBtn" class="btn btn-ghost modal-action-left" type="button">Copy to Sprint</button>
         <button id="projectDeleteBtn" class="btn btn-danger" type="button">Remove</button>
@@ -371,6 +390,43 @@
         <button id="deliveryInfoCloseBtn" class="btn btn-ghost" type="button">Close</button>
       </div>
       <div id="deliveryInfoList" class="delivery-info-list"></div>
+    </div>
+  </div>
+
+  <div id="featuresModal" class="modal hidden">
+    <div class="modal-card timeline-modal-card">
+      <div class="panel-head">
+        <div>
+          <h3 id="featuresTitle">Project Features</h3>
+          <p id="featuresSubtitle" class="muted">Review project features and descriptions.</p>
+        </div>
+        <button id="featuresCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+      <div id="featuresList" class="timeline-list"></div>
+      <div class="modal-actions">
+        <button id="featuresAddBtn" class="btn btn-primary modal-action-left" type="button">Add Feature</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="featureEditorModal" class="modal hidden">
+    <div class="modal-card">
+      <h3>Add Feature</h3>
+      <p class="muted">Register feature name and description for this project.</p>
+      <form id="featureEditorForm" class="project-modal-form">
+        <label class="field-block">
+          <span class="field-label">Title</span>
+          <input id="featureEditorNameInput" type="text" placeholder="Feature name" required />
+        </label>
+        <label class="field-block">
+          <span class="field-label">Description</span>
+          <textarea id="featureEditorDescInput" rows="7" placeholder="Feature description"></textarea>
+        </label>
+      </form>
+      <div class="modal-actions">
+        <button id="featureEditorCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="featureEditorSaveBtn" class="btn btn-primary" type="button">Add Feature</button>
+      </div>
     </div>
   </div>
 

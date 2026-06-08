@@ -42,9 +42,12 @@ const el = {
   modalItemText: document.getElementById("modalItemText"),
   modalBacklogProjectField: document.getElementById("modalBacklogProjectField"),
   modalBacklogProjectSelect: document.getElementById("modalBacklogProjectSelect"),
+  modalFeatureField: document.getElementById("modalFeatureField"),
+  modalFeatureSelect: document.getElementById("modalFeatureSelect"),
   taskMetaRow: document.getElementById("taskMetaRow"),
+  modalTaskStatusSelect: document.getElementById("modalTaskStatusSelect"),
   modalHighPriorityCheck: document.getElementById("modalHighPriorityCheck"),
-  modalBlockedCheck: document.getElementById("modalBlockedCheck"),
+  modalBlockedReasonBlock: document.getElementById("modalBlockedReasonBlock"),
   modalBlockedReasonInput: document.getElementById("modalBlockedReasonInput"),
   modalAssigneeSelect: document.getElementById("modalAssigneeSelect"),
   modalDeleteBtn: document.getElementById("modalDeleteBtn"),
@@ -56,6 +59,7 @@ const el = {
   projectStatusSelect: document.getElementById("projectStatusSelect"),
   projectDescInput: document.getElementById("projectDescInput"),
   projectDeliveryBtn: document.getElementById("projectDeliveryBtn"),
+  projectFeaturesBtn: document.getElementById("projectFeaturesBtn"),
   projectTimelineBtn: document.getElementById("projectTimelineBtn"),
   projectCopyBtn: document.getElementById("projectCopyBtn"),
   projectDeleteBtn: document.getElementById("projectDeleteBtn"),
@@ -112,6 +116,18 @@ const el = {
   timelineAddBtn: document.getElementById("timelineAddBtn"),
   timelineList: document.getElementById("timelineList"),
   timelineCloseBtn: document.getElementById("timelineCloseBtn"),
+  featuresModal: document.getElementById("featuresModal"),
+  featuresTitle: document.getElementById("featuresTitle"),
+  featuresSubtitle: document.getElementById("featuresSubtitle"),
+  featuresAddBtn: document.getElementById("featuresAddBtn"),
+  featuresList: document.getElementById("featuresList"),
+  featuresCloseBtn: document.getElementById("featuresCloseBtn"),
+  featureEditorModal: document.getElementById("featureEditorModal"),
+  featureEditorForm: document.getElementById("featureEditorForm"),
+  featureEditorNameInput: document.getElementById("featureEditorNameInput"),
+  featureEditorDescInput: document.getElementById("featureEditorDescInput"),
+  featureEditorCancelBtn: document.getElementById("featureEditorCancelBtn"),
+  featureEditorSaveBtn: document.getElementById("featureEditorSaveBtn"),
   deliveryInfoModal: document.getElementById("deliveryInfoModal"),
   deliveryInfoTitle: document.getElementById("deliveryInfoTitle"),
   deliveryInfoSubtitle: document.getElementById("deliveryInfoSubtitle"),
@@ -154,6 +170,7 @@ let filterHighOnly = false;
 let filterBlockedOnly = false;
 let projectCatalog = [];
 let projectControls = {};
+let projectFeaturesCatalog = {};
 let projectsTreeDirs = [];
 let projectsTreeFiles = [];
 let currentProjectFile = "";
@@ -170,6 +187,8 @@ let currentTeamFile = "";
 let showInactiveTeamMembers = false;
 let currentTimelineProjectKey = "";
 let currentTimelineEntries = [];
+let currentFeaturesProjectKey = "";
+let currentFeaturesEntries = [];
 const modalBackdropState = new WeakMap();
 let taskModalBacklogMode = false;
 const TEAMS_WEBHOOK_URL = "https://prod-116.westeurope.logic.azure.com:443/workflows/c6390517ac924f61ba70e7695a392fa6/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zKA-t3iOYLshX2GQBdol1aVMG4zaDu_H7IzjFVrEsmA";
@@ -305,6 +324,8 @@ function normalizeItem(item) {
   item.blocked = Boolean(item.blocked);
   item.blockedReason = item.blocked ? String(item.blockedReason || "").trim() : "";
   item.followed = Boolean(item.followed);
+  item.featureName = String(item.featureName || "").trim();
+  item.projectKey = normalizeProjectKey(item.projectKey);
   return item;
 }
 
@@ -320,6 +341,7 @@ function normalizeBacklogItem(item) {
     blockedReason: "",
     projectKey: normalizeProjectKey(item?.projectKey),
     projectTitle: String(item?.projectTitle || "").trim(),
+    featureName: String(item?.featureName || "").trim(),
   });
   if (!normalized.projectTitle) {
     normalized.projectTitle = normalized.projectKey || "No project";
@@ -468,6 +490,79 @@ function formatTimelineMarkdown(projectKey, entries) {
   return `${lines.join("\n").trim()}\n`;
 }
 
+function formatFeaturesMarkdown(projectKey) {
+  const projectName = normalizeProjectKey(projectKey) || "Project";
+  const lines = [
+    `# Features - ${projectName}`,
+    "",
+    "_Liste aqui features, capacidades e entregas importantes deste projeto._",
+    "",
+  ];
+  return `${lines.join("\n")}`;
+}
+
+function featuresToMarkdown(projectKey, entries) {
+  const projectName = normalizeProjectKey(projectKey) || "Project";
+  const lines = [
+    `# Features - ${projectName}`,
+    "",
+    "_Liste aqui features, capacidades e entregas importantes deste projeto._",
+    "",
+  ];
+
+  (entries || [])
+    .map((entry) => ({
+      name: String(entry?.name || "").trim(),
+      description: String(entry?.description || "").trim(),
+    }))
+    .filter((entry) => entry.name)
+    .forEach((entry) => {
+      lines.push(`## ${entry.name}`);
+      if (entry.description) lines.push(entry.description);
+      lines.push("");
+    });
+
+  return `${lines.join("\n").trim()}\n`;
+}
+
+function parseFeaturesMarkdown(content) {
+  const lines = String(content || "").split(/\r?\n/);
+  const entries = [];
+  let current = null;
+  const descLines = [];
+
+  const flush = () => {
+    if (!current) return;
+    entries.push({
+      id: current.id || uid(),
+      name: String(current.name || "").trim(),
+      description: descLines.join(" ").trim(),
+    });
+    current = null;
+    descLines.length = 0;
+  };
+
+  lines.forEach((raw) => {
+    const line = String(raw || "").trim();
+    if (!line) {
+      if (current && descLines.length) descLines.push("");
+      return;
+    }
+    if (/^#\s+/.test(line)) return;
+    if (/^_\s*.*\s*_$/i.test(line) && !current) return;
+    const featureMatch = line.match(/^##\s+(.+)$/);
+    if (featureMatch) {
+      flush();
+      current = { id: uid(), name: featureMatch[1].trim() };
+      return;
+    }
+    if (current) descLines.push(line);
+  });
+
+  flush();
+  return entries.filter((entry) => entry.name);
+}
+
 function formatTimelineDate(dateText) {
   const raw = String(dateText || "").trim();
   if (!raw) return "";
@@ -525,7 +620,11 @@ function normalizeTopic(topic) {
   topic.status = normalizeProjectStatus(topic.status);
   topic.description = String(topic.description || "").trim();
   if (!Array.isArray(topic.items)) topic.items = [];
-  topic.items = topic.items.map((item) => normalizeItem(item));
+  topic.items = topic.items.map((item) => {
+    const normalized = normalizeItem(item);
+    normalized.projectKey = topic.projectKey;
+    return normalized;
+  });
   return topic;
 }
 
@@ -564,14 +663,31 @@ async function refreshProjectControls() {
   projectControls = next;
 }
 
+async function refreshProjectFeaturesCatalog() {
+  const next = {};
+  await Promise.all(
+    projectCatalog.map(async (projectKey) => {
+      try {
+        const payload = await fetchProjectFile(`${projectKey}/features.md`);
+        next[projectKey] = parseFeaturesMarkdown(payload.content || "");
+      } catch {
+        next[projectKey] = [];
+      }
+    })
+  );
+  projectFeaturesCatalog = next;
+}
+
 async function refreshProjectCatalog() {
   try {
     const payload = await fetchProjectsTree();
     updateProjectCatalogFromTree(payload.dirs || [], payload.files || []);
     await refreshProjectControls();
+    await refreshProjectFeaturesCatalog();
   } catch {
     projectCatalog = [];
     projectControls = {};
+    projectFeaturesCatalog = {};
   }
 }
 
@@ -581,17 +697,41 @@ function itemDisplayText(item) {
   return `${item.text} (${names.join(" + ")})`;
 }
 
+function getProjectFeatureEntries(projectKey) {
+  const key = normalizeProjectKey(projectKey);
+  return key ? [...(projectFeaturesCatalog[key] || [])] : [];
+}
+
+function getProjectFeatureNames(projectKey) {
+  return getProjectFeatureEntries(projectKey).map((entry) => String(entry?.name || "").trim()).filter(Boolean);
+}
+
+function deriveTaskStatus(item = {}, topic = null) {
+  if (item?.done) return "done";
+  if (item?.blocked) return "blocked";
+  const topicStatus = normalizeProjectStatus(topic?.status);
+  if (topicStatus === "Desenvolvimento") return "doing";
+  if (topicStatus === "Teste") return "testing";
+  return "open";
+}
+
 function parseItemTextAndResponsibles(rawText) {
   let text = String(rawText || "").trim();
   let priority = "normal";
   let blocked = false;
   let blockedReason = "";
   let followed = false;
+  let featureName = "";
 
   const blockedReasonMatch = text.match(/\[BLOCKED\s*:\s*([^\]]+)\]/i);
   if (blockedReasonMatch) {
     blocked = true;
     blockedReason = String(blockedReasonMatch[1] || "").trim();
+  }
+
+  const featureMatch = text.match(/\[FEATURE\s*:\s*([^\]]+)\]/i);
+  if (featureMatch) {
+    featureName = String(featureMatch[1] || "").trim();
   }
 
   const metaMatches = text.match(/\[(HIGH|BLOCKED|FOLLOWED)\]/gi) || [];
@@ -601,24 +741,25 @@ function parseItemTextAndResponsibles(rawText) {
     if (/FOLLOWED/i.test(m)) followed = true;
   });
   text = text
+    .replace(/\s*\[FEATURE\s*:\s*[^\]]+\]/gi, "")
     .replace(/\s*\[BLOCKED\s*:\s*[^\]]+\]/gi, "")
     .replace(/\s*\[(HIGH|BLOCKED|FOLLOWED)\]/gi, "")
     .trim();
 
   const m = text.match(/^(.*)\(([^()]*)\)\s*$/);
-  if (!m) return { text, responsibles: [], priority, blocked, blockedReason, followed };
+  if (!m) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName };
 
   const body = m[1].trim();
   const namesRaw = m[2].trim();
-  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked, blockedReason, followed };
+  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName };
 
   const responsibles = namesRaw
     .split(/\s*\+\s*|\s*,\s*/)
     .map((x) => x.trim())
     .filter(Boolean);
 
-  if (!responsibles.length) return { text, responsibles: [], priority, blocked, blockedReason, followed };
-  return { text: body || text, responsibles, priority, blocked, blockedReason, followed };
+  if (!responsibles.length) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName };
+  return { text: body || text, responsibles, priority, blocked, blockedReason, followed, featureName };
 }
 
 function parseSprintMarkdown(fileName, markdown) {
@@ -664,16 +805,18 @@ function parseSprintMarkdown(fileName, markdown) {
       }
       const done = /^- \[[xX]\]/.test(line);
       const parsed = parseItemTextAndResponsibles(line.replace(/^- \[[ xX]\]\s+/, "").trim());
-      if (parsed.text) {
-        currentTopic.items.push({
-          id: uid(),
-          text: parsed.text,
-          done,
-          responsibles: parsed.responsibles,
-          priority: parsed.priority,
-          blocked: parsed.blocked,
-          blockedReason: parsed.blockedReason,
+        if (parsed.text) {
+          currentTopic.items.push({
+            id: uid(),
+            text: parsed.text,
+            done,
+            projectKey: currentTopic.projectKey,
+            responsibles: parsed.responsibles,
+            priority: parsed.priority,
+            blocked: parsed.blocked,
+            blockedReason: parsed.blockedReason,
           followed: parsed.followed,
+          featureName: parsed.featureName,
         });
       }
       continue;
@@ -685,16 +828,18 @@ function parseSprintMarkdown(fileName, markdown) {
         topics.push(currentTopic);
       }
       const parsed = parseItemTextAndResponsibles(line.replace(/^- /, "").trim());
-      if (parsed.text) {
-        currentTopic.items.push({
-          id: uid(),
-          text: parsed.text,
-          done: false,
-          responsibles: parsed.responsibles,
-          priority: parsed.priority,
-          blocked: parsed.blocked,
-          blockedReason: parsed.blockedReason,
+        if (parsed.text) {
+          currentTopic.items.push({
+            id: uid(),
+            text: parsed.text,
+            done: false,
+            projectKey: currentTopic.projectKey,
+            responsibles: parsed.responsibles,
+            priority: parsed.priority,
+            blocked: parsed.blocked,
+            blockedReason: parsed.blockedReason,
           followed: parsed.followed,
+          featureName: parsed.featureName,
         });
       }
       continue;
@@ -745,6 +890,7 @@ function sprintToMarkdown(sprint) {
 
     topic.items.forEach((item) => {
       let lineText = itemDisplayText(item);
+      if (item.featureName) lineText += ` [FEATURE: ${String(item.featureName).replace(/\]/g, ")")}]`;
       if (item.priority === "high") lineText += " [HIGH]";
       if (item.blocked) {
         const blockedReason = String(item.blockedReason || "").trim().replace(/\]/g, ")");
@@ -1634,7 +1780,20 @@ async function flushAutoSave() {
   }
 }
 
-function openTaskModal({ title, subtitle, saveLabel, currentText, currentNames, currentProjectKey = "", onSave, onDelete = null, backlogMode = false }) {
+function openTaskModal({
+  title,
+  subtitle,
+  saveLabel,
+  currentText,
+  currentNames,
+  currentProjectKey = "",
+  currentFeatureName = "",
+  featureProjectKey = "",
+  currentStatus = "open",
+  onSave,
+  onDelete = null,
+  backlogMode = false,
+}) {
   itemEditModalOnSave = onSave;
   itemEditModalOnDelete = onDelete;
   taskModalBacklogMode = backlogMode;
@@ -1642,11 +1801,12 @@ function openTaskModal({ title, subtitle, saveLabel, currentText, currentNames, 
   el.modalSubtitle.textContent = subtitle || "Update task text and responsibles.";
   el.modalSaveBtn.textContent = saveLabel || "Apply";
   el.modalItemText.value = currentText?.text || "";
+  el.modalTaskStatusSelect.value = currentStatus || "open";
   el.modalHighPriorityCheck.checked = currentText?.priority === "high";
-  el.modalBlockedCheck.checked = Boolean(currentText?.blocked);
   el.modalBlockedReasonInput.value = currentText?.blockedReason || "";
-  el.modalBlockedReasonInput.disabled = !el.modalBlockedCheck.checked;
-  el.modalBlockedReasonInput.classList.toggle("hidden", !el.modalBlockedCheck.checked);
+  const blockedSelected = (currentStatus || "open") === "blocked";
+  el.modalBlockedReasonInput.disabled = !blockedSelected;
+  el.modalBlockedReasonBlock.classList.toggle("hidden", !blockedSelected);
   el.modalAssigneeSelect.innerHTML = "";
 
   getAssignableMembers().forEach((name) => {
@@ -1658,10 +1818,15 @@ function openTaskModal({ title, subtitle, saveLabel, currentText, currentNames, 
   });
 
   renderBacklogModalProjectSelect(currentProjectKey);
-  el.modalBacklogProjectField.classList.toggle("hidden", !backlogMode);
+  renderTaskModalFeatureSelect(backlogMode ? currentProjectKey : featureProjectKey, currentFeatureName);
+  el.modalBacklogProjectField.classList.add("hidden");
   el.taskMetaRow.classList.toggle("hidden", backlogMode);
-  el.modalBlockedReasonInput.classList.toggle("hidden", backlogMode || !el.modalBlockedCheck.checked);
+  el.modalBlockedReasonInput.classList.toggle("hidden", backlogMode || !blockedSelected);
   el.modalAssigneeSelect.classList.toggle("hidden", backlogMode);
+  el.modalFeatureField.classList.toggle(
+    "hidden",
+    getProjectFeatureNames(backlogMode ? currentProjectKey : featureProjectKey).length === 0
+  );
   el.modalDeleteBtn.classList.toggle("hidden", !onDelete);
 
   el.assigneeModal.classList.remove("hidden");
@@ -1670,6 +1835,7 @@ function openTaskModal({ title, subtitle, saveLabel, currentText, currentNames, 
 function closeAssigneeModal() {
   el.assigneeModal.classList.add("hidden");
   el.modalBacklogProjectField.classList.add("hidden");
+  el.modalFeatureField.classList.add("hidden");
   el.taskMetaRow.classList.remove("hidden");
   el.modalAssigneeSelect.classList.remove("hidden");
   el.modalDeleteBtn.classList.add("hidden");
@@ -1734,6 +1900,80 @@ function closeTimelineModal() {
   currentTimelineEntries = [];
 }
 
+function renderFeaturesEntries() {
+  el.featuresList.innerHTML = "";
+  if (!currentFeaturesEntries.length) {
+    const empty = document.createElement("div");
+    empty.className = "timeline-empty";
+    empty.textContent = "No features registered for this project yet.";
+    el.featuresList.appendChild(empty);
+    return;
+  }
+
+  currentFeaturesEntries.forEach((entry) => {
+    const node = document.createElement("article");
+    node.className = "timeline-entry";
+    node.innerHTML = `
+      <div class="timeline-entry-head">
+        <h4 class="timeline-entry-title"></h4>
+      </div>
+      <p class="timeline-entry-desc"></p>
+    `;
+    node.querySelector(".timeline-entry-title").textContent = entry.name;
+    node.querySelector(".timeline-entry-desc").textContent = entry.description || "No description";
+    el.featuresList.appendChild(node);
+  });
+}
+
+async function openFeaturesModal(projectKey) {
+  const normalized = normalizeProjectKey(projectKey);
+  if (!normalized) {
+    window.alert("Select a project folder first.");
+    return;
+  }
+  const relPath = `${normalized}/features.md`;
+  let payload;
+  try {
+    payload = await fetchProjectFile(relPath);
+  } catch {
+    const content = formatFeaturesMarkdown(normalized);
+    await saveProjectFile(relPath, content);
+    await refreshProjectsModalData();
+    payload = await fetchProjectFile(relPath);
+  }
+  currentFeaturesProjectKey = normalized;
+  currentFeaturesEntries = parseFeaturesMarkdown(payload.content || "");
+  projectFeaturesCatalog[normalized] = [...currentFeaturesEntries];
+  el.featuresTitle.textContent = `Features - ${normalized}`;
+  el.featuresSubtitle.textContent = "Review project features and descriptions.";
+  renderFeaturesEntries();
+  el.featuresModal.classList.remove("hidden");
+}
+
+function closeFeaturesModal() {
+  el.featuresModal.classList.add("hidden");
+  currentFeaturesProjectKey = "";
+  currentFeaturesEntries = [];
+  el.featuresList.innerHTML = "";
+}
+
+function openFeatureEditorModal() {
+  if (!normalizeProjectKey(currentFeaturesProjectKey)) {
+    window.alert("Open a project features view first.");
+    return;
+  }
+  el.featureEditorNameInput.value = "";
+  el.featureEditorDescInput.value = "";
+  el.featureEditorModal.classList.remove("hidden");
+  el.featureEditorNameInput.focus();
+}
+
+function closeFeatureEditorModal() {
+  el.featureEditorModal.classList.add("hidden");
+  el.featureEditorNameInput.value = "";
+  el.featureEditorDescInput.value = "";
+}
+
 function openDeliveryInfoModal({ title, subtitle = "", groups = [] }) {
   el.deliveryInfoTitle.textContent = title;
   el.deliveryInfoSubtitle.textContent = subtitle;
@@ -1789,6 +2029,7 @@ function openProjectModal(topic, currentSprintId, onSave, onDelete, onCopy, onTi
   const canCopy = Boolean(projectModalOnCopy) && projectModalCopyOptions.length > 0;
   el.projectCopyBtn.disabled = !canCopy;
   el.projectDeliveryBtn.disabled = !normalizeProjectKey(topic.projectKey);
+  el.projectFeaturesBtn.disabled = !normalizeProjectKey(topic.projectKey);
   el.projectTimelineBtn.disabled = !normalizeProjectKey(topic.projectKey) || !projectModalOnTimeline;
   el.projectModal.classList.remove("hidden");
 }
@@ -1946,6 +2187,7 @@ async function refreshProjectsModalData() {
   projectsTreeFiles = payload.files || [];
   updateProjectCatalogFromTree(projectsTreeDirs, projectsTreeFiles);
   await refreshProjectControls();
+  await refreshProjectFeaturesCatalog();
   if (currentProjectFile && !projectsTreeFiles.includes(currentProjectFile)) {
     currentProjectFile = "";
   }
@@ -1969,6 +2211,28 @@ async function openProjectsModal() {
   } catch (err) {
     window.alert(`Failed to load projects files: ${err.message}`);
   }
+}
+
+async function openProjectSupportFile(projectKey, fileName) {
+  const normalized = normalizeProjectKey(projectKey);
+  if (!normalized) {
+    window.alert("Select a project folder first.");
+    return;
+  }
+  await refreshProjectsModalData();
+  const relPath = `${normalized}/${fileName}`;
+  try {
+    await openProjectFile(relPath);
+  } catch (err) {
+    if (fileName === "features.md") {
+      await saveProjectFile(relPath, formatFeaturesMarkdown(normalized));
+      await refreshProjectsModalData();
+      await openProjectFile(relPath);
+    } else {
+      throw err;
+    }
+  }
+  el.projectsModal.classList.remove("hidden");
 }
 
 function closeProjectsModal() {
@@ -2191,6 +2455,31 @@ function renderBacklogModalProjectSelect(currentProjectKey = "") {
   select.value = projectCatalog.includes(normalized) ? normalized : "";
 }
 
+function renderTaskModalFeatureSelect(projectKey = "", currentFeatureName = "") {
+  const select = el.modalFeatureSelect;
+  const field = el.modalFeatureField;
+  if (!select || !field) return;
+
+  const features = getProjectFeatureNames(projectKey);
+  select.innerHTML = "";
+
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = "No feature";
+  select.appendChild(none);
+
+  features.forEach((name) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+
+  const normalizedFeature = String(currentFeatureName || "").trim();
+  select.value = features.includes(normalizedFeature) ? normalizedFeature : "";
+  field.classList.toggle("hidden", features.length === 0);
+}
+
 function fillStatusSelect(select, currentStatus = "") {
   if (!select) return;
   const previousEmptyOption = select.querySelector('option[value=""]');
@@ -2225,6 +2514,12 @@ function backlogProjectId(item) {
 
 function backlogProjectLabel(item) {
   return String(item?.projectTitle || item?.projectKey || "No project").trim();
+}
+
+function backlogItemMetaLabel(item) {
+  const project = backlogProjectLabel(item);
+  const feature = String(item?.featureName || "").trim();
+  return feature ? `${project} | ${feature}` : project;
 }
 
 function renderBacklogProjectFilter() {
@@ -2306,7 +2601,7 @@ function renderBacklog() {
       <div class="backlog-item-text"></div>
     `;
     li.querySelector(".backlog-item-text").textContent = itemDisplayText(item);
-    li.querySelector(".item-project-meta").textContent = backlogProjectLabel(item);
+    li.querySelector(".item-project-meta").textContent = backlogItemMetaLabel(item);
 
     li.addEventListener("dragstart", (e) => {
       beginBacklogTaskDrag(item.id);
@@ -2345,16 +2640,18 @@ function renderBacklog() {
         currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason },
         currentNames: item.responsibles || [],
         currentProjectKey: item.projectKey || "",
+        currentFeatureName: item.featureName || "",
         onDelete: () => {
           state.backlog = state.backlog.filter((x) => x.id !== item.id);
           persistState();
           render();
         },
         backlogMode: true,
-        onSave: ({ text, projectKey }) => {
+        onSave: ({ text, projectKey, featureName }) => {
           item.text = text;
           item.projectKey = normalizeProjectKey(projectKey);
           item.projectTitle = item.projectKey || "No project";
+          item.featureName = String(featureName || "").trim();
           item.responsibles = [];
           item.priority = "normal";
           item.blocked = false;
@@ -2392,6 +2689,7 @@ function backlogItemMatchesSearch(item) {
   return searchHaystack([
     item.text,
     ...(item.responsibles || []),
+    item.featureName,
     item.projectKey,
     item.projectTitle,
     backlogProjectLabel(item),
@@ -2404,6 +2702,7 @@ function taskMatchesSearch(item, topic, sprint) {
 
   return searchHaystack([
     item.text,
+    item.featureName,
     ...(item.responsibles || []),
     item.blockedReason,
     topic.title,
@@ -2428,17 +2727,25 @@ function openTopicTaskEditor(topic, item) {
     saveLabel: "Apply",
     currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason },
     currentNames: item.responsibles || [],
+    currentFeatureName: item.featureName || "",
+    featureProjectKey: topic.projectKey || "",
+    currentStatus: deriveTaskStatus(item, topic),
     onDelete: () => {
       topic.items = topic.items.filter((x) => x.id !== item.id);
       persistState();
       render();
     },
-    onSave: ({ text, responsibles, priority, blocked, blockedReason }) => {
+    onSave: ({ text, responsibles, priority, blocked, blockedReason, featureName, status }) => {
       item.text = text;
       item.responsibles = responsibles;
       item.priority = priority;
-      item.blocked = blocked;
-      item.blockedReason = blockedReason;
+      item.done = status === "done";
+      item.blocked = status === "blocked";
+      item.blockedReason = item.blocked ? blockedReason : "";
+      item.featureName = String(featureName || "").trim();
+      item.projectKey = topic.projectKey;
+      if (status === "doing") topic.status = "Desenvolvimento";
+      else if (status === "testing") topic.status = "Teste";
       persistState();
       render();
     },
@@ -2712,6 +3019,12 @@ function renderTaskboard() {
       card.querySelector(".taskboard-task-text").textContent = itemDisplayText(item);
 
       const tags = card.querySelector(".taskboard-tags");
+      if (item.featureName) {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = item.featureName;
+        tags.appendChild(tag);
+      }
       if (item.priority === "high") {
         const tag = document.createElement("span");
         tag.className = "tag tag-high";
@@ -3227,6 +3540,10 @@ function renderTopics() {
             topic.description = description;
             topic.projectKey = normalizeProjectKey(projectKey);
             topic.status = normalizeProjectStatus(status);
+            topic.items.forEach((item) => {
+              normalizeItem(item);
+              item.projectKey = topic.projectKey;
+            });
             if (topic.projectKey) {
               projectControls[topic.projectKey] = normalizeProjectControl(topic.projectKey, {
                 name: topic.projectKey,
@@ -3260,11 +3577,13 @@ function renderTopics() {
                 id: uid(),
                 text: item.text,
                 done: item.done,
+                projectKey: topic.projectKey || "",
                 followed: Boolean(item.followed),
                 responsibles: [...(item.responsibles || [])],
                 priority: item.priority === "high" ? "high" : "normal",
                 blocked: Boolean(item.blocked),
                 blockedReason: String(item.blockedReason || "").trim(),
+                featureName: String(item.featureName || "").trim(),
               })),
             };
 
@@ -3318,6 +3637,12 @@ function renderTopics() {
         `;
         li.querySelector(".item-text").textContent = itemDisplayText(item);
         const itemLine = li.querySelector(".item-line");
+        if (item.featureName) {
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.textContent = item.featureName;
+          itemLine.appendChild(tag);
+        }
         if (item.priority === "high") {
           const tag = document.createElement("span");
           tag.className = "tag tag-high";
@@ -3398,16 +3723,22 @@ function renderTopics() {
           saveLabel: "Create",
           currentText: { text: "", priority: "normal", blocked: false, blockedReason: "" },
           currentNames: [],
-          onSave: ({ text, responsibles, priority, blocked, blockedReason }) => {
+          featureProjectKey: topic.projectKey || "",
+          currentStatus: deriveTaskStatus({}, topic),
+          onSave: ({ text, responsibles, priority, blocked, blockedReason, featureName, status }) => {
             topic.items.push({
               id: uid(),
               text,
-              done: false,
+              done: status === "done",
+              projectKey: normalizeProjectKey(topic.projectKey),
               responsibles,
               priority,
-              blocked,
-              blockedReason,
+              blocked: status === "blocked",
+              blockedReason: status === "blocked" ? blockedReason : "",
+              featureName: String(featureName || "").trim(),
             });
+            if (status === "doing") topic.status = "Desenvolvimento";
+            else if (status === "testing") topic.status = "Teste";
             persistState();
             render();
           },
@@ -3522,6 +3853,7 @@ function copySprintFromSource(source, sprintName, includeDone) {
       priority: item.priority === "high" ? "high" : "normal",
       blocked: Boolean(item.blocked),
       blockedReason: String(item.blockedReason || "").trim(),
+      featureName: String(item.featureName || "").trim(),
     })),
   }));
 
@@ -3690,23 +4022,24 @@ el.backlogProjectFilter.addEventListener("change", () => {
   render();
 });
 el.newBacklogItemBtn.addEventListener("click", () => {
-  openTaskModal({
-    title: "New Backlog Task",
-    subtitle: "Create a backlog task with task text and project.",
-    saveLabel: "Create",
-    currentText: { text: "", priority: "normal", blocked: false, blockedReason: "" },
-    currentNames: [],
-    currentProjectKey: selectedBacklogProject || "",
-    backlogMode: true,
-    onSave: ({ text, projectKey }) => {
-      state.backlog.push(
-        normalizeBacklogItem({
-          id: uid(),
-          text,
-          done: false,
-          projectKey: normalizeProjectKey(projectKey),
-        })
-      );
+    openTaskModal({
+      title: "New Backlog Task",
+      subtitle: "Create a backlog task with task text and project.",
+      saveLabel: "Create",
+      currentText: { text: "", priority: "normal", blocked: false, blockedReason: "" },
+      currentNames: [],
+      currentProjectKey: selectedBacklogProject || "",
+      backlogMode: true,
+      onSave: ({ text, projectKey, featureName }) => {
+        state.backlog.push(
+          normalizeBacklogItem({
+            id: uid(),
+            text,
+            done: false,
+            projectKey: normalizeProjectKey(projectKey),
+            featureName: String(featureName || "").trim(),
+          })
+        );
       persistState();
       render();
     },
@@ -3734,18 +4067,17 @@ el.modalDeleteBtn.addEventListener("click", () => {
   itemEditModalOnDelete();
   closeAssigneeModal();
 });
-el.modalBlockedCheck.addEventListener("change", () => {
-  if (taskModalBacklogMode) {
-    el.modalBlockedCheck.checked = false;
-    el.modalBlockedReasonInput.disabled = true;
-    el.modalBlockedReasonInput.classList.add("hidden");
-    el.modalBlockedReasonInput.value = "";
-    return;
-  }
-  const enabled = el.modalBlockedCheck.checked;
+el.modalTaskStatusSelect.addEventListener("change", () => {
+  if (taskModalBacklogMode) return;
+  const status = el.modalTaskStatusSelect.value || "open";
+  const enabled = status === "blocked";
   el.modalBlockedReasonInput.disabled = !enabled;
   el.modalBlockedReasonInput.classList.toggle("hidden", !enabled);
   if (!enabled) el.modalBlockedReasonInput.value = "";
+});
+el.modalBacklogProjectSelect.addEventListener("change", () => {
+  if (!taskModalBacklogMode) return;
+  renderTaskModalFeatureSelect(el.modalBacklogProjectSelect.value, "");
 });
 el.modalSaveBtn.addEventListener("click", () => {
   if (!itemEditModalOnSave) {
@@ -3761,16 +4093,19 @@ el.modalSaveBtn.addEventListener("click", () => {
   itemEditModalOnSave({
     text,
     projectKey: taskModalBacklogMode ? normalizeProjectKey(el.modalBacklogProjectSelect.value) : "",
+    featureName: String(el.modalFeatureSelect?.value || "").trim(),
+    status: taskModalBacklogMode ? "open" : (el.modalTaskStatusSelect.value || "open"),
     responsibles: taskModalBacklogMode ? [] : selected,
     priority: taskModalBacklogMode ? "normal" : (el.modalHighPriorityCheck.checked ? "high" : "normal"),
-    blocked: taskModalBacklogMode ? false : el.modalBlockedCheck.checked,
-    blockedReason: taskModalBacklogMode ? "" : (el.modalBlockedCheck.checked ? el.modalBlockedReasonInput.value.trim() : ""),
+    blocked: taskModalBacklogMode ? false : ((el.modalTaskStatusSelect.value || "open") === "blocked"),
+    blockedReason: taskModalBacklogMode ? "" : (((el.modalTaskStatusSelect.value || "open") === "blocked") ? el.modalBlockedReasonInput.value.trim() : ""),
   });
   closeAssigneeModal();
 });
 el.projectCancelBtn.addEventListener("click", closeProjectModal);
 el.projectKeySelect.addEventListener("change", () => {
   el.projectDeliveryBtn.disabled = !normalizeProjectKey(el.projectKeySelect.value);
+  el.projectFeaturesBtn.disabled = !normalizeProjectKey(el.projectKeySelect.value);
   el.projectTimelineBtn.disabled = !normalizeProjectKey(el.projectKeySelect.value) || !projectModalOnTimeline;
 });
 el.projectDeliveryBtn.addEventListener("click", () => {
@@ -3813,6 +4148,19 @@ el.projectTimelineBtn.addEventListener("click", async () => {
     closeProjectModal();
   } catch (err) {
     window.alert(`Failed to open timeline: ${err.message}`);
+  }
+});
+el.projectFeaturesBtn.addEventListener("click", async () => {
+  const selectedProjectKey = normalizeProjectKey(el.projectKeySelect.value);
+  if (!selectedProjectKey) {
+    window.alert("Select a project folder first.");
+    return;
+  }
+  try {
+    await openFeaturesModal(selectedProjectKey);
+    closeProjectModal();
+  } catch (err) {
+    window.alert(`Failed to open features: ${err.message}`);
   }
 });
 el.projectDeleteBtn.addEventListener("click", () => {
@@ -3976,7 +4324,30 @@ el.teamSaveBtn.addEventListener("click", async () => {
   }
 });
 el.timelineCloseBtn.addEventListener("click", closeTimelineModal);
+el.featuresCloseBtn.addEventListener("click", closeFeaturesModal);
+el.featuresAddBtn.addEventListener("click", openFeatureEditorModal);
+el.featureEditorCancelBtn.addEventListener("click", closeFeatureEditorModal);
 el.deliveryInfoCloseBtn.addEventListener("click", closeDeliveryInfoModal);
+el.featureEditorSaveBtn.addEventListener("click", async () => {
+  const projectKey = normalizeProjectKey(currentFeaturesProjectKey);
+  const name = el.featureEditorNameInput.value.trim();
+  const description = el.featureEditorDescInput.value.trim();
+  if (!projectKey) return;
+  if (!name) {
+    window.alert("Feature name is required.");
+    return;
+  }
+  try {
+    currentFeaturesEntries.push({ id: uid(), name, description });
+    projectFeaturesCatalog[projectKey] = [...currentFeaturesEntries];
+    await saveProjectFile(`${projectKey}/features.md`, featuresToMarkdown(projectKey, currentFeaturesEntries));
+    renderFeaturesEntries();
+    closeFeatureEditorModal();
+    setStatus(`features updated (${projectKey})`);
+  } catch (err) {
+    window.alert(`Failed to save feature: ${err.message}`);
+  }
+});
 el.timelineForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const projectKey = normalizeProjectKey(currentTimelineProjectKey);
@@ -4015,6 +4386,8 @@ bindBackdropClose(el.projectsModal, closeProjectsModal);
 bindBackdropClose(el.pjsModal, closePjsModal);
 bindBackdropClose(el.teamModal, closeTeamModal);
 bindBackdropClose(el.timelineModal, closeTimelineModal);
+bindBackdropClose(el.featuresModal, closeFeaturesModal);
+bindBackdropClose(el.featureEditorModal, closeFeatureEditorModal);
 bindBackdropClose(el.deliveryInfoModal, closeDeliveryInfoModal);
 
 el.cancelTopicBtn.addEventListener("click", () => {

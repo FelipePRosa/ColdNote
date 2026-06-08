@@ -1444,6 +1444,7 @@ textarea:focus {
 }
 
 .field-block {
+  margin-top: 10px;
   display: grid;
   gap: 6px;
 }
@@ -1475,7 +1476,6 @@ textarea:focus {
 }
 
 .task-meta-row {
-  margin-top: 10px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1488,6 +1488,10 @@ textarea:focus {
 
 .task-meta-row .copy-options {
   margin-top: 0;
+}
+
+.task-status-field {
+  min-width: 148px;
 }
 
 .modal-actions {

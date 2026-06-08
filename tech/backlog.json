@@ -10,7 +10,8 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moxc5ml3_zqtbn3",
@@ -22,7 +23,8 @@
       "blockedReason": "",
       "projectKey": "clearwallet",
       "projectTitle": "ClearWallet",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "mq59lq09_1gyb1v",
@@ -34,7 +36,8 @@
       "blockedReason": "",
       "followed": false,
       "projectKey": "genia mobile app",
-      "projectTitle": "Genia Mobile App"
+      "projectTitle": "Genia Mobile App",
+      "featureName": ""
     },
     {
       "id": "mppr1mbm_jxb3b9",
@@ -46,7 +49,8 @@
       "blockedReason": "",
       "followed": false,
       "projectKey": "genia mobile app",
-      "projectTitle": "Genia Mobile App"
+      "projectTitle": "Genia Mobile App",
+      "featureName": ""
     },
     {
       "id": "mprcohv0_kpcnl2",
@@ -58,7 +62,8 @@
       "blocked": false,
       "blockedReason": "",
       "projectKey": "outros",
-      "projectTitle": "outros"
+      "projectTitle": "outros",
+      "featureName": ""
     },
     {
       "id": "mptzy6kt_nw505d",
@@ -70,7 +75,8 @@
       "blockedReason": "",
       "followed": false,
       "projectKey": "genia mobile app",
-      "projectTitle": "Genia Mobile App"
+      "projectTitle": "Genia Mobile App",
+      "featureName": ""
     },
     {
       "id": "mppr1mbm_nspy8q",
@@ -82,7 +88,8 @@
       "blockedReason": "",
       "followed": false,
       "projectKey": "neodent mobile app",
-      "projectTitle": "Neodent Mobile App"
+      "projectTitle": "Neodent Mobile App",
+      "featureName": ""
     },
     {
       "id": "moxbl67o_aiqqld",
@@ -94,7 +101,8 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moxbluaa_2zmcrc",
@@ -106,7 +114,8 @@
       "blockedReason": "",
       "projectKey": "otb",
       "projectTitle": "otb",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moueaxgk_pl2erd",
@@ -118,7 +127,8 @@
       "blockedReason": "",
       "projectKey": "neodent mobile app",
       "projectTitle": "Neodent Mobile App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moufasep_vh3cox",
@@ -130,7 +140,8 @@
       "blockedReason": "",
       "projectKey": "genia web app",
       "projectTitle": "Genia Web App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moxbl67o_ax372c",
@@ -142,7 +153,8 @@
       "blockedReason": "",
       "projectKey": "outros",
       "projectTitle": "Outros",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moufasep_cipele",
@@ -154,7 +166,8 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "mox6t81b_uryup5",
@@ -166,7 +179,8 @@
       "blockedReason": "",
       "projectKey": "genia web app",
       "projectTitle": "Genia Web App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moufasep_uqsqb8",
@@ -178,7 +192,8 @@
       "blockedReason": "",
       "projectKey": "clearcorrect automations",
       "projectTitle": "clearcorrect automations",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "mouhefj2_55hlby",
@@ -190,7 +205,8 @@
       "blockedReason": "",
       "projectKey": "clearwallet",
       "projectTitle": "ClearWallet",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moucgf0b_zlan6r",
@@ -202,7 +218,8 @@
       "blockedReason": "",
       "projectKey": "neodent mobile app",
       "projectTitle": "Neodent Mobile App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "mouhefj2_c7r4ac",
@@ -214,7 +231,8 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "mp5eugsr_y70w0m",
@@ -226,7 +244,8 @@
       "blockedReason": "",
       "projectKey": "outros",
       "projectTitle": "outros",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moxbl67o_ezpwqa",
@@ -238,7 +257,8 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "mp5eugsr_74xasz",
@@ -250,7 +270,8 @@
       "blockedReason": "",
       "projectKey": "clearwallet",
       "projectTitle": "ClearWallet",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "mp1lao8m_b80bjg",
@@ -262,7 +283,8 @@
       "blocked": false,
       "blockedReason": "",
       "projectTitle": "material data",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "moufasep_9k7fwn",
@@ -274,7 +296,8 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
-      "followed": false
+      "followed": false,
+      "featureName": ""
     },
     {
       "id": "mppr1mbm_ur1lnx",
@@ -286,7 +309,8 @@
       "blockedReason": "",
       "followed": false,
       "projectKey": "neodent mobile app",
-      "projectTitle": "Neodent Mobile App"
+      "projectTitle": "Neodent Mobile App",
+      "featureName": ""
     }
   ]
 }

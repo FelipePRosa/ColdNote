@@ -2,66 +2,78 @@
 
 ## Purpose
 
-Sprint Hub is a lightweight internal web app for weekly technical leadership follow-up.
+Sprint Hub is a lightweight internal app for high-level sprint and delivery follow-up.
 
-It is **not** a replacement for Azure DevOps or detailed squad sprint control.
+It is not meant to replace Azure DevOps, squad boards, or detailed execution control.
 
-Its real role is:
+Its role is to help technical leadership:
 
-- track weekly demand at a higher level
-- summarize progress across projects
-- expose blockers, risks, and dependencies
-- support discussions among technical leaders
-- keep the canonical information close to the markdown notes already used by the team
+- review weekly progress quickly
+- see project continuity across sprints
+- track blockers and ownership
+- organize backlog intake
+- maintain a simple project knowledge area inside the repo
+
+The current mental model is:
+
+`project -> feature -> task`
+
+This is a leadership view, not a full delivery system of record.
 
 ## Product Scope
 
 ### In scope
 
 - sprint-level tracking from `tech/sprints/*.md`
-- project-level aggregation into `projects/<project>/sprints.md`
-- backlog intake via `tech/backlog.json`
-- project timelines via `projects/<project>/timeline.md`
-- team notes in `tech/team/*.md`
-- PJs monthly control via `tech/pjs.md`
-- direct editing of markdown files under `projects/`
+- backlog intake from `tech/backlog.json`
+- project continuity across sprints
+- project status control
+- feature catalog per project
+- project timeline/history
+- team notes and team metrics support
+- PJ monthly control
+- repo-native editing of project support files
 
 ### Out of scope
 
 - detailed squad execution management
-- story points, burndown, velocity, workflow engines
+- story points, burndown, velocity
+- workflow automation engines
 - replacing Azure DevOps boards
-- multi-user auth, permissions, audit trail
-- robust API backend or database persistence
+- multi-user auth, permissions, or audit trail
+- database-backed persistence
 
 ## Current Technical Shape
 
 The app is intentionally simple:
 
-- frontend: plain `index.html` + `styles.css` + `app.js`
+- frontend: `index.html`, `styles.css`, `app.js`
 - backend: `server.py` using Python stdlib `http.server`
-- persistence: markdown and JSON files in the repository
+- persistence: markdown and JSON files inside the repo
 
-This makes the project very easy to run and change, but it also means the code is tightly coupled to:
+That simplicity makes iteration fast, but creates tight coupling around:
 
 - DOM element IDs
-- file/folder naming conventions
+- modal markup structure
 - markdown parsing rules
-- a single large frontend script
+- generated project support files
+- one large frontend script that owns state, parsing, rendering, and persistence
 
 ## Repository Areas Used by Sprint Hub
 
-- `sprint-hub/index.html`: app structure and modal markup
-- `sprint-hub/styles.css`: design system and page layout
-- `sprint-hub/app.js`: all frontend state, rendering, parsing, persistence calls
-- `sprint-hub/server.py`: file-serving and JSON API layer
-- `tech/sprints/*.md`: main sprint source of truth
+- `sprint-hub/index.html`: page structure and modal markup
+- `sprint-hub/styles.css`: design system, layout, taskboard, delivery visuals
+- `sprint-hub/app.js`: app state, parsing, renderers, drag/drop, modal flows, autosave
+- `sprint-hub/server.py`: static file host and JSON API
+- `tech/sprints/*.md`: main source of truth for sprint/project/task content
 - `tech/backlog.json`: backlog persistence
-- `projects/<name>/sprints.md`: generated view derived from sprint files
-- `projects/<name>/timeline.md`: per-project executive timeline
-- `tech/team/*.md`: team members and editable notes
-- `tech/métricas.md`: team metrics reference
-- `tech/pjs.md`: PJ payment control
+- `projects/<name>/project.json`: project control file, especially current status
+- `projects/<name>/features.md`: project feature catalog
+- `projects/<name>/timeline.md`: project timeline/history
+- `projects/<name>/sprints.md`: generated aggregation derived from sprint files
+- `tech/team/*.md`: team member notes
+- team metrics markdown file under `tech/`: team metrics reference
+- `tech/pjs.md`: PJ payment/control file
 
 ## Runbook
 
@@ -79,9 +91,58 @@ http://127.0.0.1:8765
 
 ### Fallback mode
 
-If `index.html` is opened directly without the server, the app falls back to `localStorage`.
+If `index.html` is opened directly, the app falls back to `localStorage`.
 
-This is useful only for UI exploration. It is not the main operating mode.
+Use this only for UI exploration. It is not the main operating mode.
+
+## Main User Views
+
+### Sprint View
+
+Primary weekly board for one sprint at a time.
+
+Used to:
+
+- create and edit project cards inside the sprint
+- create and edit tasks
+- assign responsibles
+- mark tasks as blocked or high priority
+- mark tasks as followed during the week
+- move tasks between project cards and backlog
+
+### Projects View
+
+Cross-sprint view over all projects.
+
+Used to:
+
+- inspect all projects across multiple sprints
+- filter by project
+- switch to taskboard mode
+- switch to delivery mode
+
+### Taskboard
+
+There are two taskboard variants:
+
+- Sprint Taskboard: tasks grouped into `Blocked`, `Open`, `Doing`, `Testing`, `Done`
+- Project Taskboard: projects grouped by current project status from `project.json`
+
+Taskboard supports drag and drop.
+
+### Delivery View
+
+Delivery is the timeline-style view.
+
+Current behavior:
+
+- only available in `Projects View`
+- hides backlog panel
+- uses sprint columns horizontally
+- in general mode, shows project continuity across sprints
+- with a project filter selected, shows task continuity for that project
+- cards are packed into the minimum number of shared rows without overlap
+- cards are clickable and open details modals
 
 ## Main Data Model
 
@@ -92,11 +153,11 @@ This is useful only for UI exploration. It is not the main operating mode.
 - `fileName`
 - `topics[]`
 
-Mapped from markdown in `tech/sprints/*.md`.
+Mapped from `tech/sprints/*.md`.
 
 ### Topic / Project Card
 
-This is the main unit in the weekly board.
+This is the main project-level unit inside a sprint.
 
 - `title`
 - `projectKey`
@@ -104,9 +165,22 @@ This is the main unit in the weekly board.
 - `description`
 - `items[]`
 
+`projectKey` links the sprint card to a real folder under `projects/`.
+
+### Feature
+
+A feature belongs to a project and lives in `projects/<project>/features.md`.
+
+Each feature has:
+
+- `name`
+- `description`
+
+Features are currently managed through the Features modal.
+
 ### Item / Task
 
-Tasks are intentionally generic and leadership-oriented.
+Tasks are intentionally compact and leadership-readable.
 
 - `text`
 - `done`
@@ -114,14 +188,34 @@ Tasks are intentionally generic and leadership-oriented.
 - `priority` (`normal` or `high`)
 - `blocked`
 - `blockedReason`
+- `followed`
+- `featureName`
 
-These are not intended to replicate DevOps work items in detail.
+Important distinction:
+
+- `done` means completed
+- `followed` means the item was worked on or accompanied during the week
 
 ### Backlog Item
 
 Stored in `tech/backlog.json`.
 
-Used as a lightweight intake/parking area before something becomes part of a sprint.
+Backlog items can also carry:
+
+- `projectKey`
+- `projectTitle`
+- `featureName`
+
+Used as intake before the task enters a sprint.
+
+### Project Control
+
+Stored in `projects/<project>/project.json`.
+
+Current use:
+
+- canonical project name
+- current project status for project taskboard and delivery coloring
 
 ### Timeline Event
 
@@ -131,49 +225,52 @@ Stored in `projects/<project>/timeline.md`.
 - `name`
 - `description`
 
-Use this for relevant project events worth revisiting later.
+Use this for relevant project milestones, changes, or events worth revisiting.
 
 ## Frontend Architecture
 
 All frontend logic lives in `app.js`.
 
-### Key responsibilities handled there
+### Key responsibilities
 
-- DOM element binding
-- local in-memory state
-- markdown parsing and formatting
+- DOM binding through `const el = { ... }`
+- in-memory state
+- markdown and JSON parsing/formatting
 - API calls
-- rendering of board, backlog, team, timelines and modals
-- drag/drop task movement
+- rendering all views and modals
+- drag/drop behavior
 - autosave orchestration
-- localStorage fallback
+- `localStorage` fallback
 
 ### Important implication
 
 Because there is no component architecture, changing markup IDs in `index.html` can easily break `app.js`.
 
-Any UI change should be validated against:
+Any UI edit should be checked against:
 
-- element lookup in `const el = { ... }`
-- event listeners at the bottom of `app.js`
+- `const el = { ... }`
+- modal open/close functions
+- event listeners near the bottom of `app.js`
 - renderer functions that assume specific DOM structure
 
 ## Backend Architecture
 
-`server.py` does three things:
+`server.py` is intentionally minimal. It does three things:
 
 1. serves static files from `sprint-hub/`
-2. exposes JSON endpoints for the app
+2. exposes JSON endpoints for the UI
 3. reads/writes markdown and JSON files in the repo
 
-It is intentionally minimal and synchronous.
+### Notable backend behavior
 
-### Notable behavior
-
-- `projects/<project>/sprints.md` is regenerated when sprint files are saved
+- sprint files are loaded from `tech/sprints/*.md`
+- backlog is returned together with sprint payloads
+- `projects/<project>/sprints.md` is regenerated from sprint data
 - `projects/<project>/timeline.md` is ensured automatically
-- backlog is returned together with sprint files
-- all writes normalize line endings to `\n`
+- `projects/<project>/project.json` is ensured automatically
+- `projects/<project>/features.md` is ensured automatically
+- creating a new project folder also creates the support files above
+- writes normalize line endings to `\n`
 
 ## Key API Endpoints
 
@@ -200,7 +297,7 @@ It is intentionally minimal and synchronous.
 - `POST /api/team-member/file/create`
 - `POST /api/team-member/file/delete`
 
-## Markdown Conventions
+## Markdown And File Conventions
 
 ### Sprint files
 
@@ -211,9 +308,35 @@ Expected structure:
 
 Goal: Example goal
 
-## Project Name [project:folder-name]
-- [ ] Item text (Gui + Fel) [HIGH]
-- [ ] Blocked item [BLOCKED: waiting for dependency]
+## Mobile App [project:mobile-app]
+Status: Desenvolvimento
+
+- [ ] Improve login feedback (Gui + Fel) [FEATURE: Authentication] [HIGH]
+- [ ] Release blocker on API [BLOCKED: waiting backend change]
+- [x] Close rollout checklist [FOLLOWED]
+```
+
+Relevant conventions:
+
+- `## ... [project:folder-name]` links a sprint card to a project folder
+- `[FEATURE: ...]` links a task to a project feature
+- `[HIGH]` marks high priority
+- `[BLOCKED]` or `[BLOCKED: ...]` marks blocked state
+- `[FOLLOWED]` marks weekly follow-up/work, not completion
+- markdown checkbox `- [x]` still represents completion
+
+### Features files
+
+Expected structure:
+
+```md
+# Features - Mobile App
+
+## Authentication
+Login, token, session and access-related improvements.
+
+## Push Notifications
+Notification delivery and user preference handling.
 ```
 
 ### Timeline files
@@ -221,15 +344,26 @@ Goal: Example goal
 Expected structure:
 
 ```md
-# Timeline - Project Name
+# Timeline - Mobile App
 
-## 2026-05-11 - Important event
+## 2026-05-11 - Production rollout
 Short description
+```
+
+### Project control file
+
+Expected structure:
+
+```json
+{
+  "name": "mobile-app",
+  "status": "Desenvolvimento"
+}
 ```
 
 ### Team files
 
-Member parsing currently depends on:
+Current parsing depends on:
 
 - first `# ` heading for member name
 - `Nickname: ...`
@@ -239,47 +373,49 @@ Member parsing currently depends on:
 
 ### How leaders should use it
 
-- create or update only the meaningful weekly items
-- prefer concise, leadership-readable task text
-- use blocked reason for context, not a long thread
-- use timeline for relevant events and milestones
-- use backlog for items not yet ready to live inside a sprint
+- keep tasks concise and readable in seconds
+- use project cards as weekly summary containers
+- use features to group related task intent
+- use blocked reason for actionable context
+- use timeline for notable events and milestones
+- use backlog before bringing items into a sprint
 
 ### How not to use it
 
 - do not mirror all Azure DevOps items
-- do not turn this into a detailed squad board
-- do not overload project cards with execution-only noise
+- do not model every squad workflow state here
+- do not turn this into a detailed execution board
+- do not overload tasks with implementation-only noise
 
 The best mental model is:
 
 > one project card should be understandable by another tech leader in seconds
 
-## Current Evaluation
-
-### Strengths
+## Current Strengths
 
 - very low setup cost
 - repo-native persistence
 - easy to inspect and edit manually
-- useful for leadership-oriented weekly review
-- timeline and backlog broaden the tool beyond sprint-only tracking
+- strong fit for leadership-oriented weekly review
+- project files, feature catalog, backlog and timeline broaden the tool beyond sprint-only tracking
+- delivery view gives a strong longitudinal picture across sprints
 
-### Weaknesses
+## Current Weaknesses
 
-- `app.js` is monolithic and carries too many responsibilities
+- `app.js` is still monolithic
 - no automated tests
-- no schema validation for markdown/JSON payloads
-- UI and JS are tightly coupled
-- state changes are easy to introduce regressions into
+- no schema validation for markdown or JSON payloads
+- UI and JS remain tightly coupled
+- small parser changes can create regressions
 - no audit/history of who changed what
 
-### Technical risks
+## Technical Risks
 
-- project-generated files like `projects/*/sprints.md` can create noisy git diffs
-- manual edits to generated `sprints.md` may be overwritten by sprint sync
-- the metrics path currently shows mojibake in Python source (`mÃ©tricas.md`), which should be normalized
-- localStorage fallback can diverge from file mode during debugging if misunderstood
+- generated files like `projects/*/sprints.md` can create noisy git diffs
+- manual edits to generated `sprints.md` can be overwritten
+- parser drift in sprint markdown can silently lose metadata like feature links
+- `localStorage` mode can diverge from file mode during debugging
+- delivery/taskboard changes can easily break layout because the UI is state-heavy and view-heavy
 
 ## Recommended Developer Workflow
 
@@ -287,7 +423,7 @@ The best mental model is:
 
 1. start the server
 2. inspect `index.html`, `styles.css`, `app.js`, `server.py`
-3. check whether the change affects markdown parsing, rendering, or API endpoints
+3. check whether the change affects parsing, rendering, persistence, or derived files
 4. check git status because generated files may already be dirty
 
 ### When changing UI
@@ -296,8 +432,9 @@ Always verify:
 
 - new IDs/classes are wired in `app.js`
 - modal open/close flows still work
-- board filters still render correctly
-- mobile layout is not broken
+- Sprint View, Projects View, Taskboard, and Delivery still render
+- backlog visibility rules still hold
+- mobile layout is still coherent
 
 ### When changing persistence
 
@@ -306,9 +443,11 @@ Always verify:
 - markdown round-trip parsing
 - `save-all` behavior
 - derived project file generation
-- timeline and backlog compatibility
+- project status compatibility
+- feature compatibility
+- backlog compatibility
 
-## Suggested Next Refactors
+## Suggested Refactors
 
 ### High value
 
@@ -318,15 +457,15 @@ Always verify:
   - rendering
   - modal handling
   - state/autosave
-
-- centralize markdown schemas and serializers
-- add smoke tests for markdown parsing and formatting
+- centralize markdown serializers/parsers
+- add smoke tests for sprint markdown round-trip
+- add tests for feature parsing and task-feature binding
 
 ### Product-fit improvements
 
 - keep tasks generic and leadership-readable
-- strengthen project status and summary views
-- add better weekly snapshot/review affordances
+- preserve the `project -> feature -> task` model consistently
+- keep strengthening delivery and summary views
 - avoid drifting toward DevOps duplication
 
 ## Onboarding Checklist
@@ -338,21 +477,26 @@ For a new engineer or agent:
 3. run the server locally
 4. inspect one sprint markdown file in `tech/sprints/`
 5. inspect one project folder in `projects/`
-6. inspect one timeline file
+6. inspect `project.json`, `features.md`, and `timeline.md`
 7. inspect `tech/backlog.json`
 8. open the UI and exercise:
    - sprint selection
    - project editing
-   - task create/edit/block
+   - task create/edit
+   - feature selection inside task editing
    - backlog add/edit
-   - timeline add/view
-   - project file editor
+   - taskboard drag/drop
+   - delivery view
+   - features modal
+   - timeline modal
+   - project files editor
    - team modal
 
 ## Practical Notes For Future Agents
 
 - treat `tech/sprints/*.md` as the main business source of truth
 - treat `projects/*/sprints.md` as generated artifacts
-- avoid destructive git operations because the repo often contains useful local changes
-- prefer minimal changes to DOM IDs because the frontend is ID-driven
-- when unsure whether a file is generated, inspect how `server.py` writes it before editing
+- treat `project.json`, `features.md`, and `timeline.md` as support files owned by the app
+- avoid destructive git operations because the repo often contains local changes
+- prefer minimal DOM ID changes because the frontend is ID-driven
+- when changing task parsing, verify `FEATURE`, `HIGH`, `BLOCKED`, `FOLLOWED`, and checkbox semantics together
