@@ -76,6 +76,6 @@ Regra: inclui apenas sprints depois de 26-01.
 
 ### Clear Mobile App
 - [ ] Layout das telas (Nu + Rich) [HIGH]
-- [ ] Dev Mobile (Andy + Dani + Sam + Vicco) [HIGH]
+- [ ] Dev Mobile (Dani + Sam + Vicco) [HIGH]
 - [ ] Documentação endpoints DrPortal (Gui) [HIGH]
 - [ ] Documentação genia Clear (Brunin + Fel) [HIGH]

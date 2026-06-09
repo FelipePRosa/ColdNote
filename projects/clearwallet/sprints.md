@@ -162,6 +162,6 @@ Regra: inclui apenas sprints depois de 26-01.
 
 ### ClearWallet
 - [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH]
-- [ ] Tranferencia entre recebedores (Fel + Maxo) [HIGH]
+- [ ] Tranferencia entre recebedores (Fel + Maxo) [HIGH] [BLOCKED: Aguardando retorno da pagar.me]
 - [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu)
 - [ ] Trocar SAML para OIDC (Bruf + Gui)

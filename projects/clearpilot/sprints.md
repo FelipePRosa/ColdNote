@@ -2,4 +2,8 @@
 
 Regra: inclui apenas sprints depois de 26-01.
 
-_Sem tasks vinculadas neste periodo._
+## Sprint 26-23
+
+### ClearPilot
+- [ ] Chamar endpoint de classificação (Bruf)
+- [ ] Integração do modelo de classificação (Gui)

@@ -159,4 +159,4 @@ Regra: inclui apenas sprints depois de 26-01.
 ### Neodent Mobile App
 - [ ] Bug cadastrar conta (Vicco) [FEATURE: Bugs]
 - [ ] Bug assessores (Vicco) [FEATURE: Bugs]
-- [ ] Boleto Clear (Fel + Gui + Vicco)
+- [ ] Boleto Clear (Fel + Gui + Vicco) [FEATURE: Dados de boleto Clear]

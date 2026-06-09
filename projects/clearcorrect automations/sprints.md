@@ -82,3 +82,4 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Envio de link FastStart (Guto + Fel)
 - [ ] Envio de reminder FastStart (Guto + Fel)
 - [ ] Criação de Voucher FastStart (Guto + Fel) [BLOCKED: Fechar automações anteriores primeiro]
+- [ ] Trocar banco do FastStart (Maxo)

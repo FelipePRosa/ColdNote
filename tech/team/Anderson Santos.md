@@ -1,7 +1,7 @@
 # Anderson Santos
 
 Nickname: Andy
-Ativo: Sim
+Ativo: Não
 
 Placar Tech Innovation
 Qualidade de Código: 4
