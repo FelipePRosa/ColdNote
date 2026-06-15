@@ -161,8 +161,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-23
 
 ### ClearWallet
-- [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH]
-- [ ] Tranferencia entre recebedores (Fel + Maxo) [HIGH] [BLOCKED: Aguardando retorno da pagar.me]
+- [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Nu) [HIGH] [FOLLOWED]
+- [x] Tranferencia entre recebedores (Fel + Maxo) [HIGH] [FOLLOWED]
+- [ ] Trocar SAML para OIDC (Bruf + Gui) [FOLLOWED]
+
+## Sprint 26-24
+
+### ClearWallet
+- [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Maxo + Nu) [HIGH]
 - [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu)
 - [ ] Trocar SAML para OIDC (Bruf + Gui)
 - [ ] Revisão bug pagamento (Gui + Maxo) [HIGH]

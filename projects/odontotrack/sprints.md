@@ -6,3 +6,8 @@ Regra: inclui apenas sprints depois de 26-01.
 
 ### Odontotrack
 - [ ] Base CNES - Digital (Fel) [FOLLOWED]
+
+## Sprint 26-24
+
+### Odontotrack
+- [ ] Base CNES - Digital (Fel)

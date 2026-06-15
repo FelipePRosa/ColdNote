@@ -238,8 +238,17 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-23
 
 ### Outros
-- [ ] Bloqueio ZSEB, Cotação, Rastreio (Fel) [BLOCKED]
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED] [FOLLOWED]
+- [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH] [FOLLOWED]
+- [ ] Revisão CNPJ (Bruf + Fel + Gui + Vicco) [HIGH] [FOLLOWED]
+
+## Sprint 26-24
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED]
 - [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
 - [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED]
-- [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH] [FOLLOWED]
 - [ ] Revisão CNPJ (Bruf + Fel + Gui + Vicco) [HIGH]
+- [ ] Bloqueio ZSEB (Gui)

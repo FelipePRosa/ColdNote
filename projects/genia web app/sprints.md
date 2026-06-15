@@ -180,6 +180,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-23
 
 ### Genia Web App
+- [ ] WakeWord (Brunin + Bruf + Hary + Sam) [BLOCKED] [FOLLOWED]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu + Sam) [BLOCKED] [FOLLOWED]
+- [ ] Testes gerais (Nu) [BLOCKED: Prioridade] [FOLLOWED]
+
+## Sprint 26-24
+
+### Genia Web App
 - [ ] WakeWord (Brunin + Bruf + Hary + Sam) [BLOCKED]
 - [ ] Echo Cancelation (Brunin + Bruf + Nu + Sam) [BLOCKED]
-- [ ] Testes gerais (Nu)
+- [ ] Testes gerais (Nu) [BLOCKED: Prioridade]

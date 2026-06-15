@@ -79,7 +79,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-23
 
 ### ClearCorrect Automations
-- [ ] Envio de link FastStart (Guto + Fel)
-- [ ] Envio de reminder FastStart (Guto + Fel)
-- [ ] Criação de Voucher FastStart (Guto + Fel) [BLOCKED: Fechar automações anteriores primeiro]
-- [ ] Trocar banco do FastStart (Maxo)
+- [ ] Envio de link FastStart (Fel + Maxo) [FOLLOWED]
+- [ ] Envio de reminder FastStart (Fel + Maxo) [FOLLOWED]
+- [ ] Criação de Voucher FastStart (Fel + Maxo) [FOLLOWED]
+- [ ] Trocar banco do FastStart (Maxo) [FOLLOWED]
+
+## Sprint 26-24
+
+### ClearCorrect Automations
+- [ ] Criação de Voucher FastStart (Fel + Maxo)
+- [ ] Comparecimento FastStart (Maxo)
