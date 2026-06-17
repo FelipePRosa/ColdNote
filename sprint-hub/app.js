@@ -2886,7 +2886,7 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
     .sort((a, b) => a.title.localeCompare(b.title));
 }
 
-function appendProjectFeatureItems(itemsList, project) {
+function appendProjectFeatureItems(itemsList, project, subtitle = project.title) {
   Array.from(project.features.values())
     .sort((a, b) => a.label.localeCompare(b.label))
     .forEach((feature) => {
@@ -2908,23 +2908,7 @@ function appendProjectFeatureItems(itemsList, project) {
       li.querySelector(".feature-status-tag").textContent = featureStatus;
       li.querySelector(".feature-status-tag").dataset.state = allDone ? "closed" : "active";
       li.querySelector(".tag:last-of-type").textContent = `${feature.entries.length} task${feature.entries.length === 1 ? "" : "s"}`;
-      const openFeature = () => {
-        const items = feature.entries
-          .sort((a, b) => (a.item.text || "").localeCompare(b.item.text || ""))
-          .map(({ topic, item }) => {
-            const status = item.done ? "Closed" : "Active";
-            const responsibles = item.responsibles?.length ? item.responsibles.join(" + ") : "No responsible";
-            return {
-              text: `${itemDisplayText(item)} | ${status} | ${responsibles}`,
-              onClick: () => openTopicTaskEditor(topic, item),
-            };
-          });
-        openDeliveryInfoModal({
-          title: feature.label,
-          subtitle: project.title,
-          groups: [{ title: "Tasks", meta: `${items.length} current`, items }],
-        });
-      };
+      const openFeature = () => openProjectFeatureTasksModal(project, feature, subtitle);
       li.addEventListener("click", openFeature);
       li.querySelector(".item-edit").addEventListener("click", (e) => {
         e.stopPropagation();
@@ -2932,6 +2916,42 @@ function appendProjectFeatureItems(itemsList, project) {
       });
       itemsList.appendChild(li);
     });
+}
+
+function buildFeatureSummaryFromEntries({ title, status = "", entries = [] }) {
+  const summary = {
+    title,
+    status,
+    features: new Map(),
+  };
+
+  entries.forEach((entry) => {
+    const featureLabel = String(entry.item?.featureName || "").trim() || "Outros";
+    const feature = summary.features.get(featureLabel) || { label: featureLabel, entries: [] };
+    feature.entries.push(entry);
+    summary.features.set(featureLabel, feature);
+  });
+
+  return summary;
+}
+
+function openProjectFeatureTasksModal(project, feature, subtitle = project.title) {
+  const items = feature.entries
+    .sort((a, b) => (a.item.text || "").localeCompare(b.item.text || ""))
+    .map(({ topic, item }) => {
+      const status = item.done ? "Closed" : "Active";
+      const responsibles = item.responsibles?.length ? item.responsibles.join(" + ") : "No responsible";
+      return {
+        text: `${itemDisplayText(item)} | ${status} | ${responsibles}`,
+        onClick: () => openTopicTaskEditor(topic, item),
+      };
+    });
+
+  openDeliveryInfoModal({
+    title: feature.label,
+    subtitle,
+    groups: [{ title: "Tasks", meta: `${items.length} current`, items }],
+  });
 }
 
 function openTopicTaskEditor(topic, item) {
@@ -3382,22 +3402,23 @@ function renderDeliveryView() {
       detailHead.appendChild(cell);
     });
 
-    const tasksByName = new Map();
+    const featuresByName = new Map();
     sprints.forEach((sprint) => {
       const tasks = project.sprints.get(sprint.id)?.tasks || [];
       tasks.forEach(({ topic, item }) => {
-        const key = normalizeSearchText(item.text || itemDisplayText(item));
+        const label = String(item.featureName || "").trim() || "Outros";
+        const key = normalizeSearchText(label);
         if (!key) return;
-        const group = tasksByName.get(key) || { label: itemDisplayText(item), sprints: new Map() };
+        const group = featuresByName.get(key) || { label, sprints: new Map() };
         const sprintGroup = group.sprints.get(sprint.id) || { sprint, tasks: [] };
         sprintGroup.tasks.push({ topic, item });
         group.sprints.set(sprint.id, sprintGroup);
-        tasksByName.set(key, group);
+        featuresByName.set(key, group);
       });
     });
 
     const segments = [];
-    Array.from(tasksByName.values())
+    Array.from(featuresByName.values())
       .sort((a, b) => a.label.localeCompare(b.label))
       .forEach((group) => {
         const activeIndexes = Array.from(group.sprints.keys())
@@ -3408,9 +3429,9 @@ function renderDeliveryView() {
 
         const flushSegment = (start, end) => {
           const segmentSprints = sprints.slice(start, end + 1);
-          const segmentTasks = segmentSprints.flatMap((sprint) => group.sprints.get(sprint.id)?.tasks || []);
-          const doneCount = segmentTasks.filter(({ item }) => item.done).length;
-          const totalCount = segmentTasks.length;
+          const featureEntries = segmentSprints.flatMap((sprint) => group.sprints.get(sprint.id)?.tasks || []);
+          const doneCount = featureEntries.filter(({ item }) => item.done).length;
+          const totalCount = featureEntries.length;
           const progress = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
           segments.push({
             start,
@@ -3420,24 +3441,9 @@ function renderDeliveryView() {
             doneCount,
             totalCount,
             progress,
-            blocked: segmentTasks.some(({ item }) => item.blocked),
-            high: segmentTasks.some(({ item }) => item.priority === "high"),
-            groups: segmentSprints.map((sprint) => {
-              const tasks = group.sprints.get(sprint.id)?.tasks || [];
-              return {
-                title: `Sprint ${sprint.name}`,
-                meta: `${tasks.length} task${tasks.length === 1 ? "" : "s"}`,
-                items: tasks.map(({ item }) => {
-                  const parts = [];
-                  if (item.responsibles?.length) parts.push(`Responsibles: ${item.responsibles.join(" + ")}`);
-                  if (item.blocked && item.blockedReason) parts.push(`Blocked: ${item.blockedReason}`);
-                  else if (item.blocked) parts.push("Blocked");
-                  if (item.followed) parts.push("Followed this week");
-                  if (item.done) parts.push("Done");
-                  return parts.join(" | ") || "Tracked in this sprint";
-                }),
-              };
-            }),
+            blocked: featureEntries.some(({ item }) => item.blocked),
+            high: featureEntries.some(({ item }) => item.priority === "high"),
+            feature: { label: group.label, entries: featureEntries },
           });
         };
 
@@ -3518,11 +3524,7 @@ function renderDeliveryView() {
         tags.appendChild(count);
         card.querySelector(".delivery-progress span").style.width = `${segment.progress}%`;
         card.addEventListener("click", () => {
-          openDeliveryInfoModal({
-            title: segment.label,
-            subtitle: `${selectedProjectKey} | ${segment.rangeLabel}`,
-            groups: segment.groups,
-          });
+          openProjectFeatureTasksModal(project, segment.feature, `${selectedProjectKey} | ${segment.rangeLabel}`);
         });
         lane.appendChild(card);
       });
@@ -3569,6 +3571,11 @@ function renderDeliveryView() {
       const doneCount = segmentTasks.filter(({ item }) => item.done).length;
       const totalCount = segmentTasks.length;
       const progress = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
+      const featureSummary = buildFeatureSummaryFromEntries({
+        title: project.title,
+        status: project.status,
+        entries: segmentTasks,
+      });
       projectSegments.push({
         start,
         end,
@@ -3578,15 +3585,8 @@ function renderDeliveryView() {
         totalCount,
         progress,
         segmentTasks,
-        groups: segmentSprints.map((sprint) => {
-          const tasks = project.sprints.get(sprint.id)?.tasks || [];
-          return {
-            title: `Sprint ${sprint.name}`,
-            meta: `${tasks.length} task${tasks.length === 1 ? "" : "s"}`,
-                items: tasks.map(({ topic, item }) => `${topic.title}: ${itemDisplayText(item)}`),
-              };
-            }),
-          });
+        featureSummary,
+      });
     };
 
     let segmentStart = activeIndexes[0];
@@ -3643,7 +3643,7 @@ function renderDeliveryView() {
           <span class="topic-status-tag hidden"></span>
           <span class="delivery-plan-count"></span>
         </div>
-        <ul class="delivery-plan-tasks"></ul>
+        <ul class="delivery-plan-tasks delivery-plan-features"></ul>
         <div class="delivery-progress"><span></span></div>
       `;
       card.querySelector(".delivery-plan-card-head strong").textContent = project.title;
@@ -3654,28 +3654,15 @@ function renderDeliveryView() {
         statusTag.dataset.status = project.status;
         statusTag.classList.remove("hidden");
       }
-      card.querySelector(".delivery-plan-count").textContent = `${segment.doneCount}/${segment.totalCount} done`;
-      const taskList = card.querySelector(".delivery-plan-tasks");
-      segment.segmentTasks.slice(0, 4).forEach(({ topic, item }) => {
-        const li = document.createElement("li");
-        li.className = item.done ? "done" : "";
-        li.textContent = `${topic.title}: ${itemDisplayText(item)}`;
-        taskList.appendChild(li);
-      });
-      if (segment.segmentTasks.length > 4) {
-        const li = document.createElement("li");
-        li.className = "muted";
-        li.textContent = `+${segment.segmentTasks.length - 4} more`;
-        taskList.appendChild(li);
-      }
+      const featureCount = segment.featureSummary.features.size;
+      card.querySelector(".delivery-plan-count").textContent =
+        `${featureCount} feature${featureCount === 1 ? "" : "s"} | ${segment.doneCount}/${segment.totalCount} done`;
+      appendProjectFeatureItems(
+        card.querySelector(".delivery-plan-features"),
+        segment.featureSummary,
+        `${project.title} | ${segment.rangeLabel}`
+      );
       card.querySelector(".delivery-progress span").style.width = `${segment.progress}%`;
-      card.addEventListener("click", () => {
-        openDeliveryInfoModal({
-          title: project.title,
-          subtitle: segment.rangeLabel,
-          groups: segment.groups,
-        });
-      });
       lane.appendChild(card);
     });
 

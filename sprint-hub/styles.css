@@ -836,6 +836,23 @@ main {
   text-decoration: line-through;
 }
 
+.delivery-plan-features {
+  list-style: none;
+  padding-left: 0;
+  gap: 6px;
+}
+
+.delivery-plan-features .project-feature-item {
+  min-height: 38px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--md-sys-color-on-surface);
+}
+
+.delivery-plan-features .project-feature-item .tag {
+  background: rgba(255, 255, 255, 0.78);
+}
+
 .delivery-progress {
   height: 8px;
   overflow: hidden;
