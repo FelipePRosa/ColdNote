@@ -2890,7 +2890,10 @@ function appendProjectFeatureItems(itemsList, project, subtitle = project.title)
   Array.from(project.features.values())
     .sort((a, b) => a.label.localeCompare(b.label))
     .forEach((feature) => {
-      const allDone = feature.entries.length > 0 && feature.entries.every(({ item }) => item.done);
+      const currentEntries = feature.entries.some((entry) => entry.sprint)
+        ? latestProjectTaskEntries(feature.entries)
+        : feature.entries;
+      const allDone = currentEntries.length > 0 && currentEntries.every(({ item }) => item.done);
       const featureStatus = allDone ? "Closed" : "Active";
       const li = document.createElement("li");
       li.className = "item project-feature-item";
@@ -2907,9 +2910,12 @@ function appendProjectFeatureItems(itemsList, project, subtitle = project.title)
       li.querySelector(".item-text").textContent = feature.label;
       li.querySelector(".feature-status-tag").textContent = featureStatus;
       li.querySelector(".feature-status-tag").dataset.state = allDone ? "closed" : "active";
-      li.querySelector(".tag:last-of-type").textContent = `${feature.entries.length} task${feature.entries.length === 1 ? "" : "s"}`;
+      li.querySelector(".tag:last-of-type").textContent = `${currentEntries.length} task${currentEntries.length === 1 ? "" : "s"}`;
       const openFeature = () => openProjectFeatureTasksModal(project, feature, subtitle);
-      li.addEventListener("click", openFeature);
+      li.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openFeature();
+      });
       li.querySelector(".item-edit").addEventListener("click", (e) => {
         e.stopPropagation();
         openFeature();
@@ -2936,7 +2942,11 @@ function buildFeatureSummaryFromEntries({ title, status = "", entries = [] }) {
 }
 
 function openProjectFeatureTasksModal(project, feature, subtitle = project.title) {
-  const items = feature.entries
+  const latestEntries = feature.entries.some((entry) => entry.sprint)
+    ? latestProjectTaskEntries(feature.entries)
+    : feature.entries;
+
+  const items = latestEntries
     .sort((a, b) => (a.item.text || "").localeCompare(b.item.text || ""))
     .map(({ topic, item }) => {
       const status = item.done ? "Closed" : "Active";
@@ -2952,6 +2962,73 @@ function openProjectFeatureTasksModal(project, feature, subtitle = project.title
     subtitle,
     groups: [{ title: "Tasks", meta: `${items.length} current`, items }],
   });
+}
+
+function openProjectEditor(project) {
+  const sprint = project.latestSprint;
+  const topic = project.latestTopic;
+  if (!sprint || !topic) return;
+
+  openProjectModal(
+    topic,
+    sprint.id,
+    ({ title, description, projectKey, status }) => {
+      topic.title = title;
+      topic.description = description;
+      topic.projectKey = normalizeProjectKey(projectKey);
+      topic.status = normalizeProjectStatus(status);
+      topic.items.forEach((item) => {
+        normalizeItem(item);
+        item.projectKey = topic.projectKey;
+      });
+      if (topic.projectKey) {
+        projectControls[topic.projectKey] = normalizeProjectControl(topic.projectKey, {
+          name: topic.projectKey,
+          status: topic.status,
+        });
+        saveProjectControl(topic.projectKey, { status: topic.status }).catch(() => {});
+      }
+      persistState();
+      render();
+    },
+    () => {
+      const idx = sprint.topics.findIndex((t) => t.id === topic.id);
+      if (idx < 0) return;
+      sprint.topics.splice(idx, 1);
+      persistState();
+      render();
+    },
+    (targetSprintId, options = {}) => {
+      const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
+      if (!targetSprint) return;
+      const onlyOpenTasks = Boolean(options.onlyOpenTasks);
+      const itemsToCopy = onlyOpenTasks ? topic.items.filter((item) => !item.done) : topic.items;
+      targetSprint.topics.push({
+        id: uid(),
+        title: topic.title,
+        projectKey: topic.projectKey || "",
+        status: normalizeProjectStatus(topic.status),
+        description: topic.description,
+        items: itemsToCopy.map((item) => ({
+          id: uid(),
+          text: item.text,
+          done: item.done,
+          projectKey: topic.projectKey || "",
+          followed: Boolean(item.followed),
+          responsibles: [...(item.responsibles || [])],
+          priority: item.priority === "high" ? "high" : "normal",
+          blocked: Boolean(item.blocked),
+          blockedReason: String(item.blockedReason || "").trim(),
+          featureName: String(item.featureName || "").trim(),
+        })),
+      });
+      persistState();
+      render();
+    },
+    async (projectKey) => {
+      await openTimelineModal(projectKey || topic.projectKey);
+    }
+  );
 }
 
 function openTopicTaskEditor(topic, item) {
@@ -3356,10 +3433,21 @@ function renderDeliveryView() {
         projectKey,
         title: projectLabel(projectKey),
         status: projectStatus,
+        description: topic.description || "",
+        latestSprint: sprint,
+        latestTopic: topic,
         sprints: new Map(),
       };
+      project.status = projectStatus || project.status;
+      if (!project.description && topic.description) project.description = topic.description;
+      const latestIndex = state.sprints.findIndex((entry) => entry.id === project.latestSprint?.id);
+      const currentIndex = state.sprints.findIndex((entry) => entry.id === sprint.id);
+      if (currentIndex >= latestIndex) {
+        project.latestSprint = sprint;
+        project.latestTopic = topic;
+      }
       const sprintGroup = project.sprints.get(sprint.id) || { sprint, tasks: [] };
-      visibleItems.forEach((item) => sprintGroup.tasks.push({ topic, item }));
+      visibleItems.forEach((item) => sprintGroup.tasks.push({ sprint, topic, item }));
       project.sprints.set(sprint.id, sprintGroup);
       usedSprintIds.add(sprint.id);
       projects.set(projectKey, project);
@@ -3405,13 +3493,14 @@ function renderDeliveryView() {
     const featuresByName = new Map();
     sprints.forEach((sprint) => {
       const tasks = project.sprints.get(sprint.id)?.tasks || [];
-      tasks.forEach(({ topic, item }) => {
+      tasks.forEach((entry) => {
+        const { topic, item } = entry;
         const label = String(item.featureName || "").trim() || "Outros";
         const key = normalizeSearchText(label);
         if (!key) return;
         const group = featuresByName.get(key) || { label, sprints: new Map() };
         const sprintGroup = group.sprints.get(sprint.id) || { sprint, tasks: [] };
-        sprintGroup.tasks.push({ topic, item });
+        sprintGroup.tasks.push(entry);
         group.sprints.set(sprint.id, sprintGroup);
         featuresByName.set(key, group);
       });
@@ -3430,19 +3519,19 @@ function renderDeliveryView() {
         const flushSegment = (start, end) => {
           const segmentSprints = sprints.slice(start, end + 1);
           const featureEntries = segmentSprints.flatMap((sprint) => group.sprints.get(sprint.id)?.tasks || []);
-          const doneCount = featureEntries.filter(({ item }) => item.done).length;
-          const totalCount = featureEntries.length;
+          const currentFeatureEntries = latestProjectTaskEntries(featureEntries);
+          const doneCount = currentFeatureEntries.filter(({ item }) => item.done).length;
+          const totalCount = currentFeatureEntries.length;
           const progress = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
           segments.push({
             start,
             end,
             label: group.label,
-            rangeLabel: start === end ? `Sprint ${sprints[start].name}` : `Sprint ${sprints[start].name} - ${sprints[end].name}`,
             doneCount,
             totalCount,
             progress,
-            blocked: featureEntries.some(({ item }) => item.blocked),
-            high: featureEntries.some(({ item }) => item.priority === "high"),
+            blocked: currentFeatureEntries.some(({ item }) => item.blocked),
+            high: currentFeatureEntries.some(({ item }) => item.priority === "high"),
             feature: { label: group.label, entries: featureEntries },
           });
         };
@@ -3493,12 +3582,10 @@ function renderDeliveryView() {
         card.style.gridColumn = `${segment.start + 1} / ${segment.end + 2}`;
         card.innerHTML = `
           <strong></strong>
-          <span></span>
           <div class="delivery-detail-task-tags"></div>
           <div class="delivery-progress"><span></span></div>
         `;
         card.querySelector("strong").textContent = segment.label;
-        card.querySelector("span").textContent = segment.rangeLabel;
         const tags = card.querySelector(".delivery-detail-task-tags");
         if (segment.high) {
           const tag = document.createElement("span");
@@ -3524,7 +3611,7 @@ function renderDeliveryView() {
         tags.appendChild(count);
         card.querySelector(".delivery-progress span").style.width = `${segment.progress}%`;
         card.addEventListener("click", () => {
-          openProjectFeatureTasksModal(project, segment.feature, `${selectedProjectKey} | ${segment.rangeLabel}`);
+          openProjectFeatureTasksModal(project, segment.feature, selectedProjectKey);
         });
         lane.appendChild(card);
       });
@@ -3568,8 +3655,9 @@ function renderDeliveryView() {
     const flushSegment = (start, end) => {
       const segmentSprints = sprints.slice(start, end + 1);
       const segmentTasks = segmentSprints.flatMap((sprint) => project.sprints.get(sprint.id)?.tasks || []);
-      const doneCount = segmentTasks.filter(({ item }) => item.done).length;
-      const totalCount = segmentTasks.length;
+      const currentSegmentTasks = latestProjectTaskEntries(segmentTasks);
+      const doneCount = currentSegmentTasks.filter(({ item }) => item.done).length;
+      const totalCount = currentSegmentTasks.length;
       const progress = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
       const featureSummary = buildFeatureSummaryFromEntries({
         title: project.title,
@@ -3580,7 +3668,6 @@ function renderDeliveryView() {
         start,
         end,
         project,
-        rangeLabel: start === end ? `Sprint ${sprints[start].name}` : `Sprint ${sprints[start].name} - ${sprints[end].name}`,
         doneCount,
         totalCount,
         progress,
@@ -3637,7 +3724,6 @@ function renderDeliveryView() {
       card.innerHTML = `
         <div class="delivery-plan-card-head">
           <strong></strong>
-          <span></span>
         </div>
         <div class="delivery-plan-meta">
           <span class="topic-status-tag hidden"></span>
@@ -3647,7 +3733,6 @@ function renderDeliveryView() {
         <div class="delivery-progress"><span></span></div>
       `;
       card.querySelector(".delivery-plan-card-head strong").textContent = project.title;
-      card.querySelector(".delivery-plan-card-head span").textContent = segment.rangeLabel;
       const statusTag = card.querySelector(".topic-status-tag");
       if (project.status) {
         statusTag.textContent = project.status;
@@ -3660,9 +3745,10 @@ function renderDeliveryView() {
       appendProjectFeatureItems(
         card.querySelector(".delivery-plan-features"),
         segment.featureSummary,
-        `${project.title} | ${segment.rangeLabel}`
+        project.title
       );
       card.querySelector(".delivery-progress span").style.width = `${segment.progress}%`;
+      card.addEventListener("click", () => openProjectEditor(project));
       lane.appendChild(card);
     });
 
@@ -3705,71 +3791,7 @@ function renderProjectFeatureCards() {
       statusTag.classList.add("hidden");
     }
     node.querySelector(".topic-desc").textContent = project.description || "No description";
-    node.querySelector(".topic-edit-btn").addEventListener("click", () => {
-      const sprint = project.latestSprint;
-      const topic = project.latestTopic;
-      if (!sprint || !topic) return;
-      openProjectModal(
-        topic,
-        sprint.id,
-        ({ title, description, projectKey, status }) => {
-          topic.title = title;
-          topic.description = description;
-          topic.projectKey = normalizeProjectKey(projectKey);
-          topic.status = normalizeProjectStatus(status);
-          topic.items.forEach((item) => {
-            normalizeItem(item);
-            item.projectKey = topic.projectKey;
-          });
-          if (topic.projectKey) {
-            projectControls[topic.projectKey] = normalizeProjectControl(topic.projectKey, {
-              name: topic.projectKey,
-              status: topic.status,
-            });
-            saveProjectControl(topic.projectKey, { status: topic.status }).catch(() => {});
-          }
-          persistState();
-          render();
-        },
-        () => {
-          const idx = sprint.topics.findIndex((t) => t.id === topic.id);
-          if (idx < 0) return;
-          sprint.topics.splice(idx, 1);
-          persistState();
-          render();
-        },
-        (targetSprintId, options = {}) => {
-          const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
-          if (!targetSprint) return;
-          const onlyOpenTasks = Boolean(options.onlyOpenTasks);
-          const itemsToCopy = onlyOpenTasks ? topic.items.filter((item) => !item.done) : topic.items;
-          targetSprint.topics.push({
-            id: uid(),
-            title: topic.title,
-            projectKey: topic.projectKey || "",
-            status: normalizeProjectStatus(topic.status),
-            description: topic.description,
-            items: itemsToCopy.map((item) => ({
-              id: uid(),
-              text: item.text,
-              done: item.done,
-              projectKey: topic.projectKey || "",
-              followed: Boolean(item.followed),
-              responsibles: [...(item.responsibles || [])],
-              priority: item.priority === "high" ? "high" : "normal",
-              blocked: Boolean(item.blocked),
-              blockedReason: String(item.blockedReason || "").trim(),
-              featureName: String(item.featureName || "").trim(),
-            })),
-          });
-          persistState();
-          render();
-        },
-        async (projectKey) => {
-          await openTimelineModal(projectKey || topic.projectKey);
-        }
-      );
-    });
+    node.querySelector(".topic-edit-btn").addEventListener("click", () => openProjectEditor(project));
 
     const addItemBtn = node.querySelector(".add-item-btn");
     addItemBtn.classList.add("hidden");
