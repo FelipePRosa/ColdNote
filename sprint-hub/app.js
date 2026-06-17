@@ -720,6 +720,16 @@ function deriveTaskStatus(item = {}, topic = null) {
   return "open";
 }
 
+function taskStatusLabel(status) {
+  return {
+    open: "Open",
+    doing: "Doing",
+    testing: "Testing",
+    blocked: "Blocked",
+    done: "Done",
+  }[status] || "Open";
+}
+
 function parseItemTextAndResponsibles(rawText) {
   let text = String(rawText || "").trim();
   let priority = "normal";
@@ -2949,7 +2959,7 @@ function openProjectFeatureTasksModal(project, feature, subtitle = project.title
   const items = latestEntries
     .sort((a, b) => (a.item.text || "").localeCompare(b.item.text || ""))
     .map(({ topic, item }) => {
-      const status = item.done ? "Closed" : "Active";
+      const status = taskStatusLabel(deriveTaskStatus(item, topic));
       const responsibles = item.responsibles?.length ? item.responsibles.join(" + ") : "No responsible";
       return {
         text: `${itemDisplayText(item)} | ${status} | ${responsibles}`,
