@@ -639,7 +639,8 @@ main {
   gap: 6px;
 }
 
-.project-taskboard-sprints {
+.project-taskboard-sprints,
+.project-taskboard-features {
   display: grid;
   gap: 4px;
   color: var(--md-sys-color-on-surface-variant);
@@ -648,6 +649,22 @@ main {
 
 .project-taskboard-sprint {
   overflow-wrap: anywhere;
+}
+
+.project-taskboard-desc {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.project-taskboard-features {
+  gap: 6px;
+}
+
+.project-taskboard-features .project-feature-item {
+  min-height: 38px;
+  padding: 6px 8px;
 }
 
 .delivery-grid {
