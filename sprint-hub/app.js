@@ -189,6 +189,7 @@ let currentTimelineProjectKey = "";
 let currentTimelineEntries = [];
 let currentFeaturesProjectKey = "";
 let currentFeaturesEntries = [];
+let currentFeatureEditId = "";
 const modalBackdropState = new WeakMap();
 let taskModalBacklogMode = false;
 const TEAMS_WEBHOOK_URL = "https://prod-116.westeurope.logic.azure.com:443/workflows/c6390517ac924f61ba70e7695a392fa6/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zKA-t3iOYLshX2GQBdol1aVMG4zaDu_H7IzjFVrEsmA";
@@ -1916,11 +1917,15 @@ function renderFeaturesEntries() {
     node.innerHTML = `
       <div class="timeline-entry-head">
         <h4 class="timeline-entry-title"></h4>
+        <button type="button" class="btn-link btn-link-neutral feature-entry-edit" aria-label="Edit feature" title="Edit feature">✎</button>
       </div>
       <p class="timeline-entry-desc"></p>
     `;
     node.querySelector(".timeline-entry-title").textContent = entry.name;
     node.querySelector(".timeline-entry-desc").textContent = entry.description || "No description";
+    node.querySelector(".feature-entry-edit").addEventListener("click", () => {
+      openFeatureEditorModal(entry);
+    });
     el.featuresList.appendChild(node);
   });
 }
@@ -1957,13 +1962,15 @@ function closeFeaturesModal() {
   el.featuresList.innerHTML = "";
 }
 
-function openFeatureEditorModal() {
+function openFeatureEditorModal(entry = null) {
   if (!normalizeProjectKey(currentFeaturesProjectKey)) {
     window.alert("Open a project features view first.");
     return;
   }
-  el.featureEditorNameInput.value = "";
-  el.featureEditorDescInput.value = "";
+  currentFeatureEditId = String(entry?.id || "").trim();
+  el.featureEditorNameInput.value = entry?.name || "";
+  el.featureEditorDescInput.value = entry?.description || "";
+  el.featureEditorSaveBtn.textContent = currentFeatureEditId ? "Save Feature" : "Add Feature";
   el.featureEditorModal.classList.remove("hidden");
   el.featureEditorNameInput.focus();
 }
@@ -1972,6 +1979,8 @@ function closeFeatureEditorModal() {
   el.featureEditorModal.classList.add("hidden");
   el.featureEditorNameInput.value = "";
   el.featureEditorDescInput.value = "";
+  el.featureEditorSaveBtn.textContent = "Add Feature";
+  currentFeatureEditId = "";
 }
 
 function openDeliveryInfoModal({ title, subtitle = "", groups = [] }) {
@@ -4330,6 +4339,7 @@ el.featureEditorCancelBtn.addEventListener("click", closeFeatureEditorModal);
 el.deliveryInfoCloseBtn.addEventListener("click", closeDeliveryInfoModal);
 el.featureEditorSaveBtn.addEventListener("click", async () => {
   const projectKey = normalizeProjectKey(currentFeaturesProjectKey);
+  const editId = String(currentFeatureEditId || "").trim();
   const name = el.featureEditorNameInput.value.trim();
   const description = el.featureEditorDescInput.value.trim();
   if (!projectKey) return;
@@ -4338,7 +4348,15 @@ el.featureEditorSaveBtn.addEventListener("click", async () => {
     return;
   }
   try {
-    currentFeaturesEntries.push({ id: uid(), name, description });
+    if (editId) {
+      currentFeaturesEntries = currentFeaturesEntries.map((entry) =>
+        entry.id === editId
+          ? { ...entry, name, description }
+          : entry
+      );
+    } else {
+      currentFeaturesEntries.push({ id: uid(), name, description });
+    }
     projectFeaturesCatalog[projectKey] = [...currentFeaturesEntries];
     await saveProjectFile(`${projectKey}/features.md`, featuresToMarkdown(projectKey, currentFeaturesEntries));
     renderFeaturesEntries();
