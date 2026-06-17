@@ -393,7 +393,8 @@ main {
 }
 
 #responsibleFilter,
-#projectStatusFilter {
+#projectStatusFilter,
+.delivery-sprint-select {
   width: 124px;
   min-width: 124px;
   max-width: 124px;
@@ -2016,7 +2017,8 @@ textarea:focus {
 
   #taskSearchInput,
   #responsibleFilter,
-  #projectStatusFilter {
+  #projectStatusFilter,
+  .delivery-sprint-select {
     max-width: none;
     width: 100%;
   }

@@ -11,6 +11,8 @@ const el = {
   boardMeta: document.getElementById("boardMeta"),
   boardSprintSelect: document.getElementById("boardSprintSelect"),
   boardProjectSelect: document.getElementById("boardProjectSelect"),
+  deliveryStartSprintSelect: document.getElementById("deliveryStartSprintSelect"),
+  deliveryEndSprintSelect: document.getElementById("deliveryEndSprintSelect"),
   taskSearchInput: document.getElementById("taskSearchInput"),
   responsibleFilter: document.getElementById("responsibleFilter"),
   projectStatusFilter: document.getElementById("projectStatusFilter"),
@@ -168,6 +170,8 @@ let selectedProjectStatus = "";
 let selectedBacklogProject = "";
 let filterHighOnly = false;
 let filterBlockedOnly = false;
+let deliveryStartSprintId = "";
+let deliveryEndSprintId = "";
 let projectCatalog = [];
 let projectControls = {};
 let projectFeaturesCatalog = {};
@@ -2400,6 +2404,53 @@ function renderBoardSprintSelect() {
   select.disabled = boardView === "projects" || state.sprints.length === 0;
 }
 
+function sprintIndexById(sprintId) {
+  return state.sprints.findIndex((sprint) => sprint.id === sprintId);
+}
+
+function getDeliverySprintRange(sourceSprints = state.sprints) {
+  if (!sourceSprints.length) return [];
+  const startIndex = sprintIndexById(deliveryStartSprintId);
+  const endIndex = sprintIndexById(deliveryEndSprintId);
+  const rawStart = startIndex >= 0 ? startIndex : 0;
+  const rawEnd = endIndex >= 0 ? endIndex : state.sprints.length - 1;
+  const minIndex = Math.min(rawStart, rawEnd);
+  const maxIndex = Math.max(rawStart, rawEnd);
+  const allowedIds = new Set(state.sprints.slice(minIndex, maxIndex + 1).map((sprint) => sprint.id));
+  return sourceSprints.filter((sprint) => allowedIds.has(sprint.id));
+}
+
+function renderDeliverySprintSelect(select, currentValue, placeholder) {
+  if (!select) return;
+  select.innerHTML = "";
+
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = placeholder;
+  select.appendChild(all);
+
+  state.sprints.forEach((sprint) => {
+    const option = document.createElement("option");
+    option.value = sprint.id;
+    option.textContent = `Sprint ${sprint.name}`;
+    select.appendChild(option);
+  });
+
+  select.value = state.sprints.some((sprint) => sprint.id === currentValue) ? currentValue : "";
+}
+
+function renderDeliverySprintRangeSelects() {
+  const deliveryMode = boardView === "projects" && taskLayoutView === "delivery";
+  renderDeliverySprintSelect(el.deliveryStartSprintSelect, deliveryStartSprintId, "Start sprint");
+  renderDeliverySprintSelect(el.deliveryEndSprintSelect, deliveryEndSprintId, "End sprint");
+
+  [el.deliveryStartSprintSelect, el.deliveryEndSprintSelect].forEach((select) => {
+    if (!select) return;
+    select.classList.toggle("hidden", !deliveryMode || state.sprints.length === 0);
+    select.disabled = !deliveryMode || state.sprints.length === 0;
+  });
+}
+
 function renderBoardProjectSelect() {
   const select = el.boardProjectSelect;
   if (!select) return;
@@ -3264,7 +3315,8 @@ function renderDeliveryView() {
   el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid");
   el.topicsGrid.classList.add("delivery-grid");
 
-  const allSprints = [...state.sprints];
+  const hasDeliverySprintRange = Boolean(deliveryStartSprintId || deliveryEndSprintId);
+  const allSprints = hasDeliverySprintRange ? getDeliverySprintRange([...state.sprints]) : [...state.sprints];
   const projects = new Map();
   const usedSprintIds = new Set();
 
@@ -3277,7 +3329,7 @@ function renderDeliveryView() {
       const projectStatus = getProjectCurrentStatus(projectKey);
       if (selectedProjectStatus && projectStatus !== selectedProjectStatus) return;
 
-      const visibleItems = topic.items.filter((item) => taskPassesBoardFilters(item, topic, sprint));
+      const visibleItems = topic.items.filter((item) => taskMatchesSearch(item, topic, sprint));
       if (!visibleItems.length) return;
 
       const project = projects.get(projectKey) || {
@@ -3295,7 +3347,9 @@ function renderDeliveryView() {
   });
 
   const firstUsedIndex = allSprints.findIndex((sprint) => usedSprintIds.has(sprint.id));
-  const sprints = firstUsedIndex >= 0 ? allSprints.slice(firstUsedIndex) : allSprints;
+  const sprints = hasDeliverySprintRange
+    ? allSprints
+    : (firstUsedIndex >= 0 ? allSprints.slice(firstUsedIndex) : allSprints);
   const sprintIndex = new Map(sprints.map((sprint, index) => [sprint.id, index]));
   const visibleProjects = Array.from(projects.values()).sort((a, b) => a.title.localeCompare(b.title));
   if (!sprints.length || !visibleProjects.length) {
@@ -4048,6 +4102,7 @@ function render() {
   renderProjectStatusFilter();
   renderTaskFilterVisibility();
   renderBoardSprintSelect();
+  renderDeliverySprintRangeSelects();
   renderBoardProjectSelect();
   renderBacklogProjectFilter();
   if (taskLayoutView === "taskboard") renderTaskboard();
@@ -4264,6 +4319,18 @@ if (el.leftPanelSearch) {
 if (el.boardSprintSelect) {
   el.boardSprintSelect.addEventListener("change", () => {
     state.activeSprintId = el.boardSprintSelect.value || state.activeSprintId;
+    render();
+  });
+}
+if (el.deliveryStartSprintSelect) {
+  el.deliveryStartSprintSelect.addEventListener("change", () => {
+    deliveryStartSprintId = el.deliveryStartSprintSelect.value || "";
+    render();
+  });
+}
+if (el.deliveryEndSprintSelect) {
+  el.deliveryEndSprintSelect.addEventListener("change", () => {
+    deliveryEndSprintId = el.deliveryEndSprintSelect.value || "";
     render();
   });
 }
