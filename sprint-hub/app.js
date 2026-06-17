@@ -2917,7 +2917,7 @@ function renderTaskboard() {
   }
 
   if (boardView === "projects") {
-    el.boardTitle.textContent = "All sprints";
+    el.boardTitle.textContent = "Project";
     el.boardMeta.textContent = selectedProjectKey
       ? `Project: ${selectedProjectKey}`
       : "Showing tasks across every sprint.";
@@ -3486,6 +3486,214 @@ function renderDeliveryView() {
   el.topicsGrid.appendChild(plan);
 }
 
+function renderProjectFeatureCards() {
+  el.boardTitle.textContent = "Project";
+  el.boardMeta.textContent = selectedProjectKey
+    ? `Project: ${selectedProjectKey}`
+    : "Showing projects and their features.";
+  el.topicsGrid.innerHTML = "";
+
+  const projects = new Map();
+
+  visibleSprints().forEach((sprint) => {
+    sprint.topics.forEach((topic) => {
+      normalizeTopic(topic);
+      const projectKey = normalizeProjectKey(topic.projectKey);
+      if (!projectKey) return;
+      if (selectedProjectKey && projectKey !== selectedProjectKey) return;
+      const projectStatus = getProjectCurrentStatus(projectKey);
+      if (selectedProjectStatus && projectStatus !== selectedProjectStatus) return;
+
+      const visibleItems = topic.items.filter((item) => taskPassesBoardFilters(item, topic, sprint));
+      if ((taskSearchText || selectedResponsible || filterHighOnly || filterBlockedOnly) && visibleItems.length === 0) return;
+      if (!visibleItems.length && !topic.description) return;
+
+      const project = projects.get(projectKey) || {
+        projectKey,
+        title: projectLabel(projectKey),
+        status: projectStatus,
+        description: topic.description || "",
+        latestSprint: sprint,
+        latestTopic: topic,
+        features: new Map(),
+      };
+
+      project.status = projectStatus || project.status;
+      if (!project.description && topic.description) project.description = topic.description;
+      const latestIndex = state.sprints.findIndex((entry) => entry.id === project.latestSprint?.id);
+      const currentIndex = state.sprints.findIndex((entry) => entry.id === sprint.id);
+      if (currentIndex >= latestIndex) {
+        project.latestSprint = sprint;
+        project.latestTopic = topic;
+      }
+
+      visibleItems.forEach((item) => {
+        const featureLabel = String(item.featureName || "").trim() || "Outros";
+        const feature = project.features.get(featureLabel) || { label: featureLabel, entries: [] };
+        feature.entries.push({ sprint, topic, item });
+        project.features.set(featureLabel, feature);
+      });
+
+      projects.set(projectKey, project);
+    });
+  });
+
+  const entries = Array.from(projects.values()).sort((a, b) => a.title.localeCompare(b.title));
+  if (!entries.length) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = taskSearchText
+      ? `No projects found for "${taskSearchText}".`
+      : "No projects found with the current filters.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  entries.forEach((project) => {
+    const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
+    node.querySelector(".topic-title").textContent = project.title;
+    node.querySelector(".topic-project").textContent = `${project.features.size} feature${project.features.size === 1 ? "" : "s"}`;
+    const statusTag = node.querySelector(".topic-status-tag");
+    if (project.status) {
+      statusTag.textContent = project.status;
+      statusTag.dataset.status = project.status;
+      statusTag.classList.remove("hidden");
+    } else {
+      statusTag.textContent = "";
+      delete statusTag.dataset.status;
+      statusTag.classList.add("hidden");
+    }
+    node.querySelector(".topic-desc").textContent = project.description || "No description";
+    node.querySelector(".topic-edit-btn").addEventListener("click", () => {
+      const sprint = project.latestSprint;
+      const topic = project.latestTopic;
+      if (!sprint || !topic) return;
+      openProjectModal(
+        topic,
+        sprint.id,
+        ({ title, description, projectKey, status }) => {
+          topic.title = title;
+          topic.description = description;
+          topic.projectKey = normalizeProjectKey(projectKey);
+          topic.status = normalizeProjectStatus(status);
+          topic.items.forEach((item) => {
+            normalizeItem(item);
+            item.projectKey = topic.projectKey;
+          });
+          if (topic.projectKey) {
+            projectControls[topic.projectKey] = normalizeProjectControl(topic.projectKey, {
+              name: topic.projectKey,
+              status: topic.status,
+            });
+            saveProjectControl(topic.projectKey, { status: topic.status }).catch(() => {});
+          }
+          persistState();
+          render();
+        },
+        () => {
+          const idx = sprint.topics.findIndex((t) => t.id === topic.id);
+          if (idx < 0) return;
+          sprint.topics.splice(idx, 1);
+          persistState();
+          render();
+        },
+        (targetSprintId, options = {}) => {
+          const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
+          if (!targetSprint) return;
+          const onlyOpenTasks = Boolean(options.onlyOpenTasks);
+          const itemsToCopy = onlyOpenTasks ? topic.items.filter((item) => !item.done) : topic.items;
+          targetSprint.topics.push({
+            id: uid(),
+            title: topic.title,
+            projectKey: topic.projectKey || "",
+            status: normalizeProjectStatus(topic.status),
+            description: topic.description,
+            items: itemsToCopy.map((item) => ({
+              id: uid(),
+              text: item.text,
+              done: item.done,
+              projectKey: topic.projectKey || "",
+              followed: Boolean(item.followed),
+              responsibles: [...(item.responsibles || [])],
+              priority: item.priority === "high" ? "high" : "normal",
+              blocked: Boolean(item.blocked),
+              blockedReason: String(item.blockedReason || "").trim(),
+              featureName: String(item.featureName || "").trim(),
+            })),
+          });
+          persistState();
+          render();
+        },
+        async (projectKey) => {
+          await openTimelineModal(projectKey || topic.projectKey);
+        }
+      );
+    });
+
+    const addItemBtn = node.querySelector(".add-item-btn");
+    addItemBtn.classList.add("hidden");
+    const itemsList = node.querySelector(".items-list");
+    itemsList.innerHTML = "";
+
+    Array.from(project.features.values())
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .forEach((feature) => {
+        const allDone = feature.entries.length > 0 && feature.entries.every(({ item }) => item.done);
+        const featureStatus = allDone ? "Closed" : "Active";
+        const li = document.createElement("li");
+        li.className = "item project-feature-item";
+        li.innerHTML = `
+          <span class="item-line">
+            <span class="item-text"></span>
+            <span class="tag feature-status-tag"></span>
+            <span class="tag"></span>
+          </span>
+          <div>
+            <button type="button" class="btn-link btn-link-neutral item-edit" aria-label="Open feature tasks" title="Open feature tasks">↗</button>
+          </div>
+        `;
+        li.querySelector(".item-text").textContent = feature.label;
+        li.querySelector(".feature-status-tag").textContent = featureStatus;
+        li.querySelector(".feature-status-tag").dataset.state = allDone ? "closed" : "active";
+        li.querySelector(".tag:last-of-type").textContent = `${feature.entries.length} task${feature.entries.length === 1 ? "" : "s"}`;
+        const openFeature = () => {
+          const sprintOrder = new Map(state.sprints.map((entry, index) => [entry.id, index]));
+          const latestByTask = new Map();
+          feature.entries.forEach((entry) => {
+            const taskKey = normalizeSearchText(entry.item.text || itemDisplayText(entry.item));
+            if (!taskKey) return;
+            const currentOrder = sprintOrder.get(entry.sprint.id) ?? -1;
+            const previous = latestByTask.get(taskKey);
+            const previousOrder = previous ? (sprintOrder.get(previous.sprint.id) ?? -1) : -1;
+            if (!previous || currentOrder >= previousOrder) {
+              latestByTask.set(taskKey, entry);
+            }
+          });
+          const items = Array.from(latestByTask.values())
+            .sort((a, b) => (a.item.text || "").localeCompare(b.item.text || ""))
+            .map(({ item }) => {
+              const status = item.done ? "Closed" : "Active";
+              const responsibles = item.responsibles?.length ? item.responsibles.join(" + ") : "No responsible";
+              return `${itemDisplayText(item)} | ${status} | ${responsibles}`;
+            });
+          openDeliveryInfoModal({
+            title: feature.label,
+            subtitle: project.title,
+            groups: [{ title: "Tasks", meta: `${items.length} current`, items }],
+          });
+        };
+        li.addEventListener("click", openFeature);
+        li.querySelector(".item-edit").addEventListener("click", (e) => {
+          e.stopPropagation();
+          openFeature();
+        });
+        itemsList.appendChild(li);
+      });
+
+    el.topicsGrid.appendChild(node);
+  });
+}
+
 function renderTopics() {
   const activeSprint = getActiveSprint();
   if (!activeSprint) {
@@ -3498,13 +3706,17 @@ function renderTopics() {
   el.topicsGrid.classList.remove("project-taskboard-grid", "delivery-grid");
 
   if (boardView === "projects") {
-    el.boardTitle.textContent = "All sprints";
+    el.boardTitle.textContent = "Project";
     el.boardMeta.textContent = selectedProjectKey
       ? `Project: ${selectedProjectKey}`
       : "Showing activities across every sprint.";
   } else {
     el.boardTitle.textContent = `Sprint ${activeSprint.name}`;
     el.boardMeta.textContent = activeSprint.goal || "No sprint goal defined.";
+  }
+  if (boardView === "projects") {
+    renderProjectFeatureCards();
+    return;
   }
   el.topicsGrid.innerHTML = "";
   let renderedTopicCount = 0;
