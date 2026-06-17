@@ -30,7 +30,9 @@ const el = {
   topicStatusSelect: document.getElementById("topicStatusSelect"),
   topicDescInput: document.getElementById("topicDescInput"),
   newTopicBtn: document.getElementById("newTopicBtn"),
+  projectCardsViewBtn: document.getElementById("projectCardsViewBtn"),
   taskboardViewBtn: document.getElementById("taskboardViewBtn"),
+  memberViewBtn: document.getElementById("memberViewBtn"),
   deliveryViewBtn: document.getElementById("deliveryViewBtn"),
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
@@ -3813,6 +3815,131 @@ function renderProjectFeatureCards() {
   });
 }
 
+function renderSprintMembers() {
+  const activeSprint = getActiveSprint();
+  if (!activeSprint) {
+    el.boardTitle.textContent = "No sprints yet";
+    el.boardMeta.textContent = "Create your first sprint.";
+    el.topicsGrid.innerHTML = "";
+    return;
+  }
+
+  el.boardTitle.textContent = `Sprint ${activeSprint.name}`;
+  el.boardMeta.textContent = "Tasks grouped by responsible.";
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid");
+
+  const members = new Map();
+  activeSprint.topics.forEach((topic) => {
+    normalizeTopic(topic);
+    if (selectedProjectStatus && topic.status !== selectedProjectStatus) return;
+
+    topic.items.forEach((item) => {
+      if (!taskPassesBoardFilters(item, topic, activeSprint)) return;
+      const names = item.responsibles?.length ? item.responsibles : ["No responsible"];
+      names.forEach((name) => {
+        if (selectedResponsible && name !== selectedResponsible) return;
+        const group = members.get(name) || [];
+        group.push({ topic, item });
+        members.set(name, group);
+      });
+    });
+  });
+
+  const entries = Array.from(members.entries()).sort(([a], [b]) => {
+    if (a === "No responsible") return 1;
+    if (b === "No responsible") return -1;
+    return a.localeCompare(b);
+  });
+
+  if (!entries.length) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "No tasks found with the current filters.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  entries.forEach(([member, tasks]) => {
+    const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
+    node.querySelector(".topic-title").textContent = member;
+    node.querySelector(".topic-project").textContent = `${tasks.length} task${tasks.length === 1 ? "" : "s"}`;
+    const statusTag = node.querySelector(".topic-status-tag");
+    statusTag.classList.add("hidden");
+    node.querySelector(".topic-desc").textContent = `Sprint ${activeSprint.name}`;
+    node.querySelector(".topic-edit-btn").classList.add("hidden");
+
+    const itemsList = node.querySelector(".items-list");
+    itemsList.innerHTML = "";
+    tasks
+      .sort((a, b) => {
+        const projectCompare = projectLabel(a.topic.projectKey).localeCompare(projectLabel(b.topic.projectKey));
+        return projectCompare || (a.item.text || "").localeCompare(b.item.text || "");
+      })
+      .forEach(({ topic, item }) => {
+        normalizeItem(item);
+        const li = document.createElement("li");
+        li.className = `item ${item.done ? "done" : ""} ${item.priority === "high" ? "item-high" : ""} ${item.blocked ? "item-blocked" : ""}`;
+        li.innerHTML = `
+          <input type="checkbox" ${item.followed ? "checked" : ""} title="Followed this week" aria-label="Followed this week" />
+          <span class="item-line"><span class="item-text"></span></span>
+          <div>
+            <button type="button" class="btn-link btn-link-neutral item-edit" aria-label="Edit task" title="Edit task">✎</button>
+          </div>
+        `;
+        li.querySelector(".item-text").textContent = `${projectLabel(topic.projectKey)}: ${itemDisplayText(item)}`;
+        const itemLine = li.querySelector(".item-line");
+        if (item.featureName) {
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.textContent = item.featureName;
+          itemLine.appendChild(tag);
+        }
+        const status = taskStatusLabel(deriveTaskStatus(item, topic));
+        if (status !== "Open") {
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.textContent = status;
+          itemLine.appendChild(tag);
+        }
+        if (item.priority === "high") {
+          const tag = document.createElement("span");
+          tag.className = "tag tag-high";
+          tag.textContent = "HIGH";
+          itemLine.appendChild(tag);
+        }
+        if (item.blocked) {
+          const tag = document.createElement("span");
+          tag.className = "tag tag-blocked";
+          tag.textContent = "BLOCKED";
+          itemLine.appendChild(tag);
+        }
+        if (item.blocked && item.blockedReason) {
+          const reason = document.createElement("div");
+          reason.className = "item-blocked-reason";
+          reason.textContent = `Reason: ${item.blockedReason}`;
+          itemLine.appendChild(reason);
+        }
+
+        li.querySelector("input").addEventListener("change", (e) => {
+          item.followed = e.target.checked;
+          persistState();
+          render();
+        });
+        li.querySelector(".item-text").addEventListener("click", () => {
+          item.followed = !item.followed;
+          persistState();
+          render();
+        });
+        li.querySelector(".item-edit").addEventListener("click", () => openTopicTaskEditor(topic, item));
+        itemsList.appendChild(li);
+      });
+
+    node.querySelector(".add-item-btn").classList.add("hidden");
+    el.topicsGrid.appendChild(node);
+  });
+}
+
 function renderTopics() {
   const activeSprint = getActiveSprint();
   if (!activeSprint) {
@@ -4125,17 +4252,21 @@ function render() {
   renderBoardProjectSelect();
   renderBacklogProjectFilter();
   if (taskLayoutView === "taskboard") renderTaskboard();
+  else if (taskLayoutView === "members" && boardView !== "projects") renderSprintMembers();
   else if (taskLayoutView === "delivery") renderDeliveryView();
   else renderTopics();
   renderBacklog();
   const projectsMode = boardView === "projects";
   const deliveryMode = taskLayoutView === "delivery";
+  const membersMode = taskLayoutView === "members" && !projectsMode;
   el.topicsGrid.closest(".workspace")?.classList.toggle("workspace-delivery", deliveryMode);
   el.newSprintBtn.classList.toggle("hidden", projectsMode);
-  el.newTopicBtn.disabled = projectsMode;
+  el.newTopicBtn.disabled = projectsMode || membersMode;
   el.editSprintBtn.disabled = projectsMode;
-  el.taskboardViewBtn.textContent = taskLayoutView === "taskboard" ? "Project Cards" : "Taskboard";
+  el.projectCardsViewBtn.classList.toggle("active", taskLayoutView === "projects");
   el.taskboardViewBtn.classList.toggle("active", taskLayoutView === "taskboard");
+  el.memberViewBtn.classList.toggle("hidden", projectsMode);
+  el.memberViewBtn.classList.toggle("active", taskLayoutView === "members" && !projectsMode);
   el.deliveryViewBtn.classList.toggle("hidden", !projectsMode);
   el.deliveryViewBtn.classList.toggle("active", taskLayoutView === "delivery");
   el.backlogList.closest(".backlog-panel")?.classList.toggle("hidden", deliveryMode);
@@ -4144,6 +4275,10 @@ function render() {
     el.topicForm.classList.add("hidden");
     el.newTopicBtn.title = "Switch to Sprints View to create projects";
     el.editSprintBtn.title = "Switch to Sprints View to edit sprint";
+  } else if (membersMode) {
+    el.topicForm.classList.add("hidden");
+    el.newTopicBtn.title = "Switch to Project Cards to create projects";
+    el.editSprintBtn.title = "";
   } else {
     el.newTopicBtn.title = "";
     el.editSprintBtn.title = "";
@@ -4308,8 +4443,17 @@ el.editSprintBtn.addEventListener("click", () => {
 });
 el.pjsBtn.addEventListener("click", openPjsModal);
 el.projectsBtn.addEventListener("click", openProjectsModal);
+el.projectCardsViewBtn.addEventListener("click", () => {
+  taskLayoutView = "projects";
+  render();
+});
 el.taskboardViewBtn.addEventListener("click", () => {
-  taskLayoutView = taskLayoutView === "taskboard" ? "projects" : "taskboard";
+  taskLayoutView = "taskboard";
+  render();
+});
+el.memberViewBtn.addEventListener("click", () => {
+  if (boardView === "projects") return;
+  taskLayoutView = taskLayoutView === "members" ? "projects" : "members";
   render();
 });
 el.deliveryViewBtn.addEventListener("click", () => {
@@ -4326,6 +4470,7 @@ el.viewModeBtn.addEventListener("click", () => {
   } else {
     boardView = "projects";
     selectedProjectKey = "";
+    if (taskLayoutView === "members") taskLayoutView = "projects";
   }
   render();
 });
