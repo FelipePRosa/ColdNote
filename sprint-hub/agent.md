@@ -116,10 +116,20 @@ Cross-sprint view over all projects.
 
 Used to:
 
-- inspect all projects across multiple sprints
+- inspect projects in an aggregated way instead of listing every sprint occurrence
 - filter by project
+- inspect feature groups inside each project card
+- open current tasks for one feature
 - switch to taskboard mode
 - switch to delivery mode
+
+Current default behavior:
+
+- one card per project
+- feature list inside the project card
+- tasks without feature are grouped under `Outros`
+- clicking a feature opens the current task set for that feature
+- repeated tasks across sprints are deduplicated and only the most recent occurrence is shown
 
 ### Taskboard
 
@@ -176,7 +186,13 @@ Each feature has:
 - `name`
 - `description`
 
-Features are currently managed through the Features modal.
+Runtime behavior in the UI:
+
+- features are managed through the Features modal
+- each feature can be edited through its own pencil icon
+- in `Projects View`, a derived feature status is shown:
+  - `Closed`: all tasks in that feature are done
+  - `Active`: at least one task in that feature is still open
 
 ### Item / Task
 
@@ -195,6 +211,12 @@ Important distinction:
 
 - `done` means completed
 - `followed` means the item was worked on or accompanied during the week
+
+Task modal behavior:
+
+- task status is edited through a dropdown (`Open`, `Doing`, `Testing`, `Blocked`, `Done`)
+- blocked reason appears only when the task status is `Blocked`
+- project linkage for sprint tasks is implicit from the project card and is not edited in the task modal
 
 ### Backlog Item
 
@@ -376,6 +398,7 @@ Current parsing depends on:
 - keep tasks concise and readable in seconds
 - use project cards as weekly summary containers
 - use features to group related task intent
+- use `Projects View` to review features as the main cross-sprint summary unit
 - use blocked reason for actionable context
 - use timeline for notable events and milestones
 - use backlog before bringing items into a sprint
@@ -433,6 +456,7 @@ Always verify:
 - new IDs/classes are wired in `app.js`
 - modal open/close flows still work
 - Sprint View, Projects View, Taskboard, and Delivery still render
+- feature cards in `Projects View` still open the correct latest tasks
 - backlog visibility rules still hold
 - mobile layout is still coherent
 
@@ -485,9 +509,11 @@ For a new engineer or agent:
    - task create/edit
    - feature selection inside task editing
    - backlog add/edit
+   - Projects View aggregated feature list
+   - feature click to open current tasks
    - taskboard drag/drop
    - delivery view
-   - features modal
+   - features modal and per-feature edit icon
    - timeline modal
    - project files editor
    - team modal
@@ -500,3 +526,7 @@ For a new engineer or agent:
 - avoid destructive git operations because the repo often contains local changes
 - prefer minimal DOM ID changes because the frontend is ID-driven
 - when changing task parsing, verify `FEATURE`, `HIGH`, `BLOCKED`, `FOLLOWED`, and checkbox semantics together
+- when changing `Projects View`, distinguish between:
+  - aggregated project/feature summary view
+  - project taskboard grouped by status
+  - delivery timeline view

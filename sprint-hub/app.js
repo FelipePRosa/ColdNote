@@ -2741,6 +2741,28 @@ function taskPassesBoardFilters(item, topic, sprint) {
   return true;
 }
 
+function projectTaskDedupeKey(item) {
+  return normalizeSearchText(item?.text || itemDisplayText(item));
+}
+
+function latestProjectTaskEntries(entries) {
+  const sprintOrder = new Map(state.sprints.map((entry, index) => [entry.id, index]));
+  const latestByTask = new Map();
+
+  entries.forEach((entry) => {
+    const taskKey = projectTaskDedupeKey(entry.item);
+    if (!taskKey) return;
+    const currentOrder = sprintOrder.get(entry.sprint.id) ?? -1;
+    const previous = latestByTask.get(taskKey);
+    const previousOrder = previous ? (sprintOrder.get(previous.sprint.id) ?? -1) : -1;
+    if (!previous || currentOrder >= previousOrder) {
+      latestByTask.set(taskKey, entry);
+    }
+  });
+
+  return Array.from(latestByTask.values());
+}
+
 function openTopicTaskEditor(topic, item) {
   openTaskModal({
     title: "Edit Task",
@@ -3515,10 +3537,6 @@ function renderProjectFeatureCards() {
       const projectStatus = getProjectCurrentStatus(projectKey);
       if (selectedProjectStatus && projectStatus !== selectedProjectStatus) return;
 
-      const visibleItems = topic.items.filter((item) => taskPassesBoardFilters(item, topic, sprint));
-      if ((taskSearchText || selectedResponsible || filterHighOnly || filterBlockedOnly) && visibleItems.length === 0) return;
-      if (!visibleItems.length && !topic.description) return;
-
       const project = projects.get(projectKey) || {
         projectKey,
         title: projectLabel(projectKey),
@@ -3526,6 +3544,7 @@ function renderProjectFeatureCards() {
         description: topic.description || "",
         latestSprint: sprint,
         latestTopic: topic,
+        taskEntries: [],
         features: new Map(),
       };
 
@@ -3538,18 +3557,32 @@ function renderProjectFeatureCards() {
         project.latestTopic = topic;
       }
 
-      visibleItems.forEach((item) => {
-        const featureLabel = String(item.featureName || "").trim() || "Outros";
-        const feature = project.features.get(featureLabel) || { label: featureLabel, entries: [] };
-        feature.entries.push({ sprint, topic, item });
-        project.features.set(featureLabel, feature);
+      topic.items.forEach((item) => {
+        project.taskEntries.push({ sprint, topic, item });
       });
 
       projects.set(projectKey, project);
     });
   });
 
-  const entries = Array.from(projects.values()).sort((a, b) => a.title.localeCompare(b.title));
+  const filtersActive = Boolean(taskSearchText || selectedResponsible || filterHighOnly || filterBlockedOnly);
+  const entries = Array.from(projects.values())
+    .map((project) => {
+      latestProjectTaskEntries(project.taskEntries)
+        .filter(({ item, topic, sprint }) => taskPassesBoardFilters(item, topic, sprint))
+        .forEach((entry) => {
+          const featureLabel = String(entry.item.featureName || "").trim() || "Outros";
+          const feature = project.features.get(featureLabel) || { label: featureLabel, entries: [] };
+          feature.entries.push(entry);
+          project.features.set(featureLabel, feature);
+        });
+      return project;
+    })
+    .filter((project) => {
+      if (project.features.size > 0) return true;
+      return !filtersActive && Boolean(project.description);
+    })
+    .sort((a, b) => a.title.localeCompare(b.title));
   if (!entries.length) {
     const msg = document.createElement("p");
     msg.className = "muted";
@@ -3668,19 +3701,7 @@ function renderProjectFeatureCards() {
         li.querySelector(".feature-status-tag").dataset.state = allDone ? "closed" : "active";
         li.querySelector(".tag:last-of-type").textContent = `${feature.entries.length} task${feature.entries.length === 1 ? "" : "s"}`;
         const openFeature = () => {
-          const sprintOrder = new Map(state.sprints.map((entry, index) => [entry.id, index]));
-          const latestByTask = new Map();
-          feature.entries.forEach((entry) => {
-            const taskKey = normalizeSearchText(entry.item.text || itemDisplayText(entry.item));
-            if (!taskKey) return;
-            const currentOrder = sprintOrder.get(entry.sprint.id) ?? -1;
-            const previous = latestByTask.get(taskKey);
-            const previousOrder = previous ? (sprintOrder.get(previous.sprint.id) ?? -1) : -1;
-            if (!previous || currentOrder >= previousOrder) {
-              latestByTask.set(taskKey, entry);
-            }
-          });
-          const items = Array.from(latestByTask.values())
+          const items = feature.entries
             .sort((a, b) => (a.item.text || "").localeCompare(b.item.text || ""))
             .map(({ topic, item }) => {
               const status = item.done ? "Closed" : "Active";
