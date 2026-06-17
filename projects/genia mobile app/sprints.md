@@ -231,3 +231,4 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Notificações (Gui + Vicco) [BLOCKED]
 - [ ] Master login (Gui) [BLOCKED: Prioridade]
 - [ ] Rever cacheamento (Vicco) [HIGH]
+- [ ] Salvar roteiro

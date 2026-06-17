@@ -4,9 +4,9 @@ Nickname: Guto
 Ativo: Sim
 
 Placar Tech Innovation
-Qualidade de Código: 5
+Qualidade de Código: 4
 Contribuição Técnica: 3
 Organização: 3
-Autonomia: 4
-Colaboração: 3
-Representação: 2
+Autonomia: 3
+Colaboração: 2
+Representação: 3

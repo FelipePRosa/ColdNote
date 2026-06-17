@@ -250,5 +250,5 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Cotação, Rastreio (Fel) [BLOCKED]
 - [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
 - [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED]
-- [ ] Revisão CNPJ (Bruf + Fel + Gui + Vicco) [HIGH]
+- [ ] Revisão CNPJ (Bruf + Fel + Gui) [HIGH]
 - [ ] Bloqueio ZSEB (Gui)

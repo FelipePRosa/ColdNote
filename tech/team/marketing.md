@@ -4,7 +4,7 @@ Nickname: Mkt
 Ativo: Sim
 
 Placar Tech Innovation
-Qualidade de Código: 4
+Qualidade de Código: 3
 Contribuição Técnica: 3
 Organização: 4
 Autonomia: 4
