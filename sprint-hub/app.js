@@ -2008,9 +2008,20 @@ function openDeliveryInfoModal({ title, subtitle = "", groups = [] }) {
     section.querySelector("strong").textContent = group.title || "Details";
     section.querySelector("span").textContent = group.meta || "";
     const list = section.querySelector("ul");
-    (group.items || []).forEach((text) => {
+    (group.items || []).forEach((entry) => {
       const li = document.createElement("li");
-      li.textContent = text;
+      if (typeof entry === "string") {
+        li.textContent = entry;
+      } else {
+        li.textContent = entry?.text || "";
+        if (typeof entry?.onClick === "function") {
+          li.classList.add("delivery-info-clickable");
+          li.addEventListener("click", () => {
+            closeDeliveryInfoModal();
+            entry.onClick();
+          });
+        }
+      }
       list.appendChild(li);
     });
     el.deliveryInfoList.appendChild(section);
@@ -3671,10 +3682,13 @@ function renderProjectFeatureCards() {
           });
           const items = Array.from(latestByTask.values())
             .sort((a, b) => (a.item.text || "").localeCompare(b.item.text || ""))
-            .map(({ item }) => {
+            .map(({ topic, item }) => {
               const status = item.done ? "Closed" : "Active";
               const responsibles = item.responsibles?.length ? item.responsibles.join(" + ") : "No responsible";
-              return `${itemDisplayText(item)} | ${status} | ${responsibles}`;
+              return {
+                text: `${itemDisplayText(item)} | ${status} | ${responsibles}`,
+                onClick: () => openTopicTaskEditor(topic, item),
+              };
             });
           openDeliveryInfoModal({
             title: feature.label,
