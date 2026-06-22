@@ -92,7 +92,10 @@
           <button type="button" id="cancelTopicBtn" class="btn btn-ghost">Cancel</button>
         </form>
 
-        <div id="topicsGrid" class="topics-grid"></div>
+        <div class="topics-grid-wrap">
+          <button id="focusModeBtn" class="btn btn-ghost topics-focus-btn" type="button" aria-label="Foco" title="Foco">◎</button>
+          <div id="topicsGrid" class="topics-grid"></div>
+        </div>
       </section>
 
       <aside class="backlog-panel card">
@@ -244,6 +247,27 @@
         <button id="sprintSendTeamsBtn" class="btn btn-ghost" type="button">Send to Teams</button>
         <button id="sprintCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
         <button id="sprintSaveBtn" class="btn btn-primary" type="button">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="focusModeModal" class="modal hidden">
+    <div class="modal-card focus-mode-card">
+      <div class="focus-mode-head">
+        <div>
+          <h3 id="focusModeTitle">Foco</h3>
+          <p id="focusModeSubtitle" class="muted">Project focus mode</p>
+        </div>
+        <button id="focusModeCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+      <div class="focus-mode-layout">
+        <button id="focusPrevBtn" class="focus-nav-btn" type="button" aria-label="Projeto anterior" title="Projeto anterior">
+          <span aria-hidden="true">‹</span>
+        </button>
+        <div id="focusModeContent" class="focus-mode-content"></div>
+        <button id="focusNextBtn" class="focus-nav-btn" type="button" aria-label="Próximo projeto" title="Próximo projeto">
+          <span aria-hidden="true">›</span>
+        </button>
       </div>
     </div>
   </div>

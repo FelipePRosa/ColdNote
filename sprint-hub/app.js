@@ -38,6 +38,7 @@ const el = {
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
   viewModeBtn: document.getElementById("viewModeBtn"),
+  focusModeBtn: document.getElementById("focusModeBtn"),
   pjsBtn: document.getElementById("pjsBtn"),
   teamBtn: document.getElementById("teamBtn"),
   assigneeModal: document.getElementById("assigneeModal"),
@@ -80,6 +81,13 @@ const el = {
   sprintSendTeamsBtn: document.getElementById("sprintSendTeamsBtn"),
   sprintCancelBtn: document.getElementById("sprintCancelBtn"),
   sprintSaveBtn: document.getElementById("sprintSaveBtn"),
+  focusModeModal: document.getElementById("focusModeModal"),
+  focusModeTitle: document.getElementById("focusModeTitle"),
+  focusModeSubtitle: document.getElementById("focusModeSubtitle"),
+  focusModeContent: document.getElementById("focusModeContent"),
+  focusPrevBtn: document.getElementById("focusPrevBtn"),
+  focusNextBtn: document.getElementById("focusNextBtn"),
+  focusModeCloseBtn: document.getElementById("focusModeCloseBtn"),
   projectsBtn: document.getElementById("projectsBtn"),
   projectsModal: document.getElementById("projectsModal"),
   projectsCloseBtn: document.getElementById("projectsCloseBtn"),
@@ -173,6 +181,8 @@ let filterHighOnly = false;
 let filterBlockedOnly = false;
 let deliveryStartSprintId = "";
 let deliveryEndSprintId = "";
+let focusModeEntries = [];
+let focusModeIndex = 0;
 let projectCatalog = [];
 let projectControls = {};
 let projectFeaturesCatalog = {};
@@ -2993,7 +3003,10 @@ function openProjectEditor(project) {
   const sprint = project.latestSprint;
   const topic = project.latestTopic;
   if (!sprint || !topic) return;
+  openSprintTopicProjectModal(topic, sprint);
+}
 
+function openSprintTopicProjectModal(topic, sprint) {
   openProjectModal(
     topic,
     sprint.id,
@@ -3026,14 +3039,17 @@ function openProjectEditor(project) {
     (targetSprintId) => {
       const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
       if (!targetSprint) return;
-      targetSprint.topics.push({
+
+      const cloned = {
         id: uid(),
         title: topic.title,
         projectKey: topic.projectKey || "",
         status: normalizeProjectStatus(topic.status),
         description: topic.description,
         items: cloneActiveTopicItems(topic),
-      });
+      };
+
+      targetSprint.topics.push(cloned);
       persistState();
       render();
     },
@@ -3041,6 +3057,255 @@ function openProjectEditor(project) {
       await openTimelineModal(projectKey || topic.projectKey);
     }
   );
+}
+
+function createSprintTopicCard(topic, sprint, options = {}) {
+  normalizeTopic(topic);
+  if (selectedProjectStatus && topic.status !== selectedProjectStatus) return null;
+
+  const multiSprintMode = Boolean(options.multiSprintMode);
+  const canDrag = Boolean(options.canDrag);
+  const emptyHintText = options.emptyHintText || (canDrag ? "Drop task here" : "No matching tasks");
+  const visibleItems = topic.items.filter((item) => taskPassesBoardFilters(item, topic, sprint));
+  if ((taskSearchText || selectedResponsible || filterHighOnly || filterBlockedOnly) && visibleItems.length === 0) {
+    return null;
+  }
+
+  const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
+  node.querySelector(".topic-title").textContent = topic.title;
+  const projectText = projectLabel(topic.projectKey);
+  node.querySelector(".topic-project").textContent = multiSprintMode
+    ? `${projectText} | Sprint ${sprint.name}`
+    : projectText;
+  const statusTag = node.querySelector(".topic-status-tag");
+  if (topic.status) {
+    statusTag.textContent = topic.status;
+    statusTag.dataset.status = topic.status;
+    statusTag.classList.remove("hidden");
+  } else {
+    statusTag.textContent = "";
+    delete statusTag.dataset.status;
+    statusTag.classList.add("hidden");
+  }
+  node.querySelector(".topic-desc").textContent = topic.description || "No description";
+  node.querySelector(".topic-edit-btn").addEventListener("click", () => {
+    openSprintTopicProjectModal(topic, sprint);
+  });
+
+  const itemsList = node.querySelector(".items-list");
+  if (visibleItems.length === 0) {
+    itemsList.classList.add("empty-drop-zone");
+    const emptyHint = document.createElement("li");
+    emptyHint.className = "item-empty-hint";
+    emptyHint.textContent = emptyHintText;
+    itemsList.appendChild(emptyHint);
+  }
+  if (canDrag) {
+    itemsList.addEventListener("dragover", (e) => {
+      if (!dragTaskState) return;
+      e.preventDefault();
+      itemsList.classList.add("drop-active");
+    });
+    itemsList.addEventListener("dragleave", (e) => {
+      if (e.relatedTarget && itemsList.contains(e.relatedTarget)) return;
+      itemsList.classList.remove("drop-active");
+    });
+    itemsList.addEventListener("drop", (e) => {
+      e.preventDefault();
+      itemsList.classList.remove("drop-active");
+      moveDraggedTaskToTopic(topic.id, null);
+      endTaskDrag();
+    });
+  }
+
+  visibleItems.forEach((item) => {
+    const li = document.createElement("li");
+    li.className = `item ${item.done ? "done" : ""} ${item.priority === "high" ? "item-high" : ""} ${item.blocked ? "item-blocked" : ""}`;
+    li.draggable = canDrag;
+    normalizeItem(item);
+    li.innerHTML = `
+      <input type="checkbox" ${item.followed ? "checked" : ""} title="Followed this week" aria-label="Followed this week" />
+      <span class="item-line"><span class="item-text"></span></span>
+      <div>
+        <button type="button" class="btn-link btn-link-neutral item-edit" aria-label="Edit task" title="Edit task">✎</button>
+      </div>
+    `;
+    li.querySelector(".item-text").textContent = itemDisplayText(item);
+    const itemLine = li.querySelector(".item-line");
+    if (item.featureName) {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = item.featureName;
+      itemLine.appendChild(tag);
+    }
+    if (item.priority === "high") {
+      const tag = document.createElement("span");
+      tag.className = "tag tag-high";
+      tag.textContent = "HIGH";
+      itemLine.appendChild(tag);
+    }
+    if (item.blocked) {
+      const tag = document.createElement("span");
+      tag.className = "tag tag-blocked";
+      tag.textContent = "BLOCKED";
+      itemLine.appendChild(tag);
+    }
+    if (item.blocked && item.blockedReason) {
+      const reason = document.createElement("div");
+      reason.className = "item-blocked-reason";
+      reason.textContent = `Reason: ${item.blockedReason}`;
+      itemLine.appendChild(reason);
+    }
+
+    if (canDrag) {
+      li.addEventListener("dragstart", (e) => {
+        beginTopicTaskDrag(topic.id, item.id);
+        li.classList.add("dragging");
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", item.id);
+        }
+      });
+
+      li.addEventListener("dragend", () => {
+        li.classList.remove("dragging");
+        document.querySelectorAll(".item.drop-before").forEach((x) => x.classList.remove("drop-before"));
+        document.querySelectorAll(".items-list.drop-active").forEach((x) => x.classList.remove("drop-active"));
+        endTaskDrag();
+      });
+
+      li.addEventListener("dragover", (e) => {
+        if (!dragTaskState || dragTaskState.itemId === item.id) return;
+        e.preventDefault();
+        li.classList.add("drop-before");
+      });
+
+      li.addEventListener("dragleave", () => {
+        li.classList.remove("drop-before");
+      });
+
+      li.addEventListener("drop", (e) => {
+        e.preventDefault();
+        li.classList.remove("drop-before");
+        moveDraggedTaskToTopic(topic.id, item.id);
+        endTaskDrag();
+      });
+    }
+
+    li.querySelector("input").addEventListener("change", (e) => {
+      item.followed = e.target.checked;
+      persistState();
+      render();
+    });
+
+    li.querySelector(".item-text").addEventListener("click", () => {
+      item.followed = !item.followed;
+      persistState();
+      render();
+    });
+
+    li.querySelector(".item-edit").addEventListener("click", () => {
+      openTopicTaskEditor(topic, item);
+    });
+
+    itemsList.appendChild(li);
+  });
+
+  const addItemBtn = node.querySelector(".add-item-btn");
+  addItemBtn.addEventListener("click", () => {
+    openTaskModal({
+      title: "New Task",
+      saveLabel: "Create",
+      currentText: { text: "", priority: "normal", blocked: false, blockedReason: "" },
+      currentNames: [],
+      featureProjectKey: topic.projectKey || "",
+      currentStatus: deriveTaskStatus({}, topic),
+      onSave: ({ text, responsibles, priority, blocked, blockedReason, featureName, status }) => {
+        topic.items.push({
+          id: uid(),
+          text,
+          done: status === "done",
+          projectKey: normalizeProjectKey(topic.projectKey),
+          responsibles,
+          priority,
+          blocked: status === "blocked",
+          blockedReason: status === "blocked" ? blockedReason : "",
+          featureName: String(featureName || "").trim(),
+        });
+        if (status === "doing") topic.status = "Desenvolvimento";
+        else if (status === "testing") topic.status = "Teste";
+        persistState();
+        render();
+      },
+    });
+  });
+
+  return { node, visibleItems };
+}
+
+function canOpenFocusMode() {
+  return boardView !== "projects" && taskLayoutView === "projects";
+}
+
+function isFocusModeActive() {
+  return !el.focusModeModal.classList.contains("hidden");
+}
+
+function updateFocusModeButton() {
+  const available = canOpenFocusMode();
+  el.focusModeBtn.classList.toggle("hidden", !available);
+  el.focusModeBtn.disabled = !available || focusModeEntries.length === 0;
+  el.focusModeBtn.classList.toggle("active", available && isFocusModeActive());
+}
+
+function renderFocusMode() {
+  if (!isFocusModeActive()) return;
+  if (!focusModeEntries.length) {
+    closeFocusMode();
+    return;
+  }
+
+  focusModeIndex = ((focusModeIndex % focusModeEntries.length) + focusModeEntries.length) % focusModeEntries.length;
+  const entry = focusModeEntries[focusModeIndex];
+  const card = createSprintTopicCard(entry.topic, entry.sprint, {
+    canDrag: false,
+    multiSprintMode: false,
+    emptyHintText: "No tasks for this project yet",
+  });
+  if (!card) {
+    closeFocusMode();
+    return;
+  }
+
+  el.focusModeTitle.textContent = entry.topic.title;
+  el.focusModeSubtitle.textContent = `Sprint ${entry.sprint.name} • ${focusModeIndex + 1} of ${focusModeEntries.length}`;
+  el.focusModeContent.innerHTML = "";
+  el.focusModeContent.appendChild(card.node);
+  const disableNav = focusModeEntries.length < 2;
+  el.focusPrevBtn.disabled = disableNav;
+  el.focusNextBtn.disabled = disableNav;
+}
+
+function openFocusMode(index = 0) {
+  if (!canOpenFocusMode() || focusModeEntries.length === 0) return;
+  focusModeIndex = index;
+  document.body.classList.add("focus-mode-open");
+  el.focusModeModal.classList.remove("hidden");
+  renderFocusMode();
+  updateFocusModeButton();
+}
+
+function closeFocusMode() {
+  el.focusModeModal.classList.add("hidden");
+  el.focusModeContent.innerHTML = "";
+  document.body.classList.remove("focus-mode-open");
+  updateFocusModeButton();
+}
+
+function stepFocusMode(delta) {
+  if (!isFocusModeActive() || focusModeEntries.length < 2) return;
+  focusModeIndex += delta;
+  renderFocusMode();
 }
 
 function openTopicTaskEditor(topic, item) {
@@ -3946,6 +4211,9 @@ function renderTopics() {
     el.boardTitle.textContent = "No sprints yet";
     el.boardMeta.textContent = "Create your first sprint.";
     el.topicsGrid.innerHTML = "";
+    focusModeEntries = [];
+    updateFocusModeButton();
+    if (isFocusModeActive()) closeFocusMode();
     return;
   }
   el.topicsGrid.classList.remove("taskboard-grid");
@@ -3966,240 +4234,19 @@ function renderTopics() {
   }
   el.topicsGrid.innerHTML = "";
   let renderedTopicCount = 0;
+  const currentFocusEntry = focusModeEntries[focusModeIndex] || null;
+  const currentFocusKey = currentFocusEntry ? `${currentFocusEntry.sprint.id}:${currentFocusEntry.topic.id}` : "";
+  focusModeEntries = [];
   const multiSprintMode = boardView === "projects";
   const canDrag = !multiSprintMode;
   const sprintsToRender = visibleSprints();
 
   sprintsToRender.forEach((sprint) => {
     sprint.topics.forEach((topic) => {
-      normalizeTopic(topic);
-      if (boardView === "projects" && selectedProjectKey && topic.projectKey !== selectedProjectKey) return;
-      if (selectedProjectStatus && topic.status !== selectedProjectStatus) return;
-
-      const visibleItems = topic.items.filter((item) => {
-        return taskPassesBoardFilters(item, topic, sprint);
-      });
-      if ((taskSearchText || selectedResponsible || filterHighOnly || filterBlockedOnly) && visibleItems.length === 0) return;
-
-      const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
-      node.querySelector(".topic-title").textContent = topic.title;
-      const projectText = projectLabel(topic.projectKey);
-      node.querySelector(".topic-project").textContent = multiSprintMode
-        ? `${projectText} | Sprint ${sprint.name}`
-        : projectText;
-      const statusTag = node.querySelector(".topic-status-tag");
-      if (topic.status) {
-        statusTag.textContent = topic.status;
-        statusTag.dataset.status = topic.status;
-        statusTag.classList.remove("hidden");
-      } else {
-        statusTag.textContent = "";
-        delete statusTag.dataset.status;
-        statusTag.classList.add("hidden");
-      }
-      node.querySelector(".topic-desc").textContent = topic.description || "No description";
-      node.querySelector(".topic-edit-btn").addEventListener("click", () => {
-        openProjectModal(
-          topic,
-          sprint.id,
-          ({ title, description, projectKey, status }) => {
-            topic.title = title;
-            topic.description = description;
-            topic.projectKey = normalizeProjectKey(projectKey);
-            topic.status = normalizeProjectStatus(status);
-            topic.items.forEach((item) => {
-              normalizeItem(item);
-              item.projectKey = topic.projectKey;
-            });
-            if (topic.projectKey) {
-              projectControls[topic.projectKey] = normalizeProjectControl(topic.projectKey, {
-                name: topic.projectKey,
-                status: topic.status,
-              });
-              saveProjectControl(topic.projectKey, { status: topic.status }).catch(() => {});
-            }
-            persistState();
-            render();
-          },
-          () => {
-            const idx = sprint.topics.findIndex((t) => t.id === topic.id);
-            if (idx < 0) return;
-            sprint.topics.splice(idx, 1);
-            persistState();
-            render();
-          },
-          (targetSprintId) => {
-            const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
-            if (!targetSprint) return;
-
-            const cloned = {
-              id: uid(),
-              title: topic.title,
-              projectKey: topic.projectKey || "",
-              status: normalizeProjectStatus(topic.status),
-              description: topic.description,
-              items: cloneActiveTopicItems(topic),
-            };
-
-            targetSprint.topics.push(cloned);
-            persistState();
-            render();
-          },
-          async (projectKey) => {
-            await openTimelineModal(projectKey || topic.projectKey);
-          }
-        );
-      });
-
-      const itemsList = node.querySelector(".items-list");
-      if (visibleItems.length === 0) {
-        itemsList.classList.add("empty-drop-zone");
-        const emptyHint = document.createElement("li");
-        emptyHint.className = "item-empty-hint";
-        emptyHint.textContent = canDrag ? "Drop task here" : "No matching tasks";
-        itemsList.appendChild(emptyHint);
-      }
-      if (canDrag) {
-        itemsList.addEventListener("dragover", (e) => {
-          if (!dragTaskState) return;
-          e.preventDefault();
-          itemsList.classList.add("drop-active");
-        });
-        itemsList.addEventListener("dragleave", (e) => {
-          if (e.relatedTarget && itemsList.contains(e.relatedTarget)) return;
-          itemsList.classList.remove("drop-active");
-        });
-        itemsList.addEventListener("drop", (e) => {
-          e.preventDefault();
-          itemsList.classList.remove("drop-active");
-          moveDraggedTaskToTopic(topic.id, null);
-          endTaskDrag();
-        });
-      }
-
-      visibleItems.forEach((item) => {
-        const li = document.createElement("li");
-        li.className = `item ${item.done ? "done" : ""} ${item.priority === "high" ? "item-high" : ""} ${item.blocked ? "item-blocked" : ""}`;
-        li.draggable = canDrag;
-        normalizeItem(item);
-        li.innerHTML = `
-          <input type="checkbox" ${item.followed ? "checked" : ""} title="Followed this week" aria-label="Followed this week" />
-          <span class="item-line"><span class="item-text"></span></span>
-          <div>
-            <button type="button" class="btn-link btn-link-neutral item-edit" aria-label="Edit task" title="Edit task">✎</button>
-          </div>
-        `;
-        li.querySelector(".item-text").textContent = itemDisplayText(item);
-        const itemLine = li.querySelector(".item-line");
-        if (item.featureName) {
-          const tag = document.createElement("span");
-          tag.className = "tag";
-          tag.textContent = item.featureName;
-          itemLine.appendChild(tag);
-        }
-        if (item.priority === "high") {
-          const tag = document.createElement("span");
-          tag.className = "tag tag-high";
-          tag.textContent = "HIGH";
-          itemLine.appendChild(tag);
-        }
-        if (item.blocked) {
-          const tag = document.createElement("span");
-          tag.className = "tag tag-blocked";
-          tag.textContent = "BLOCKED";
-          itemLine.appendChild(tag);
-        }
-        if (item.blocked && item.blockedReason) {
-          const reason = document.createElement("div");
-          reason.className = "item-blocked-reason";
-          reason.textContent = `Reason: ${item.blockedReason}`;
-          itemLine.appendChild(reason);
-        }
-
-        if (canDrag) {
-          li.addEventListener("dragstart", (e) => {
-            beginTopicTaskDrag(topic.id, item.id);
-            li.classList.add("dragging");
-            if (e.dataTransfer) {
-              e.dataTransfer.effectAllowed = "move";
-              e.dataTransfer.setData("text/plain", item.id);
-            }
-          });
-
-          li.addEventListener("dragend", () => {
-            li.classList.remove("dragging");
-            document.querySelectorAll(".item.drop-before").forEach((x) => x.classList.remove("drop-before"));
-            document.querySelectorAll(".items-list.drop-active").forEach((x) => x.classList.remove("drop-active"));
-            endTaskDrag();
-          });
-
-          li.addEventListener("dragover", (e) => {
-            if (!dragTaskState || dragTaskState.itemId === item.id) return;
-            e.preventDefault();
-            li.classList.add("drop-before");
-          });
-
-          li.addEventListener("dragleave", () => {
-            li.classList.remove("drop-before");
-          });
-
-          li.addEventListener("drop", (e) => {
-            e.preventDefault();
-            li.classList.remove("drop-before");
-            moveDraggedTaskToTopic(topic.id, item.id);
-            endTaskDrag();
-          });
-        }
-
-        li.querySelector("input").addEventListener("change", (e) => {
-          item.followed = e.target.checked;
-          persistState();
-          render();
-        });
-
-        li.querySelector(".item-text").addEventListener("click", () => {
-          item.followed = !item.followed;
-          persistState();
-          render();
-        });
-
-        li.querySelector(".item-edit").addEventListener("click", () => {
-          openTopicTaskEditor(topic, item);
-        });
-
-        itemsList.appendChild(li);
-      });
-
-      const addItemBtn = node.querySelector(".add-item-btn");
-      addItemBtn.addEventListener("click", () => {
-        openTaskModal({
-          title: "New Task",
-          saveLabel: "Create",
-          currentText: { text: "", priority: "normal", blocked: false, blockedReason: "" },
-          currentNames: [],
-          featureProjectKey: topic.projectKey || "",
-          currentStatus: deriveTaskStatus({}, topic),
-          onSave: ({ text, responsibles, priority, blocked, blockedReason, featureName, status }) => {
-            topic.items.push({
-              id: uid(),
-              text,
-              done: status === "done",
-              projectKey: normalizeProjectKey(topic.projectKey),
-              responsibles,
-              priority,
-              blocked: status === "blocked",
-              blockedReason: status === "blocked" ? blockedReason : "",
-              featureName: String(featureName || "").trim(),
-            });
-            if (status === "doing") topic.status = "Desenvolvimento";
-            else if (status === "testing") topic.status = "Teste";
-            persistState();
-            render();
-          },
-        });
-      });
-
-      el.topicsGrid.appendChild(node);
+      const card = createSprintTopicCard(topic, sprint, { canDrag, multiSprintMode });
+      if (!card) return;
+      focusModeEntries.push({ sprint, topic });
+      el.topicsGrid.appendChild(card.node);
       renderedTopicCount += 1;
     });
   });
@@ -4220,12 +4267,25 @@ function renderTopics() {
     }
     el.topicsGrid.appendChild(msg);
   }
+
+  if (isFocusModeActive()) {
+    if (!focusModeEntries.length) closeFocusMode();
+    else {
+      const nextIndex = currentFocusKey
+        ? focusModeEntries.findIndex((entry) => `${entry.sprint.id}:${entry.topic.id}` === currentFocusKey)
+        : -1;
+      focusModeIndex = nextIndex >= 0 ? nextIndex : Math.min(focusModeIndex, focusModeEntries.length - 1);
+      renderFocusMode();
+    }
+  }
+  updateFocusModeButton();
 }
 
 function render() {
   if (boardView === "projects" && selectedProjectKey && !projectCatalog.includes(selectedProjectKey)) {
     selectedProjectKey = "";
   }
+  if (!canOpenFocusMode() && isFocusModeActive()) closeFocusMode();
   if (el.leftPanelSearch) el.leftPanelSearch.value = projectSearchText;
   el.taskSearchInput.value = taskSearchText;
   renderLeftPanel();
@@ -4251,6 +4311,7 @@ function render() {
   el.newTopicBtn.disabled = projectsMode || membersMode;
   el.editSprintBtn.disabled = projectsMode;
   el.projectCardsViewBtn.classList.toggle("active", taskLayoutView === "projects");
+  el.focusModeBtn.classList.toggle("hidden", projectsMode || taskLayoutView !== "projects");
   el.taskboardViewBtn.classList.toggle("active", taskLayoutView === "taskboard");
   el.memberViewBtn.classList.toggle("hidden", projectsMode);
   el.memberViewBtn.classList.toggle("active", taskLayoutView === "members" && !projectsMode);
@@ -4270,6 +4331,7 @@ function render() {
     el.newTopicBtn.title = "";
     el.editSprintBtn.title = "";
   }
+  updateFocusModeButton();
 }
 
 function createSprint() {
@@ -4423,6 +4485,13 @@ el.projectCardsViewBtn.addEventListener("click", () => {
   taskLayoutView = "projects";
   render();
 });
+el.focusModeBtn.addEventListener("click", () => {
+  if (isFocusModeActive()) {
+    closeFocusMode();
+    return;
+  }
+  openFocusMode(0);
+});
 el.taskboardViewBtn.addEventListener("click", () => {
   taskLayoutView = "taskboard";
   render();
@@ -4535,6 +4604,9 @@ el.newTopicBtn.addEventListener("click", () => {
   el.topicForm.classList.remove("hidden");
   el.topicTitleInput.focus();
 });
+el.focusModeCloseBtn.addEventListener("click", closeFocusMode);
+el.focusPrevBtn.addEventListener("click", () => stepFocusMode(-1));
+el.focusNextBtn.addEventListener("click", () => stepFocusMode(1));
 el.modalCancelBtn.addEventListener("click", closeAssigneeModal);
 el.modalDeleteBtn.addEventListener("click", () => {
   if (!itemEditModalOnDelete) return;
@@ -4862,6 +4934,7 @@ bindBackdropClose(el.assigneeModal, closeAssigneeModal);
 bindBackdropClose(el.projectModal, closeProjectModal);
 bindBackdropClose(el.copyTargetModal, closeCopyTargetModal);
 bindBackdropClose(el.sprintModal, closeSprintModal);
+bindBackdropClose(el.focusModeModal, closeFocusMode);
 bindBackdropClose(el.projectsModal, closeProjectsModal);
 bindBackdropClose(el.pjsModal, closePjsModal);
 bindBackdropClose(el.teamModal, closeTeamModal);
@@ -4869,6 +4942,39 @@ bindBackdropClose(el.timelineModal, closeTimelineModal);
 bindBackdropClose(el.featuresModal, closeFeaturesModal);
 bindBackdropClose(el.featureEditorModal, closeFeatureEditorModal);
 bindBackdropClose(el.deliveryInfoModal, closeDeliveryInfoModal);
+
+document.addEventListener("keydown", (e) => {
+  if (!isFocusModeActive()) return;
+  const blockingModalOpen = [
+    el.assigneeModal,
+    el.projectModal,
+    el.copyTargetModal,
+    el.sprintModal,
+    el.projectsModal,
+    el.pjsModal,
+    el.teamModal,
+    el.timelineModal,
+    el.featuresModal,
+    el.featureEditorModal,
+    el.deliveryInfoModal,
+  ].some((modal) => modal && !modal.classList.contains("hidden"));
+  if (blockingModalOpen) return;
+  const targetTag = e.target?.tagName;
+  if (targetTag === "INPUT" || targetTag === "TEXTAREA" || targetTag === "SELECT") return;
+  if (e.key === "Escape") {
+    closeFocusMode();
+    return;
+  }
+  if (e.key === "ArrowLeft") {
+    e.preventDefault();
+    stepFocusMode(-1);
+    return;
+  }
+  if (e.key === "ArrowRight") {
+    e.preventDefault();
+    stepFocusMode(1);
+  }
+});
 
 el.cancelTopicBtn.addEventListener("click", () => {
   el.topicForm.classList.add("hidden");

@@ -19,5 +19,5 @@ Regra: inclui apenas sprints depois de 26-01.
 
 ### ClearPilot
 - [ ] Chamar endpoint de classificação (Bruf)
-- [ ] Integração do modelo de classificação (Gui)
+- [ ] Integração do modelo de classificação (Gui) [HIGH]
 - [ ] Configuração de ambiente (Bruf + Gui) [HIGH]

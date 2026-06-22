@@ -510,6 +510,32 @@ main {
   gap: 12px;
 }
 
+.topics-grid-wrap {
+  position: relative;
+  margin-top: 18px;
+}
+
+.topics-grid-wrap .topics-grid {
+  margin-top: 0;
+}
+
+.topics-focus-btn {
+  position: absolute;
+  top: -21px;
+  left: -21px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
 .topics-grid.taskboard-grid {
   flex: 1 1 auto;
   grid-template-columns: repeat(5, minmax(240px, 1fr));
@@ -1596,6 +1622,81 @@ textarea:focus {
   width: min(420px, 90vw);
 }
 
+.focus-mode-open .topbar,
+.focus-mode-open main {
+  filter: blur(7px);
+  opacity: 0.42;
+  pointer-events: none;
+  user-select: none;
+  transition: filter 140ms ease, opacity 140ms ease;
+}
+
+#focusModeModal {
+  z-index: 55;
+}
+
+#focusModeModal .modal-card {
+  width: min(1240px, 96vw);
+}
+
+.focus-mode-card {
+  display: grid;
+  gap: 18px;
+}
+
+.focus-mode-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.focus-mode-layout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.focus-mode-content {
+  min-width: 0;
+  max-height: calc(100vh - 170px);
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.focus-mode-content .topic-card {
+  min-height: min(720px, calc(100vh - 210px));
+}
+
+.focus-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(202, 196, 208, 0.86);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 92%, white);
+  color: var(--md-sys-color-primary);
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.focus-nav-btn:hover {
+  transform: translateY(-1px);
+  background: var(--md-sys-color-primary-container);
+  border-color: rgba(103, 80, 164, 0.28);
+}
+
+.focus-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+}
+
 #copyTargetModal .copy-target-list {
   max-height: 34vh;
   overflow-y: auto;
@@ -1892,6 +1993,11 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
+  .topics-focus-btn {
+    top: -18px;
+    left: -18px;
+  }
+
   .topics-grid.taskboard-grid {
     grid-template-columns: repeat(5, minmax(240px, 1fr));
   }
@@ -2008,6 +2114,45 @@ textarea:focus {
 
   .sprint-actions #newTopicBtn {
     flex: 1 1 auto;
+  }
+
+  .topics-focus-btn {
+    position: static;
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    margin-bottom: 10px;
+    padding: 0;
+  }
+
+  .topics-grid-wrap {
+    margin-top: 18px;
+  }
+
+  .focus-mode-open .topbar,
+  .focus-mode-open main {
+    filter: blur(4px);
+    opacity: 0.3;
+  }
+
+  .focus-mode-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .focus-mode-content {
+    order: 1;
+    max-height: calc(100vh - 250px);
+    padding: 0;
+  }
+
+  .focus-mode-content .topic-card {
+    min-height: auto;
+  }
+
+  .focus-nav-btn {
+    width: 100%;
+    height: 40px;
+    border-radius: var(--md-radius-sm);
   }
 
   .filter-controls,

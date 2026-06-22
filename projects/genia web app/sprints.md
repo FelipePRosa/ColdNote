@@ -194,7 +194,7 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Genia Web App
-- [ ] WakeWord (Brunin + Bruf + Hary + Sam) [BLOCKED]
-- [ ] Echo Cancelation (Brunin + Bruf + Nu + Sam)
+- [ ] WakeWord (Brunin + Bruf + Hary) [BLOCKED]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu)
 - [ ] Testes gerais (Berg + Nu)
 - [ ] Atualizar Raio-x digital (Bruf)

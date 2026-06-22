@@ -134,6 +134,6 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Kit Resgate
-- [ ] Desenvolvimento Back + Adequação -> Admin (Gui + Nu)
+- [ ] Desenvolvimento Back + Adequação -> Admin (Gui + Nu) [HIGH]
 - [ ] Desenvolvimento mobile (Dani + Nu) [BLOCKED: Web first]
 - [ ] Desenvolvimento Front -> Admin (Bruf + Nu)
