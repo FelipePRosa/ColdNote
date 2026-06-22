@@ -233,11 +233,16 @@ main {
 }
 
 .board-head {
+  position: sticky;
+  top: calc(var(--topbar-sticky-offset) + 6px);
+  z-index: 8;
   display: grid;
   justify-content: stretch;
   gap: 8px;
+  padding-top: 6px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--workspace-line);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 98%, white);
 }
 
 .board-topline {
@@ -2047,6 +2052,12 @@ textarea:focus {
   .project-modal-row {
     grid-template-columns: 1fr;
     min-height: 0;
+  }
+
+  .board-head {
+    position: static;
+    top: auto;
+    padding-top: 0;
   }
 }
 
