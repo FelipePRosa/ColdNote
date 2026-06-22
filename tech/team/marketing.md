@@ -1,7 +1,7 @@
 # Marketing
 
 Nickname: Mkt
-Ativo: Sim
+Ativo: Não
 
 Placar Tech Innovation
 Qualidade de Código: 3

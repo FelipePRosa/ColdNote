@@ -7,3 +7,5 @@ Deve enviar ao CRM novo lead e armazenar informação CRON deve todo dia 1º ana
 
 ## Formulário no aplicativo
 Formulário de indicação no aplicativo e tela de visualização de indicações
+
+## Tela de parceria Neodent App

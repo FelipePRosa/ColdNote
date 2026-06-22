@@ -14,32 +14,6 @@
       "featureName": ""
     },
     {
-      "id": "mppr1mbm_jxb3b9",
-      "text": "Forecast",
-      "done": false,
-      "responsibles": [],
-      "priority": "normal",
-      "blocked": false,
-      "blockedReason": "",
-      "followed": false,
-      "projectKey": "genia mobile app",
-      "projectTitle": "Genia Mobile App",
-      "featureName": ""
-    },
-    {
-      "id": "mppr1mbm_nspy8q",
-      "text": "Dev Data Wakeword",
-      "done": false,
-      "responsibles": [],
-      "priority": "normal",
-      "blocked": false,
-      "blockedReason": "",
-      "followed": false,
-      "projectKey": "neodent mobile app",
-      "projectTitle": "Neodent Mobile App",
-      "featureName": ""
-    },
-    {
       "id": "moxbl67o_aiqqld",
       "text": "Refinamento tela de reconhecimento",
       "done": false,
@@ -49,19 +23,6 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
-      "followed": false,
-      "featureName": ""
-    },
-    {
-      "id": "moxbluaa_2zmcrc",
-      "text": "Correção autenticação - KID",
-      "done": false,
-      "responsibles": [],
-      "priority": "normal",
-      "blocked": false,
-      "blockedReason": "",
-      "projectKey": "otb",
-      "projectTitle": "otb",
       "followed": false,
       "featureName": ""
     },
@@ -144,19 +105,6 @@
       "featureName": ""
     },
     {
-      "id": "moucgf0b_zlan6r",
-      "text": "Botão de \"Quero conhecer a Clear\"",
-      "done": false,
-      "responsibles": [],
-      "priority": "normal",
-      "blocked": false,
-      "blockedReason": "",
-      "projectKey": "neodent mobile app",
-      "projectTitle": "Neodent Mobile App",
-      "followed": false,
-      "featureName": ""
-    },
-    {
       "id": "mouhefj2_c7r4ac",
       "text": "Dev Back Who is Who",
       "done": false,
@@ -170,19 +118,6 @@
       "featureName": ""
     },
     {
-      "id": "mp5eugsr_y70w0m",
-      "text": "SAP -> Cotação ClearWallet",
-      "done": false,
-      "responsibles": [],
-      "priority": "normal",
-      "blocked": false,
-      "blockedReason": "",
-      "projectKey": "outros",
-      "projectTitle": "outros",
-      "followed": false,
-      "featureName": ""
-    },
-    {
       "id": "moxbl67o_ezpwqa",
       "text": "Dev Mobile Who is Who",
       "done": false,
@@ -192,19 +127,6 @@
       "blockedReason": "",
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
-      "followed": false,
-      "featureName": ""
-    },
-    {
-      "id": "mp5eugsr_74xasz",
-      "text": "Conexão direta Dr.Portal",
-      "done": false,
-      "responsibles": [],
-      "priority": "normal",
-      "blocked": false,
-      "blockedReason": "",
-      "projectKey": "clearwallet",
-      "projectTitle": "ClearWallet",
       "followed": false,
       "featureName": ""
     },

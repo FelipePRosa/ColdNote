@@ -154,6 +154,19 @@ Current behavior:
 - cards are packed into the minimum number of shared rows without overlap
 - cards are clickable and open details modals
 
+### Workload View
+
+Workload is the member/week allocation calendar.
+
+Current behavior:
+
+- only available in `Projects View`
+- hides backlog panel
+- uses week columns and maps projects into them from `startDate` to `deliveryDate`
+- creates one row per member
+- shows active projects across the full date interval for each involved member
+- leaves empty ranges visible so free capacity is easy to spot
+
 ## Main Data Model
 
 ### Sprint

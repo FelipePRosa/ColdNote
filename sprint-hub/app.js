@@ -13,6 +13,8 @@ const el = {
   boardProjectSelect: document.getElementById("boardProjectSelect"),
   deliveryStartSprintSelect: document.getElementById("deliveryStartSprintSelect"),
   deliveryEndSprintSelect: document.getElementById("deliveryEndSprintSelect"),
+  workloadStartDateInput: document.getElementById("workloadStartDateInput"),
+  workloadEndDateInput: document.getElementById("workloadEndDateInput"),
   taskSearchInput: document.getElementById("taskSearchInput"),
   responsibleFilter: document.getElementById("responsibleFilter"),
   projectStatusFilter: document.getElementById("projectStatusFilter"),
@@ -34,6 +36,7 @@ const el = {
   taskboardViewBtn: document.getElementById("taskboardViewBtn"),
   memberViewBtn: document.getElementById("memberViewBtn"),
   deliveryViewBtn: document.getElementById("deliveryViewBtn"),
+  workloadViewBtn: document.getElementById("workloadViewBtn"),
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
@@ -183,6 +186,8 @@ let filterHighOnly = false;
 let filterBlockedOnly = false;
 let deliveryStartSprintId = "";
 let deliveryEndSprintId = "";
+let workloadStartDate = "";
+let workloadEndDate = "";
 let focusModeEntries = [];
 let focusModeIndex = 0;
 let projectCatalog = [];
@@ -410,6 +415,10 @@ function getProjectCurrentStatus(projectKey) {
   const key = normalizeProjectKey(projectKey);
   if (!key) return "";
   return normalizeProjectStatus(projectControls[key]?.status) || inferProjectStatusFromSprints(key);
+}
+
+function isWorkloadProjectActive(status) {
+  return normalizeProjectStatus(status) !== "Finalizado";
 }
 
 async function saveProjectControl(projectKey, patch = {}) {
@@ -666,6 +675,161 @@ function formatTopicDeliveryDate(value) {
   if (!date) return "";
   const [year, month, day] = date.split("-");
   return `${day}/${month}/${year}`;
+}
+
+function dateFromIso(value) {
+  const date = normalizeTopicDeliveryDate(value);
+  if (!date) return null;
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function isoFromDate(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function localIsoToday() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function diffDaysInclusive(start, end) {
+  const startDate = dateFromIso(start);
+  const endDate = dateFromIso(end);
+  if (!startDate || !endDate) return -1;
+  return Math.floor((endDate.getTime() - startDate.getTime()) / 86400000);
+}
+
+function addDaysToDate(date, days) {
+  const next = new Date(date.getTime());
+  next.setUTCDate(next.getUTCDate() + Number(days || 0));
+  return next;
+}
+
+function parseSprintWeekAnchor(sprintName) {
+  const raw = String(sprintName || "").trim();
+  const match = raw.match(/^(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const year = 2000 + Number(match[1]);
+  const week = Number(match[2]);
+  if (!Number.isInteger(year) || !Number.isInteger(week) || week < 1 || week > 53) return null;
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4Day = jan4.getUTCDay() || 7;
+  const week1Monday = addDaysToDate(jan4, 1 - jan4Day);
+  return addDaysToDate(week1Monday, (week - 1) * 7);
+}
+
+function sprintWeekRange(sprintName) {
+  const start = parseSprintWeekAnchor(sprintName);
+  if (!start) return null;
+  return { start, end: addDaysToDate(start, 6) };
+}
+
+function startOfIsoWeek(value) {
+  const date = value instanceof Date ? new Date(value.getTime()) : dateFromIso(value);
+  if (!date) return null;
+  const day = date.getUTCDay() || 7;
+  return addDaysToDate(date, 1 - day);
+}
+
+function endOfIsoWeek(value) {
+  const start = startOfIsoWeek(value);
+  return start ? addDaysToDate(start, 6) : null;
+}
+
+function buildWeeklyColumns(startIso, endIso) {
+  const start = startOfIsoWeek(startIso);
+  const end = endOfIsoWeek(endIso);
+  if (!start || !end || start.getTime() > end.getTime()) return [];
+  const columns = [];
+  for (let cursor = new Date(start.getTime()), index = 0; cursor.getTime() <= end.getTime(); cursor = addDaysToDate(cursor, 7), index += 1) {
+    const weekStart = new Date(cursor.getTime());
+    const weekEnd = addDaysToDate(weekStart, 6);
+    columns.push({ index, start: weekStart, end: weekEnd });
+  }
+  return columns;
+}
+
+function timeColumnOverlapsRange(column, startIso, endIso) {
+  const start = dateFromIso(startIso);
+  const end = dateFromIso(endIso);
+  if (!column || !start || !end) return false;
+  return column.start.getTime() <= end.getTime() && column.end.getTime() >= start.getTime();
+}
+
+function formatWeekColumnMeta(column) {
+  if (!column?.start || !column?.end) return "";
+  return `${formatTopicStartDate(isoFromDate(column.start))} - ${formatTopicDeliveryDate(isoFromDate(column.end))}`;
+}
+
+function getCurrentWeekStartIso() {
+  const start = startOfIsoWeek(localIsoToday());
+  return start ? isoFromDate(start) : localIsoToday();
+}
+
+function isoWeekNumber(date) {
+  const weekStart = startOfIsoWeek(date);
+  if (!weekStart) return null;
+  const year = weekStart.getUTCFullYear();
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const week1 = startOfIsoWeek(jan4);
+  if (!week1) return null;
+  return Math.floor((weekStart.getTime() - week1.getTime()) / 604800000) + 1;
+}
+
+function formatWeekColumnLabel(column) {
+  if (!column?.start) return "";
+  const weekNumber = isoWeekNumber(column.start);
+  if (weekNumber) return `Week ${String(weekNumber).padStart(2, "0")}`;
+  return `Week of ${formatTopicStartDate(isoFromDate(column.start))}`;
+}
+
+function isoMax(a, b) {
+  if (!a) return b || "";
+  if (!b) return a || "";
+  return a >= b ? a : b;
+}
+
+function isoMin(a, b) {
+  if (!a) return b || "";
+  if (!b) return a || "";
+  return a <= b ? a : b;
+}
+
+function deriveWorkloadMemberRange(project, member) {
+  const memberEntries = project.taskEntries.filter(({ item }) => (item.responsibles || []).includes(member));
+  if (!memberEntries.length) return null;
+
+  const sprintRanges = memberEntries
+    .map(({ sprint }) => sprintWeekRange(sprint?.name))
+    .filter(Boolean);
+
+  const firstAssignedIso = sprintRanges.length
+    ? sprintRanges.reduce((min, range) => {
+        const value = isoFromDate(range.start);
+        return !min || value < min ? value : min;
+      }, "")
+    : project.startDate;
+  const lastAssignedIso = sprintRanges.length
+    ? sprintRanges.reduce((max, range) => {
+        const value = isoFromDate(range.end);
+        return !max || value > max ? value : max;
+      }, "")
+    : project.deliveryDate;
+
+  const latestTopicItems = Array.isArray(project.latestTopic?.items) ? project.latestTopic.items : [];
+  const activeInLatestTopic = latestTopicItems.some((item) => (item.responsibles || []).includes(member));
+  const startIso = isoMax(project.startDate, firstAssignedIso);
+  const endIso = activeInLatestTopic ? project.deliveryDate : isoMin(project.deliveryDate, lastAssignedIso);
+  if (!startIso || !endIso || diffDaysInclusive(startIso, endIso) < 0) return null;
+  return { startIso, endIso };
 }
 
 function isTopicDueSoon(value) {
@@ -2545,6 +2709,25 @@ function renderDeliverySprintRangeSelects() {
   });
 }
 
+function renderWorkloadDateRangeInputs() {
+  const workloadMode = boardView === "projects" && taskLayoutView === "workload";
+  const defaultStart = getCurrentWeekStartIso();
+  const startValue = normalizeTopicStartDate(workloadStartDate) || defaultStart;
+  const endValue = normalizeTopicDeliveryDate(workloadEndDate);
+
+  if (el.workloadStartDateInput) {
+    el.workloadStartDateInput.value = startValue;
+    el.workloadStartDateInput.classList.toggle("hidden", !workloadMode);
+    el.workloadStartDateInput.disabled = !workloadMode;
+  }
+  if (el.workloadEndDateInput) {
+    el.workloadEndDateInput.value = endValue;
+    el.workloadEndDateInput.min = startValue || "";
+    el.workloadEndDateInput.classList.toggle("hidden", !workloadMode);
+    el.workloadEndDateInput.disabled = !workloadMode;
+  }
+}
+
 function renderBoardProjectSelect() {
   const select = el.boardProjectSelect;
   if (!select) return;
@@ -2980,6 +3163,82 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
     .filter((project) => {
       if (project.features.size > 0) return true;
       return !filtersActive && Boolean(project.description);
+    })
+    .sort((a, b) => a.title.localeCompare(b.title));
+}
+
+function collectWorkloadProjects({ projectFilter = selectedProjectKey, statusFilter = selectedProjectStatus } = {}) {
+  const projects = new Map();
+
+  visibleSprints().forEach((sprint) => {
+    sprint.topics.forEach((topic) => {
+      normalizeTopic(topic);
+      const projectKey = normalizeProjectKey(topic.projectKey);
+      if (!projectKey) return;
+      if (projectFilter && projectKey !== projectFilter) return;
+      const projectStatus = getProjectCurrentStatus(projectKey);
+      if (statusFilter && projectStatus !== statusFilter) return;
+      const topicTitle = String(topic.title || "").trim() || projectLabel(projectKey);
+      const workloadKey = `${projectKey}::${normalizeSearchText(topicTitle)}`;
+
+      const project = projects.get(workloadKey) || {
+        workloadKey,
+        projectKey,
+        title: topicTitle,
+        status: projectStatus,
+        startDate: "",
+        deliveryDate: "",
+        description: "",
+        latestSprint: sprint,
+        latestTopic: topic,
+        taskEntries: [],
+      };
+
+      project.status = projectStatus || project.status;
+      if (topic.startDate && (!project.startDate || topic.startDate < project.startDate)) project.startDate = topic.startDate;
+      if (topic.deliveryDate && (!project.deliveryDate || topic.deliveryDate > project.deliveryDate)) project.deliveryDate = topic.deliveryDate;
+      if (!project.description && topic.description) project.description = topic.description;
+      const latestIndex = state.sprints.findIndex((entry) => entry.id === project.latestSprint?.id);
+      const currentIndex = state.sprints.findIndex((entry) => entry.id === sprint.id);
+      if (currentIndex >= latestIndex) {
+        project.latestSprint = sprint;
+        project.latestTopic = topic;
+        project.title = topicTitle;
+      }
+
+      topic.items.forEach((item) => {
+        project.taskEntries.push({ sprint, topic, item });
+      });
+
+      projects.set(workloadKey, project);
+    });
+  });
+
+  const query = normalizeSearchText(taskSearchText);
+  return Array.from(projects.values())
+    .map((project) => {
+      const currentEntries = latestProjectTaskEntries(project.taskEntries);
+      const responsibles = Array.from(
+        new Set(
+          currentEntries.flatMap(({ item }) => (item.responsibles || []).map((name) => String(name || "").trim()).filter(Boolean))
+        )
+      ).sort((a, b) => a.localeCompare(b));
+      return { ...project, currentEntries, responsibles };
+    })
+    .filter((project) => {
+      if (!isWorkloadProjectActive(project.status)) return false;
+      if (!project.startDate || !project.deliveryDate) return false;
+      if (diffDaysInclusive(project.startDate, project.deliveryDate) < 0) return false;
+      if (!project.responsibles.length) return false;
+      if (!query) return true;
+      return searchHaystack([
+        project.title,
+        project.projectKey,
+        project.status,
+        project.description,
+        project.responsibles.join(" "),
+        ...project.currentEntries.map(({ item }) => `${item.text || ""} ${item.featureName || ""}`),
+      ]).includes(query);
     })
     .sort((a, b) => a.title.localeCompare(b.title));
 }
@@ -3466,7 +3725,7 @@ function renderProjectTaskboard() {
   });
 
   el.topicsGrid.innerHTML = "";
-  el.topicsGrid.classList.remove("delivery-grid");
+  el.topicsGrid.classList.remove("delivery-grid", "workload-grid");
   el.topicsGrid.classList.add("taskboard-grid", "project-taskboard-grid");
 
   const totalProjects = columns.reduce((total, column) => total + column.projects.length, 0);
@@ -3561,7 +3820,7 @@ function renderTaskboard() {
     el.boardTitle.textContent = "No sprints yet";
     el.boardMeta.textContent = "Create your first sprint.";
     el.topicsGrid.innerHTML = "";
-    el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid");
+    el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid", "workload-grid");
     return;
   }
 
@@ -3609,7 +3868,7 @@ function renderTaskboard() {
   });
 
   el.topicsGrid.innerHTML = "";
-  el.topicsGrid.classList.remove("delivery-grid", "project-taskboard-grid");
+  el.topicsGrid.classList.remove("delivery-grid", "project-taskboard-grid", "workload-grid");
   el.topicsGrid.classList.add("taskboard-grid");
 
   const totalTasks = columns.reduce((total, column) => total + column.items.length, 0);
@@ -3770,7 +4029,7 @@ function renderDeliveryView() {
     ? `Delivery plan for ${selectedProjectKey} across sprints.`
     : "Delivery plan across sprints and projects.";
   el.topicsGrid.innerHTML = "";
-  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid");
+  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "workload-grid");
   el.topicsGrid.classList.add("delivery-grid");
 
   const hasDeliverySprintRange = Boolean(deliveryStartSprintId || deliveryEndSprintId);
@@ -4123,6 +4382,168 @@ function renderDeliveryView() {
   el.topicsGrid.appendChild(plan);
 }
 
+function renderWorkloadView() {
+  el.boardTitle.textContent = "Workload";
+  el.boardMeta.textContent = selectedProjectKey
+    ? `Weekly allocation view for ${selectedProjectKey}.`
+    : "Weekly allocation view to identify developer availability.";
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid", "workload-grid");
+  el.topicsGrid.classList.add("workload-grid");
+
+  const projects = collectWorkloadProjects();
+  if (!projects.length) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "No active projects with dates and responsibles found for workload view.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  const filterStart = normalizeTopicStartDate(workloadStartDate) || getCurrentWeekStartIso();
+  const filterEnd = normalizeTopicDeliveryDate(workloadEndDate);
+  const rangeStart = filterStart;
+  const rangeEnd = filterEnd || projects.reduce((max, project) => (!max || project.deliveryDate > max ? project.deliveryDate : max), filterStart);
+  const weekColumns = buildWeeklyColumns(rangeStart, rangeEnd);
+  if (!weekColumns.length) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "No weekly columns available for workload view.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  const visibleProjects = projects
+    .map((project) => {
+      const activeIndexes = weekColumns
+        .filter((column) => timeColumnOverlapsRange(column, project.startDate, project.deliveryDate))
+        .map((column) => column.index);
+      if (!activeIndexes.length) return null;
+      return {
+        ...project,
+        startIndex: Math.min(...activeIndexes),
+        endIndex: Math.max(...activeIndexes),
+      };
+    })
+    .filter(Boolean);
+
+  if (!visibleProjects.length) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "No active projects overlap the selected weekly range.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  const allMembers = Array.from(new Set([...getAssignableMembers(), ...projects.flatMap((project) => project.responsibles)])).sort((a, b) =>
+    a.localeCompare(b)
+  );
+  const assignmentsByMember = new Map(allMembers.map((member) => [member, []]));
+
+  visibleProjects.forEach((project) => {
+    project.responsibles.forEach((member) => {
+      const memberRange = deriveWorkloadMemberRange(project, member);
+      if (!memberRange) return;
+      const activeIndexes = weekColumns
+        .filter((column) => timeColumnOverlapsRange(column, memberRange.startIso, memberRange.endIso))
+        .map((column) => column.index);
+      if (!activeIndexes.length) return;
+      const items = assignmentsByMember.get(member) || [];
+      items.push({
+        member,
+        project,
+        startIndex: Math.min(...activeIndexes),
+        endIndex: Math.max(...activeIndexes),
+      });
+      assignmentsByMember.set(member, items);
+    });
+  });
+
+  const view = document.createElement("section");
+  view.className = "workload-view";
+  view.style.setProperty("--workload-columns", String(weekColumns.length));
+
+  const corner = document.createElement("div");
+  corner.className = "workload-corner";
+  corner.innerHTML = `<strong>Member</strong><span>${visibleProjects.length} active project${visibleProjects.length === 1 ? "" : "s"}</span>`;
+  view.appendChild(corner);
+
+  const head = document.createElement("div");
+  head.className = "workload-head";
+  weekColumns.forEach((column, columnIndex) => {
+    const cell = document.createElement("div");
+    cell.className = "workload-day";
+    if (columnIndex === 0 || column.start.getUTCDate() <= 7) cell.classList.add("month-break");
+    if (timeColumnOverlapsRange(column, localIsoToday(), localIsoToday())) cell.classList.add("is-today");
+    cell.innerHTML = `
+      <strong>${formatWeekColumnLabel(column)}</strong>
+      <span>${formatWeekColumnMeta(column)}</span>
+    `;
+    head.appendChild(cell);
+  });
+  view.appendChild(head);
+
+  allMembers.forEach((member) => {
+    const assignments = [...(assignmentsByMember.get(member) || [])].sort((a, b) => {
+      if (a.startIndex !== b.startIndex) return a.startIndex - b.startIndex;
+      if (a.endIndex !== b.endIndex) return a.endIndex - b.endIndex;
+      return a.project.title.localeCompare(b.project.title);
+    });
+    const laneEnds = [];
+    assignments.forEach((assignment) => {
+      let laneIndex = laneEnds.findIndex((endIndex) => assignment.startIndex > endIndex);
+      if (laneIndex < 0) {
+        laneIndex = laneEnds.length;
+        laneEnds.push(assignment.endIndex);
+      } else {
+        laneEnds[laneIndex] = assignment.endIndex;
+      }
+      assignment.laneIndex = laneIndex;
+    });
+    const laneCount = Math.max(1, laneEnds.length);
+
+    const memberCell = document.createElement("div");
+    memberCell.className = "workload-member";
+    memberCell.innerHTML = `
+      <strong>${member}</strong>
+      <span>${assignments.length ? `${assignments.length} project${assignments.length === 1 ? "" : "s"}` : "Free in this range"}</span>
+    `;
+    view.appendChild(memberCell);
+
+    const lanes = document.createElement("div");
+    lanes.className = "workload-lanes";
+    lanes.style.setProperty("--workload-lanes", String(laneCount));
+
+    weekColumns.forEach((column, columnIndex) => {
+      const bg = document.createElement("div");
+      bg.className = "workload-lane-cell";
+      bg.style.gridColumn = String(columnIndex + 1);
+      bg.style.gridRow = `1 / span ${laneCount}`;
+      if (timeColumnOverlapsRange(column, localIsoToday(), localIsoToday())) bg.classList.add("is-today");
+      lanes.appendChild(bg);
+    });
+
+    assignments.forEach((assignment) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = `workload-assignment delivery-status-${normalizeStatusClass(assignment.project.status)}`;
+      card.style.gridColumn = `${assignment.startIndex + 1} / ${assignment.endIndex + 2}`;
+      card.style.gridRow = String((assignment.laneIndex || 0) + 1);
+      card.innerHTML = `
+        <strong>${assignment.project.title}</strong>
+        <span>${assignment.project.responsibles.join(", ")}</span>
+      `;
+      card.title = `${assignment.project.title} | ${formatTopicStartDate(assignment.project.startDate)} - ${formatTopicDeliveryDate(assignment.project.deliveryDate)}`;
+      card.addEventListener("click", () => openProjectEditor(assignment.project));
+      lanes.appendChild(card);
+    });
+
+    view.appendChild(lanes);
+  });
+
+  el.topicsGrid.appendChild(view);
+}
+
 function renderProjectFeatureCards() {
   el.boardTitle.textContent = "Project";
   el.boardMeta.textContent = selectedProjectKey
@@ -4197,7 +4618,7 @@ function renderSprintMembers() {
   el.boardTitle.textContent = `Sprint ${activeSprint.name}`;
   el.boardMeta.textContent = "Tasks grouped by responsible.";
   el.topicsGrid.innerHTML = "";
-  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid");
+  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid", "workload-grid");
 
   const members = new Map();
   activeSprint.topics.forEach((topic) => {
@@ -4322,7 +4743,7 @@ function renderTopics() {
     return;
   }
   el.topicsGrid.classList.remove("taskboard-grid");
-  el.topicsGrid.classList.remove("project-taskboard-grid", "delivery-grid");
+  el.topicsGrid.classList.remove("project-taskboard-grid", "delivery-grid", "workload-grid");
 
   if (boardView === "projects") {
     el.boardTitle.textContent = "Project";
@@ -4401,17 +4822,20 @@ function render() {
   renderTaskFilterVisibility();
   renderBoardSprintSelect();
   renderDeliverySprintRangeSelects();
+  renderWorkloadDateRangeInputs();
   renderBoardProjectSelect();
   renderBacklogProjectFilter();
   if (taskLayoutView === "taskboard") renderTaskboard();
   else if (taskLayoutView === "members" && boardView !== "projects") renderSprintMembers();
   else if (taskLayoutView === "delivery") renderDeliveryView();
+  else if (taskLayoutView === "workload") renderWorkloadView();
   else renderTopics();
   renderBacklog();
   const projectsMode = boardView === "projects";
   const deliveryMode = taskLayoutView === "delivery";
+  const workloadMode = taskLayoutView === "workload";
   const membersMode = taskLayoutView === "members" && !projectsMode;
-  el.topicsGrid.closest(".workspace")?.classList.toggle("workspace-delivery", deliveryMode);
+  el.topicsGrid.closest(".workspace")?.classList.toggle("workspace-delivery", deliveryMode || workloadMode);
   el.newSprintBtn.classList.toggle("hidden", projectsMode);
   el.newTopicBtn.disabled = projectsMode || membersMode;
   el.editSprintBtn.disabled = projectsMode;
@@ -4422,7 +4846,9 @@ function render() {
   el.memberViewBtn.classList.toggle("active", taskLayoutView === "members" && !projectsMode);
   el.deliveryViewBtn.classList.toggle("hidden", !projectsMode);
   el.deliveryViewBtn.classList.toggle("active", taskLayoutView === "delivery");
-  el.backlogList.closest(".backlog-panel")?.classList.toggle("hidden", deliveryMode);
+  el.workloadViewBtn?.classList.toggle("hidden", !projectsMode);
+  el.workloadViewBtn?.classList.toggle("active", taskLayoutView === "workload");
+  el.backlogList.closest(".backlog-panel")?.classList.toggle("hidden", deliveryMode || workloadMode);
   el.viewModeBtn.textContent = projectsMode ? "Sprints View" : "Projects View";
   if (projectsMode) {
     el.topicForm.classList.add("hidden");
@@ -4613,12 +5039,22 @@ el.deliveryViewBtn.addEventListener("click", () => {
   taskLayoutView = taskLayoutView === "delivery" ? "projects" : "delivery";
   render();
 });
+el.workloadViewBtn?.addEventListener("click", () => {
+  boardView = "projects";
+  const nextIsWorkload = taskLayoutView !== "workload";
+  taskLayoutView = nextIsWorkload ? "workload" : "projects";
+  if (nextIsWorkload) {
+    workloadStartDate = getCurrentWeekStartIso();
+    if (workloadEndDate && diffDaysInclusive(workloadStartDate, workloadEndDate) < 0) workloadEndDate = "";
+  }
+  render();
+});
 el.viewModeBtn.addEventListener("click", () => {
   if (boardView === "projects") {
     boardView = "sprints";
     projectSearchText = "";
     selectedProjectKey = "";
-    if (taskLayoutView === "delivery") taskLayoutView = "projects";
+    if (taskLayoutView === "delivery" || taskLayoutView === "workload") taskLayoutView = "projects";
   } else {
     boardView = "projects";
     selectedProjectKey = "";
@@ -4647,6 +5083,23 @@ if (el.deliveryStartSprintSelect) {
 if (el.deliveryEndSprintSelect) {
   el.deliveryEndSprintSelect.addEventListener("change", () => {
     deliveryEndSprintId = el.deliveryEndSprintSelect.value || "";
+    render();
+  });
+}
+if (el.workloadStartDateInput) {
+  el.workloadStartDateInput.addEventListener("change", () => {
+    workloadStartDate = normalizeTopicStartDate(el.workloadStartDateInput.value) || getCurrentWeekStartIso();
+    if (workloadEndDate && diffDaysInclusive(workloadStartDate, workloadEndDate) < 0) {
+      workloadEndDate = "";
+      if (el.workloadEndDateInput) el.workloadEndDateInput.value = "";
+    }
+    render();
+  });
+}
+if (el.workloadEndDateInput) {
+  el.workloadEndDateInput.addEventListener("change", () => {
+    const next = normalizeTopicDeliveryDate(el.workloadEndDateInput.value);
+    workloadEndDate = next && diffDaysInclusive(workloadStartDate || getCurrentWeekStartIso(), next) >= 0 ? next : "";
     render();
   });
 }

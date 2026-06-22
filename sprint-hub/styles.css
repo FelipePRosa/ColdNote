@@ -306,7 +306,8 @@ main {
 }
 
 .board-sprint-select,
-.board-project-select {
+.board-project-select,
+.workload-date-input {
   width: auto;
   min-width: 132px;
   max-width: 190px;
@@ -399,7 +400,8 @@ main {
 
 #responsibleFilter,
 #projectStatusFilter,
-.delivery-sprint-select {
+.delivery-sprint-select,
+.workload-date-input {
   width: 124px;
   min-width: 124px;
   max-width: 124px;
@@ -706,6 +708,13 @@ main {
   overscroll-behavior-inline: contain;
 }
 
+.workload-grid {
+  display: block;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  overscroll-behavior-inline: contain;
+}
+
 .delivery-plan,
 .delivery-detail {
   --delivery-column-width: 168px;
@@ -841,6 +850,151 @@ main {
 
 .delivery-plan-card-head strong {
   font-size: 0.9rem;
+}
+
+.workload-view {
+  --workload-member-width: 190px;
+  --workload-day-width: 52px;
+  min-width: calc(var(--workload-member-width) + (var(--workload-columns) * var(--workload-day-width)));
+  display: grid;
+  grid-template-columns: var(--workload-member-width) minmax(0, 1fr);
+  gap: 0;
+  border: 1px solid rgba(202, 196, 208, 0.74);
+  border-radius: var(--md-radius-md);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-low) 78%, white);
+}
+
+.workload-corner,
+.workload-member {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border-right: 1px solid rgba(202, 196, 208, 0.7);
+  border-bottom: 1px solid rgba(202, 196, 208, 0.62);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, white);
+}
+
+.workload-corner strong,
+.workload-member strong {
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+
+.workload-corner span,
+.workload-member span {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.76rem;
+}
+
+.workload-head,
+.workload-lanes {
+  display: grid;
+  grid-template-columns: repeat(var(--workload-columns), minmax(var(--workload-day-width), 1fr));
+}
+
+.workload-head {
+  border-bottom: 1px solid rgba(202, 196, 208, 0.7);
+}
+
+.workload-day {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 8px 4px;
+  border-right: 1px solid rgba(202, 196, 208, 0.52);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 82%, white);
+  text-transform: capitalize;
+}
+
+.workload-day strong {
+  color: var(--md-sys-color-primary);
+  font-size: 0.82rem;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.workload-day span {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.workload-day.month-break {
+  box-shadow: inset 2px 0 0 rgba(31, 127, 85, 0.18);
+}
+
+.workload-day.is-weekend,
+.workload-lane-cell.is-weekend {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 72%, white);
+}
+
+.workload-day.is-today,
+.workload-lane-cell.is-today {
+  background: color-mix(in srgb, #d7f3e4 62%, white);
+}
+
+.workload-lanes {
+  position: relative;
+  grid-template-rows: repeat(var(--workload-lanes), minmax(52px, auto));
+  min-height: calc(var(--workload-lanes) * 52px);
+  border-bottom: 1px solid rgba(202, 196, 208, 0.62);
+}
+
+.workload-lane-cell {
+  border-right: 1px solid rgba(202, 196, 208, 0.45);
+  border-bottom: 1px solid rgba(202, 196, 208, 0.18);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(202, 196, 208, 0.12) 0,
+      rgba(202, 196, 208, 0.12) 4px,
+      transparent 4px,
+      transparent 9px
+    );
+}
+
+.workload-assignment {
+  z-index: 1;
+  align-self: center;
+  margin: 6px;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 0;
+  border-left: 4px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--md-radius-sm);
+  background: #1f7f55;
+  color: white;
+  font: inherit;
+  text-align: left;
+  box-shadow: 0 8px 18px rgba(31, 41, 55, 0.12);
+  cursor: pointer;
+}
+
+.workload-assignment strong,
+.workload-assignment span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workload-assignment strong {
+  font-size: 0.78rem;
+}
+
+.workload-assignment span {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.68rem;
 }
 
 .delivery-plan-card-head span,
@@ -2099,6 +2253,11 @@ textarea:focus {
     position: static;
     top: auto;
     padding-top: 0;
+  }
+
+  .workload-view {
+    --workload-member-width: 156px;
+    --workload-day-width: 46px;
   }
 }
 
