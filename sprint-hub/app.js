@@ -303,6 +303,20 @@ function getAssignableMembers() {
   return Array.from(new Set(teamMembers.map((x) => String(x || "").trim()).filter(Boolean)));
 }
 
+function getActiveAssignableMembers() {
+  if (teamEntries.length) {
+    return Array.from(
+      new Set(
+        teamEntries
+          .filter((entry) => entry.active)
+          .map((entry) => String(entry.nickname || "").trim())
+          .filter(Boolean)
+      )
+    );
+  }
+  return getAssignableMembers();
+}
+
 function parseTeamActiveFromContent(content) {
   const lines = String(content || "").split(/\r?\n/);
   for (const raw of lines) {
@@ -3218,9 +3232,14 @@ function collectWorkloadProjects({ projectFilter = selectedProjectKey, statusFil
   return Array.from(projects.values())
     .map((project) => {
       const currentEntries = latestProjectTaskEntries(project.taskEntries);
+      const activeMembers = new Set(getActiveAssignableMembers());
       const responsibles = Array.from(
         new Set(
-          currentEntries.flatMap(({ item }) => (item.responsibles || []).map((name) => String(name || "").trim()).filter(Boolean))
+          currentEntries.flatMap(({ item }) =>
+            (item.responsibles || [])
+              .map((name) => String(name || "").trim())
+              .filter((name) => name && activeMembers.has(name))
+          )
         )
       ).sort((a, b) => a.localeCompare(b));
       return { ...project, currentEntries, responsibles };
@@ -4435,7 +4454,7 @@ function renderWorkloadView() {
     return;
   }
 
-  const allMembers = Array.from(new Set([...getAssignableMembers(), ...projects.flatMap((project) => project.responsibles)])).sort((a, b) =>
+  const allMembers = Array.from(new Set([...getActiveAssignableMembers(), ...projects.flatMap((project) => project.responsibles)])).sort((a, b) =>
     a.localeCompare(b)
   );
   const assignmentsByMember = new Map(allMembers.map((member) => [member, []]));
@@ -4531,7 +4550,6 @@ function renderWorkloadView() {
       card.style.gridRow = String((assignment.laneIndex || 0) + 1);
       card.innerHTML = `
         <strong>${assignment.project.title}</strong>
-        <span>${assignment.project.responsibles.join(", ")}</span>
       `;
       card.title = `${assignment.project.title} | ${formatTopicStartDate(assignment.project.startDate)} - ${formatTopicDeliveryDate(assignment.project.deliveryDate)}`;
       card.addEventListener("click", () => openProjectEditor(assignment.project));
