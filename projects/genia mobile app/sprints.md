@@ -235,10 +235,12 @@ Regra: inclui apenas sprints depois de 26-01.
 
 ## Sprint 26-25
 
+### Digital -> Genia Mobile App
+- [ ] Criar insights digital (Fel) [FEATURE: Atualização campos digital]
+
 ### Genia Mobile App
 - [ ] Filtros V2 (Nu) [BLOCKED]
 - [ ] KPIs tela + logicas (Fel) [HIGH] [BLOCKED]
-- [ ] Criar insights digital (Fel) [FEATURE: Atualização campos digital] [BLOCKED]
 - [ ] Notificações (Gui + Vicco) [BLOCKED]
 - [ ] Master login (Gui) [BLOCKED: Prioridade]
 - [ ] Salvar roteiro (Guto + Vicco)
