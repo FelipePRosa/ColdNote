@@ -3252,9 +3252,9 @@ function isFocusModeActive() {
 }
 
 function updateFocusModeButton() {
-  const available = canOpenFocusMode();
+  const available = boardView === "sprints" && taskLayoutView === "projects";
   el.focusModeBtn.classList.toggle("hidden", !available);
-  el.focusModeBtn.disabled = !available || focusModeEntries.length === 0;
+  el.focusModeBtn.disabled = focusModeEntries.length === 0;
   el.focusModeBtn.classList.toggle("active", available && isFocusModeActive());
 }
 
@@ -4311,7 +4311,7 @@ function render() {
   el.newTopicBtn.disabled = projectsMode || membersMode;
   el.editSprintBtn.disabled = projectsMode;
   el.projectCardsViewBtn.classList.toggle("active", taskLayoutView === "projects");
-  el.focusModeBtn.classList.toggle("hidden", projectsMode || taskLayoutView !== "projects");
+  el.focusModeBtn.classList.toggle("hidden", boardView !== "sprints" || taskLayoutView !== "projects");
   el.taskboardViewBtn.classList.toggle("active", taskLayoutView === "taskboard");
   el.memberViewBtn.classList.toggle("hidden", projectsMode);
   el.memberViewBtn.classList.toggle("active", taskLayoutView === "members" && !projectsMode);
@@ -4498,7 +4498,7 @@ el.taskboardViewBtn.addEventListener("click", () => {
 });
 el.memberViewBtn.addEventListener("click", () => {
   if (boardView === "projects") return;
-  taskLayoutView = taskLayoutView === "members" ? "projects" : "members";
+  taskLayoutView = "members";
   render();
 });
 el.deliveryViewBtn.addEventListener("click", () => {

@@ -42,6 +42,7 @@
                 <select id="deliveryStartSprintSelect" class="delivery-sprint-select hidden" aria-label="Delivery start sprint"></select>
                 <select id="deliveryEndSprintSelect" class="delivery-sprint-select hidden" aria-label="Delivery end sprint"></select>
                 <button id="newSprintBtn" class="btn btn-primary">New Sprint</button>
+                <button id="focusModeBtn" class="btn btn-ghost" type="button" aria-label="Foco" title="Foco"><span>⌖</span></button>
               </div>
               <p id="boardMeta" class="muted"></p>
             </div>
@@ -92,10 +93,7 @@
           <button type="button" id="cancelTopicBtn" class="btn btn-ghost">Cancel</button>
         </form>
 
-        <div class="topics-grid-wrap">
-          <button id="focusModeBtn" class="btn btn-ghost topics-focus-btn" type="button" aria-label="Foco" title="Foco">◎</button>
-          <div id="topicsGrid" class="topics-grid"></div>
-        </div>
+        <div id="topicsGrid" class="topics-grid"></div>
       </section>
 
       <aside class="backlog-panel card">

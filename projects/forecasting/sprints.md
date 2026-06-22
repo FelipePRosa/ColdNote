@@ -41,5 +41,4 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Forecasting
-- [x] Forecasting Geral (Brunin) [HIGH]
-- [x] Previsão de comportamento de cliente (Brunin) [HIGH]
+- [ ] Aplicação no Genia App (Brunin + Nu + Vicco)

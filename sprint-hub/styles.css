@@ -515,20 +515,7 @@ main {
   gap: 12px;
 }
 
-.topics-grid-wrap {
-  position: relative;
-  margin-top: 18px;
-}
-
-.topics-grid-wrap .topics-grid {
-  margin-top: 0;
-}
-
-.topics-focus-btn {
-  position: absolute;
-  top: -21px;
-  left: -21px;
-  z-index: 2;
+.board-title-row #focusModeBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -537,8 +524,21 @@ main {
   height: 42px;
   padding: 0;
   border-radius: 999px;
-  font-size: 1.1rem;
+  font-size: 1.7rem;
+  font-weight: 700;
   line-height: 1;
+}
+
+.board-title-row #focusModeBtn.hidden {
+  display: none;
+}
+
+.board-title-row #focusModeBtn span {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  transform-origin: center;
+  transform: translateY(1px) scaleX(1.22);
 }
 
 .topics-grid.taskboard-grid {
@@ -1637,7 +1637,7 @@ textarea:focus {
 }
 
 #focusModeModal {
-  z-index: 55;
+  z-index: 45;
 }
 
 #focusModeModal .modal-card {
@@ -1998,11 +1998,6 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
-  .topics-focus-btn {
-    top: -18px;
-    left: -18px;
-  }
-
   .topics-grid.taskboard-grid {
     grid-template-columns: repeat(5, minmax(240px, 1fr));
   }
@@ -2125,19 +2120,6 @@ textarea:focus {
 
   .sprint-actions #newTopicBtn {
     flex: 1 1 auto;
-  }
-
-  .topics-focus-btn {
-    position: static;
-    width: 42px;
-    min-width: 42px;
-    height: 42px;
-    margin-bottom: 10px;
-    padding: 0;
-  }
-
-  .topics-grid-wrap {
-    margin-top: 18px;
   }
 
   .focus-mode-open .topbar,
