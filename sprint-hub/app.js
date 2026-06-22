@@ -62,6 +62,7 @@ const el = {
   projectTitleInput: document.getElementById("projectTitleInput"),
   projectKeySelect: document.getElementById("projectKeySelect"),
   projectStatusSelect: document.getElementById("projectStatusSelect"),
+  projectDeliveryDateInput: document.getElementById("projectDeliveryDateInput"),
   projectDescInput: document.getElementById("projectDescInput"),
   projectDeliveryBtn: document.getElementById("projectDeliveryBtn"),
   projectFeaturesBtn: document.getElementById("projectFeaturesBtn"),
@@ -634,6 +635,7 @@ function inferProjectKeyFromTitle(title) {
 function normalizeTopic(topic) {
   topic.projectKey = normalizeProjectKey(topic.projectKey) || inferProjectKeyFromTitle(topic.title);
   topic.status = normalizeProjectStatus(topic.status);
+  topic.deliveryDate = normalizeTopicDeliveryDate(topic.deliveryDate);
   topic.description = String(topic.description || "").trim();
   if (!Array.isArray(topic.items)) topic.items = [];
   topic.items = topic.items.map((item) => {
@@ -642,6 +644,29 @@ function normalizeTopic(topic) {
     return normalized;
   });
   return topic;
+}
+
+function normalizeTopicDeliveryDate(value) {
+  const date = String(value || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : "";
+}
+
+function formatTopicDeliveryDate(value) {
+  const date = normalizeTopicDeliveryDate(value);
+  if (!date) return "";
+  const [year, month, day] = date.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function isTopicDueSoon(value) {
+  const date = normalizeTopicDeliveryDate(value);
+  if (!date) return false;
+  const today = new Date();
+  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const [year, month, day] = date.split("-").map((part) => Number(part));
+  const targetUtc = Date.UTC(year, month - 1, day);
+  const diffDays = Math.floor((targetUtc - todayUtc) / 86400000);
+  return diffDays >= 0 && diffDays < 14;
 }
 
 function normalizeAllTopics() {
@@ -834,6 +859,7 @@ function parseSprintMarkdown(fileName, markdown) {
         title: heading.title,
         projectKey: heading.projectKey,
         status: "",
+        deliveryDate: "",
         description: "",
         items: [],
       };
@@ -843,7 +869,7 @@ function parseSprintMarkdown(fileName, markdown) {
 
     if (/^- \[[ xX]\]\s+/.test(line)) {
       if (!currentTopic) {
-        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", description: "", items: [] };
+        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", deliveryDate: "", description: "", items: [] };
         topics.push(currentTopic);
       }
       const done = /^- \[[xX]\]/.test(line);
@@ -867,7 +893,7 @@ function parseSprintMarkdown(fileName, markdown) {
 
     if (/^- /.test(line)) {
       if (!currentTopic) {
-        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", description: "", items: [] };
+        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", deliveryDate: "", description: "", items: [] };
         topics.push(currentTopic);
       }
       const parsed = parseItemTextAndResponsibles(line.replace(/^- /, "").trim());
@@ -890,15 +916,24 @@ function parseSprintMarkdown(fileName, markdown) {
 
     if (/^Status:\s*/i.test(line)) {
       if (!currentTopic) {
-        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", description: "", items: [] };
+        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", deliveryDate: "", description: "", items: [] };
         topics.push(currentTopic);
       }
       currentTopic.status = normalizeProjectStatus(line.replace(/^Status:\s*/i, "").trim());
       continue;
     }
 
+    if (/^Delivery Date:\s*/i.test(line)) {
+      if (!currentTopic) {
+        currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", deliveryDate: "", description: "", items: [] };
+        topics.push(currentTopic);
+      }
+      currentTopic.deliveryDate = normalizeTopicDeliveryDate(line.replace(/^Delivery Date:\s*/i, "").trim());
+      continue;
+    }
+
     if (!currentTopic) {
-      currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", description: "", items: [] };
+      currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", deliveryDate: "", description: "", items: [] };
       topics.push(currentTopic);
     }
 
@@ -923,8 +958,9 @@ function sprintToMarkdown(sprint) {
   sprint.topics.forEach((topic) => {
     lines.push(`## ${formatTopicHeading(topic)}`);
     if (topic.status) lines.push(`Status: ${normalizeProjectStatus(topic.status)}`);
+    if (topic.deliveryDate) lines.push(`Delivery Date: ${normalizeTopicDeliveryDate(topic.deliveryDate)}`);
     if (topic.description) lines.push(topic.description, "");
-    else if (topic.status) lines.push("");
+    else if (topic.status || topic.deliveryDate) lines.push("");
 
     if (!topic.items.length) {
       lines.push("- [ ] (no items)", "");
@@ -2085,6 +2121,7 @@ function openProjectModal(topic, currentSprintId, onSave, onDelete, onCopy, onTi
   el.projectTitleInput.value = topic.title || "";
   renderProjectModalSelect(topic.projectKey || "");
   renderProjectStatusSelect(topic.status || "");
+  el.projectDeliveryDateInput.value = normalizeTopicDeliveryDate(topic.deliveryDate);
   el.projectDescInput.value = topic.description || "";
   el.projectDeleteBtn.classList.toggle("hidden", !projectModalOnDelete);
   projectModalCopyOptions = state.sprints.filter((s) => s.id !== currentSprintId);
@@ -2877,6 +2914,7 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
         projectKey,
         title: projectLabel(projectKey),
         status: projectStatus,
+        deliveryDate: topic.deliveryDate || "",
         description: topic.description || "",
         latestSprint: sprint,
         latestTopic: topic,
@@ -2885,6 +2923,7 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
       };
 
       project.status = projectStatus || project.status;
+      if (!project.deliveryDate && topic.deliveryDate) project.deliveryDate = topic.deliveryDate;
       if (!project.description && topic.description) project.description = topic.description;
       const latestIndex = state.sprints.findIndex((entry) => entry.id === project.latestSprint?.id);
       const currentIndex = state.sprints.findIndex((entry) => entry.id === sprint.id);
@@ -3010,11 +3049,12 @@ function openSprintTopicProjectModal(topic, sprint) {
   openProjectModal(
     topic,
     sprint.id,
-    ({ title, description, projectKey, status }) => {
+    ({ title, description, projectKey, status, deliveryDate }) => {
       topic.title = title;
       topic.description = description;
       topic.projectKey = normalizeProjectKey(projectKey);
       topic.status = normalizeProjectStatus(status);
+      topic.deliveryDate = normalizeTopicDeliveryDate(deliveryDate);
       topic.items.forEach((item) => {
         normalizeItem(item);
         item.projectKey = topic.projectKey;
@@ -3045,6 +3085,7 @@ function openSprintTopicProjectModal(topic, sprint) {
         title: topic.title,
         projectKey: topic.projectKey || "",
         status: normalizeProjectStatus(topic.status),
+        deliveryDate: normalizeTopicDeliveryDate(topic.deliveryDate),
         description: topic.description,
         items: cloneActiveTopicItems(topic),
       };
@@ -3072,12 +3113,14 @@ function createSprintTopicCard(topic, sprint, options = {}) {
   }
 
   const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
+  node.classList.toggle("topic-card-due-soon", isTopicDueSoon(topic.deliveryDate));
   node.querySelector(".topic-title").textContent = topic.title;
   const projectText = projectLabel(topic.projectKey);
   node.querySelector(".topic-project").textContent = multiSprintMode
     ? `${projectText} | Sprint ${sprint.name}`
     : projectText;
   const statusTag = node.querySelector(".topic-status-tag");
+  const deliveryTag = node.querySelector(".topic-delivery-tag");
   if (topic.status) {
     statusTag.textContent = topic.status;
     statusTag.dataset.status = topic.status;
@@ -3086,6 +3129,13 @@ function createSprintTopicCard(topic, sprint, options = {}) {
     statusTag.textContent = "";
     delete statusTag.dataset.status;
     statusTag.classList.add("hidden");
+  }
+  if (topic.deliveryDate) {
+    deliveryTag.textContent = formatTopicDeliveryDate(topic.deliveryDate);
+    deliveryTag.classList.remove("hidden");
+  } else {
+    deliveryTag.textContent = "";
+    deliveryTag.classList.add("hidden");
   }
   node.querySelector(".topic-desc").textContent = topic.description || "No description";
   node.querySelector(".topic-edit-btn").addEventListener("click", () => {
@@ -3710,12 +3760,14 @@ function renderDeliveryView() {
         projectKey,
         title: projectLabel(projectKey),
         status: projectStatus,
+        deliveryDate: topic.deliveryDate || "",
         description: topic.description || "",
         latestSprint: sprint,
         latestTopic: topic,
         sprints: new Map(),
       };
       project.status = projectStatus || project.status;
+      if (!project.deliveryDate && topic.deliveryDate) project.deliveryDate = topic.deliveryDate;
       if (!project.description && topic.description) project.description = topic.description;
       const latestIndex = state.sprints.findIndex((entry) => entry.id === project.latestSprint?.id);
       const currentIndex = state.sprints.findIndex((entry) => entry.id === sprint.id);
@@ -4055,9 +4107,11 @@ function renderProjectFeatureCards() {
 
   entries.forEach((project) => {
     const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
+    node.classList.toggle("topic-card-due-soon", isTopicDueSoon(project.deliveryDate));
     node.querySelector(".topic-title").textContent = project.title;
     node.querySelector(".topic-project").textContent = `${project.features.size} feature${project.features.size === 1 ? "" : "s"}`;
     const statusTag = node.querySelector(".topic-status-tag");
+    const deliveryTag = node.querySelector(".topic-delivery-tag");
     if (project.status) {
       statusTag.textContent = project.status;
       statusTag.dataset.status = project.status;
@@ -4066,6 +4120,13 @@ function renderProjectFeatureCards() {
       statusTag.textContent = "";
       delete statusTag.dataset.status;
       statusTag.classList.add("hidden");
+    }
+    if (project.deliveryDate) {
+      deliveryTag.textContent = formatTopicDeliveryDate(project.deliveryDate);
+      deliveryTag.classList.remove("hidden");
+    } else {
+      deliveryTag.textContent = "";
+      deliveryTag.classList.add("hidden");
     }
     node.querySelector(".topic-desc").textContent = project.description || "No description";
     node.querySelector(".topic-edit-btn").addEventListener("click", () => openProjectEditor(project));
@@ -4369,6 +4430,7 @@ function copySprintFromSource(source, sprintName) {
     title: topic.title,
     projectKey: topic.projectKey || "",
     status: normalizeProjectStatus(topic.status),
+    deliveryDate: normalizeTopicDeliveryDate(topic.deliveryDate),
     description: topic.description,
     items: cloneActiveTopicItems(topic),
   }));
@@ -4398,7 +4460,7 @@ function addTopic(e) {
   const description = el.topicDescInput.value.trim();
   if (!title) return;
 
-  sprint.topics.push({ id: uid(), title, projectKey, status, description, items: [] });
+  sprint.topics.push({ id: uid(), title, projectKey, status, deliveryDate: "", description, items: [] });
   el.topicTitleInput.value = "";
   el.topicProjectSelect.value = "";
   el.topicStatusSelect.value = "";
@@ -4675,12 +4737,13 @@ el.projectSaveBtn.addEventListener("click", () => {
   const title = el.projectTitleInput.value.trim();
   const projectKey = normalizeProjectKey(el.projectKeySelect.value);
   const status = normalizeProjectStatus(el.projectStatusSelect.value);
+  const deliveryDate = normalizeTopicDeliveryDate(el.projectDeliveryDateInput.value);
   const description = el.projectDescInput.value.trim();
   if (!title) {
     window.alert("Project title cannot be empty.");
     return;
   }
-  projectModalOnSave({ title, description, projectKey, status });
+  projectModalOnSave({ title, description, projectKey, status, deliveryDate });
   closeProjectModal();
 });
 el.projectTimelineBtn.addEventListener("click", async () => {
