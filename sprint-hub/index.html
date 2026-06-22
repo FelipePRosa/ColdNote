@@ -119,6 +119,7 @@
           <div class="topic-meta">
             <p class="topic-project muted"></p>
             <span class="topic-status-tag hidden"></span>
+            <span class="topic-start-tag hidden"></span>
             <span class="topic-delivery-tag hidden"></span>
           </div>
           <p class="topic-desc muted"></p>
@@ -206,10 +207,16 @@
             </select>
           </label>
         </div>
-        <label class="field-block project-date-field">
-          <span class="field-label">Delivery Date</span>
-          <input id="projectDeliveryDateInput" type="date" />
-        </label>
+        <div class="project-modal-row project-dates-row">
+          <label class="field-block project-date-field">
+            <span class="field-label">Start Date</span>
+            <input id="projectStartDateInput" type="date" />
+          </label>
+          <label class="field-block project-date-field">
+            <span class="field-label">Delivery Date</span>
+            <input id="projectDeliveryDateInput" type="date" />
+          </label>
+        </div>
         <label class="field-block field-block-accent">
           <span class="field-label">Description</span>
           <input id="projectDescInput" type="text" placeholder="Short project summary (optional)" />

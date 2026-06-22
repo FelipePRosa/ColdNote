@@ -1122,6 +1122,21 @@ main {
   letter-spacing: 0.02em;
 }
 
+.topic-start-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: var(--md-radius-xs);
+  border: 1px solid rgba(16, 124, 65, 0.18);
+  background: color-mix(in srgb, #dff4e7 78%, white);
+  color: #0f6a39;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.topic-start-tag.hidden,
 .topic-delivery-tag.hidden {
   display: none;
 }
@@ -1559,8 +1574,12 @@ textarea:focus {
   align-items: end;
 }
 
+.project-dates-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .project-date-field {
-  max-width: 220px;
+  max-width: none;
 }
 
 .field-block {
