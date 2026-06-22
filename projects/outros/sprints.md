@@ -247,8 +247,17 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-24
 
 ### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED] [FOLLOWED]
+- [x] Revisão CNPJ (Bruf + Fel + Gui) [HIGH] [FOLLOWED]
+- [x] Dados de cadastro Costa Rica - Blip [FOLLOWED]
+
+## Sprint 26-25
+
+### Outros
 - [ ] Cotação, Rastreio (Fel) [BLOCKED]
 - [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
 - [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED]
-- [ ] Revisão CNPJ (Bruf + Fel + Gui) [HIGH]
+- [ ] Revisão CNPJ (Nu) [HIGH]
 - [ ] Bloqueio ZSEB (Gui)

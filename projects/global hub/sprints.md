@@ -111,5 +111,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-24
 
 ### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Berg) [FOLLOWED]
+
+## Sprint 26-25
+
+### Hub
 - [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade]
-- [ ] Clear Hub (Bruf)
+- [ ] Clear Hub (Berg)

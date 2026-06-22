@@ -87,6 +87,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-24
 
 ### ClearCorrect Automations
-- [ ] Criação de Voucher FastStart (Fel + Maxo) [FEATURE: Fast Start]
-- [ ] Comparecimento FastStart (Maxo) [FEATURE: Fast Start]
+- [ ] Criação de Voucher FastStart (Fel + Maxo) [FEATURE: Fast Start] [FOLLOWED]
+- [ ] Comparecimento FastStart (Maxo) [FEATURE: Fast Start] [FOLLOWED]
+- [ ] Criação de vouchers de pacote (Fel) [FOLLOWED]
+
+## Sprint 26-25
+
+### ClearCorrect Automations
+- [ ] Criação de Voucher FastStart (Fel) [FEATURE: Fast Start]
+- [ ] Comparecimento FastStart (Fel) [FEATURE: Fast Start]
 - [ ] Criação de vouchers de pacote (Fel)

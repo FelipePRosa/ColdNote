@@ -168,7 +168,16 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-24
 
 ### ClearWallet
-- [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Maxo + Nu) [HIGH]
+- [ ] V3 LET'S GOOOO (Guto + Bruf + Fel + Maxo + Nu) [HIGH] [FOLLOWED]
+- [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu) [FOLLOWED]
+- [x] Trocar SAML para OIDC (Bruf + Gui) [FOLLOWED]
+- [x] Revisão bug pagamento (Gui + Maxo) [HIGH] [FOLLOWED]
+
+## Sprint 26-25
+
+### ClearWallet
+- [ ] V3 LET'S GOOOO (Bruf + Fel + Maxo + Nu) [HIGH]
 - [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu)
-- [ ] Trocar SAML para OIDC (Bruf + Gui)
-- [ ] Revisão bug pagamento (Gui + Maxo) [HIGH]
+- [ ] Master Login (Bruf + Gui)
+- [ ] Bug retry pagamento (Maxo)
+- [ ] Novas telas (Rich) [HIGH]

@@ -163,5 +163,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-24
 
 ### Neodent Mobile App
-- [ ] Bug assessores (Nu + Vicco) [FEATURE: Bugs]
+- [x] Bug assessores (Nu + Vicco) [FEATURE: Bugs] [FOLLOWED]
+- [ ] Boleto Clear (Fel + Gui + Vicco) [FEATURE: Dados de boleto Clear] [FOLLOWED]
+
+## Sprint 26-25
+
+### Neodent Mobile App
 - [ ] Boleto Clear (Fel + Gui + Vicco) [FEATURE: Dados de boleto Clear]
+- [ ] Integração clear -> boleto (Vicco)

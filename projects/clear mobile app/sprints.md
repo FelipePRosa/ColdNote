@@ -83,11 +83,22 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-24
 
 ### Clear Mobile App
+- [ ] Base de pedidos (Fel) [HIGH] [FOLLOWED]
+- [ ] Layout das telas (Nu + Rich) [HIGH] [FOLLOWED]
+- [ ] Dev Mobile (Dani + Sam + Vicco) [HIGH] [FOLLOWED]
+- [ ] Documentação endpoints DrPortal (Fel) [HIGH] [FOLLOWED]
+- [ ] Documentação genia Clear (Brunin + Fel) [HIGH] [FOLLOWED]
+- [ ] Dados caso (status) e stl (Fel) [HIGH] [FOLLOWED]
+- [x] Relação provider - SAPnumber (Fel) [HIGH] [FOLLOWED]
+
+## Sprint 26-25
+
+### Clear Mobile App
 - [ ] Base de pedidos (Fel) [HIGH]
-- [ ] Layout das telas (Nu + Rich) [HIGH]
-- [ ] Dev Mobile (Dani + Sam + Vicco) [HIGH]
+- [ ] Layout das telas (Nu) [HIGH]
+- [ ] Dev Mobile (Dani + Sam) [HIGH]
 - [ ] Documentação endpoints DrPortal (Fel) [HIGH]
 - [ ] Documentação genia Clear (Brunin + Fel) [HIGH]
 - [ ] Dados caso (status) e stl (Fel) [HIGH]
-- [ ] Relação provider - SAPnumber (Fel) [HIGH]
 - [ ] Desenvolvimento backend (Gui) [HIGH]
+- [ ] Formulario de IPs (Gui)
