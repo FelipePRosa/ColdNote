@@ -70,7 +70,6 @@ const el = {
   projectCancelBtn: document.getElementById("projectCancelBtn"),
   projectSaveBtn: document.getElementById("projectSaveBtn"),
   copyTargetModal: document.getElementById("copyTargetModal"),
-  copyOnlyOpenTasks: document.getElementById("copyOnlyOpenTasks"),
   copyTargetList: document.getElementById("copyTargetList"),
   copyTargetCancelBtn: document.getElementById("copyTargetCancelBtn"),
   sprintModal: document.getElementById("sprintModal"),
@@ -720,6 +719,23 @@ function deriveTaskStatus(item = {}, topic = null) {
   if (topicStatus === "Desenvolvimento") return "doing";
   if (topicStatus === "Teste") return "testing";
   return "open";
+}
+
+function cloneActiveTopicItems(topic) {
+  return (topic.items || [])
+    .filter((item) => !item.done && deriveTaskStatus(item, topic) !== "done")
+    .map((item) => ({
+      id: uid(),
+      text: item.text,
+      done: false,
+      projectKey: topic.projectKey || "",
+      followed: Boolean(item.followed),
+      responsibles: [...(item.responsibles || [])],
+      priority: item.priority === "high" ? "high" : "normal",
+      blocked: Boolean(item.blocked),
+      blockedReason: String(item.blockedReason || "").trim(),
+      featureName: String(item.featureName || "").trim(),
+    }));
 }
 
 function taskStatusLabel(status) {
@@ -2082,7 +2098,6 @@ function closeProjectModal() {
 function openCopyTargetModal(options, onPick) {
   copyTargetOnPick = onPick;
   el.copyTargetList.innerHTML = "";
-  el.copyOnlyOpenTasks.checked = false;
   options.forEach((sprint) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -2090,9 +2105,7 @@ function openCopyTargetModal(options, onPick) {
     btn.textContent = sprint.name;
     btn.addEventListener("click", () => {
       if (copyTargetOnPick) {
-        copyTargetOnPick(sprint.id, {
-          onlyOpenTasks: el.copyOnlyOpenTasks.checked,
-        });
+        copyTargetOnPick(sprint.id);
       }
       closeCopyTargetModal();
     });
@@ -3010,29 +3023,16 @@ function openProjectEditor(project) {
       persistState();
       render();
     },
-    (targetSprintId, options = {}) => {
+    (targetSprintId) => {
       const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
       if (!targetSprint) return;
-      const onlyOpenTasks = Boolean(options.onlyOpenTasks);
-      const itemsToCopy = onlyOpenTasks ? topic.items.filter((item) => !item.done) : topic.items;
       targetSprint.topics.push({
         id: uid(),
         title: topic.title,
         projectKey: topic.projectKey || "",
         status: normalizeProjectStatus(topic.status),
         description: topic.description,
-        items: itemsToCopy.map((item) => ({
-          id: uid(),
-          text: item.text,
-          done: item.done,
-          projectKey: topic.projectKey || "",
-          followed: Boolean(item.followed),
-          responsibles: [...(item.responsibles || [])],
-          priority: item.priority === "high" ? "high" : "normal",
-          blocked: Boolean(item.blocked),
-          blockedReason: String(item.blockedReason || "").trim(),
-          featureName: String(item.featureName || "").trim(),
-        })),
+        items: cloneActiveTopicItems(topic),
       });
       persistState();
       render();
@@ -4028,11 +4028,9 @@ function renderTopics() {
             persistState();
             render();
           },
-          (targetSprintId, options = {}) => {
+          (targetSprintId) => {
             const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
             if (!targetSprint) return;
-            const onlyOpenTasks = Boolean(options.onlyOpenTasks);
-            const itemsToCopy = onlyOpenTasks ? topic.items.filter((item) => !item.done) : topic.items;
 
             const cloned = {
               id: uid(),
@@ -4040,18 +4038,7 @@ function renderTopics() {
               projectKey: topic.projectKey || "",
               status: normalizeProjectStatus(topic.status),
               description: topic.description,
-              items: itemsToCopy.map((item) => ({
-                id: uid(),
-                text: item.text,
-                done: item.done,
-                projectKey: topic.projectKey || "",
-                followed: Boolean(item.followed),
-                responsibles: [...(item.responsibles || [])],
-                priority: item.priority === "high" ? "high" : "normal",
-                blocked: Boolean(item.blocked),
-                blockedReason: String(item.blockedReason || "").trim(),
-                featureName: String(item.featureName || "").trim(),
-              })),
+              items: cloneActiveTopicItems(topic),
             };
 
             targetSprint.topics.push(cloned);
@@ -4305,7 +4292,7 @@ function createSprint() {
   render();
 }
 
-function copySprintFromSource(source, sprintName, includeDone) {
+function copySprintFromSource(source, sprintName) {
   if (!source) return;
   if (!sprintName || !sprintName.trim()) return;
   const cleanName = sprintName.trim();
@@ -4321,17 +4308,7 @@ function copySprintFromSource(source, sprintName, includeDone) {
     projectKey: topic.projectKey || "",
     status: normalizeProjectStatus(topic.status),
     description: topic.description,
-    items: topic.items.map((item) => ({
-      id: uid(),
-      text: item.text,
-      done: includeDone ? item.done : false,
-      followed: Boolean(item.followed),
-      responsibles: [...(item.responsibles || [])],
-      priority: item.priority === "high" ? "high" : "normal",
-      blocked: Boolean(item.blocked),
-      blockedReason: String(item.blockedReason || "").trim(),
-      featureName: String(item.featureName || "").trim(),
-    })),
+    items: cloneActiveTopicItems(topic),
   }));
 
   const copiedSprint = {
@@ -4422,8 +4399,7 @@ el.editSprintBtn.addEventListener("click", () => {
       const defaultName = `${sprint.name}-copy`;
       const nameInput = window.prompt("New sprint name", defaultName);
       if (!nameInput || !nameInput.trim()) return;
-      const includeDone = window.confirm("Keep completed item status in the copy?");
-      copySprintFromSource(sprint, nameInput.trim(), includeDone);
+      copySprintFromSource(sprint, nameInput.trim());
     },
     async () => {
       try {
@@ -4671,18 +4647,14 @@ el.projectDeleteBtn.addEventListener("click", () => {
 el.projectCopyBtn.addEventListener("click", () => {
   if (!projectModalOnCopy) return;
   if (!projectModalCopyOptions.length) return;
-  const copyOptions = {
-    onlyOpenTasks: el.copyOnlyOpenTasks.checked,
-  };
-
   if (projectModalCopyOptions.length === 1) {
-    projectModalOnCopy(projectModalCopyOptions[0].id, copyOptions);
+    projectModalOnCopy(projectModalCopyOptions[0].id);
     closeProjectModal();
     return;
   }
 
-  openCopyTargetModal(projectModalCopyOptions, (targetSprintId, modalOptions) => {
-    projectModalOnCopy(targetSprintId, modalOptions || copyOptions);
+  openCopyTargetModal(projectModalCopyOptions, (targetSprintId) => {
+    projectModalOnCopy(targetSprintId);
     closeProjectModal();
   });
 });
