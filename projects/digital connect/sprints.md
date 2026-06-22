@@ -5,7 +5,8 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Acordo Partner
-- [ ] Tela parceria [FEATURE: Tela de parceria Neodent App]
+- [ ] Tela parceria (Rich) [FEATURE: Tela de parceria Neodent App]
+- [ ] Dev Telas (Vicco) [FEATURE: Tela de parceria Neodent App]
 
 ### Digital Connect - 1ª etapa
 - [ ] Gerar lead (Guto) [FEATURE: Envio de lead + financeiro]
