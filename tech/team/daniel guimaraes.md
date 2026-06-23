@@ -1,6 +1,7 @@
 # Daniel Guimaraes
 
 Nickname: Dani
+Area: Mobile
 Ativo: Sim
 
 Placar Tech Innovation

@@ -1,6 +1,7 @@
 # Felipe Rosa
 
 Nickname: Fel
+Area: Data
 Ativo: Sim
 
 Placar Tech Innovation

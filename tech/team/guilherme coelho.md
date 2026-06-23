@@ -1,6 +1,7 @@
 # Guilherme Coelho
 
 Nickname: Gui
+Area: Back
 Ativo: Sim
 
 Placar Tech Innovation

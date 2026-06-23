@@ -1,6 +1,7 @@
 # Nuala Morita
 
 Nickname: Nu
+Area: QA
 Ativo: Sim
 
 Placar Tech Innovation

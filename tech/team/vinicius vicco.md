@@ -1,6 +1,7 @@
 # Vinicius Vicco
 
 Nickname: Vicco
+Area: Mobile
 Ativo: Sim
 
 Placar Tech Innovation

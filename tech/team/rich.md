@@ -1,6 +1,7 @@
 # Rich
 
 Nickname: Rich
+Area: UI/UX
 Ativo: Sim
 
 Placar Tech Innovation

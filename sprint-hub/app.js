@@ -317,6 +317,61 @@ function getActiveAssignableMembers() {
   return getAssignableMembers();
 }
 
+const TEAM_AREAS = ["Back", "Front", "Mobile", "Data", "QA", "UX/UI", "Mkt"];
+const TEAM_AREA_ALIASES = {
+  back: "Back",
+  backend: "Back",
+  "back-end": "Back",
+  front: "Front",
+  frontend: "Front",
+  "front-end": "Front",
+  mobile: "Mobile",
+  data: "Data",
+  qa: "QA",
+  test: "QA",
+  tests: "QA",
+  teste: "QA",
+  testes: "QA",
+  ux: "UX/UI",
+  ui: "UX/UI",
+  "ux/ui": "UX/UI",
+  "ui/ux": "UX/UI",
+  design: "UX/UI",
+  mkt: "Mkt",
+  marketing: "Mkt",
+};
+
+function normalizeTeamArea(value) {
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+  if (!raw) return "";
+  if (TEAM_AREA_ALIASES[raw]) return TEAM_AREA_ALIASES[raw];
+  const match = TEAM_AREAS.find((entry) => entry.toLowerCase() === raw);
+  return match || "";
+}
+
+function parseTeamAreaFromContent(content) {
+  const lines = String(content || "").split(/\r?\n/);
+  for (const raw of lines) {
+    const m = raw.match(/^\s*(?:Area|Área)\s*:\s*(.*)\s*$/i);
+    if (!m) continue;
+    return normalizeTeamArea(m[1]);
+  }
+  return "";
+}
+
+function getTeamEntryByNickname(nickname) {
+  const target = String(nickname || "").trim().toLowerCase();
+  if (!target) return null;
+  return teamEntries.find((entry) => String(entry.nickname || "").trim().toLowerCase() === target) || null;
+}
+
+function getTeamAreaByNickname(nickname) {
+  return getTeamEntryByNickname(nickname)?.area || "";
+}
+
 function parseTeamActiveFromContent(content) {
   const lines = String(content || "").split(/\r?\n/);
   for (const raw of lines) {
@@ -1609,6 +1664,10 @@ function renderTeamRows() {
     nickTd.textContent = entry.nickname || "";
     tr.appendChild(nickTd);
 
+    const areaTd = document.createElement("td");
+    areaTd.textContent = entry.area || "-";
+    tr.appendChild(areaTd);
+
     const avgTd = document.createElement("td");
     avgTd.textContent = Number.isFinite(entry.average) ? entry.average.toFixed(1) : "-";
     tr.appendChild(avgTd);
@@ -1626,6 +1685,7 @@ async function loadTeamMembersFromFiles() {
     nickname: String(m.nickname || "").trim(),
     content: String(m.content || ""),
     active: parseTeamActiveFromContent(m.content || ""),
+    area: parseTeamAreaFromContent(m.content || ""),
     average: parseTeamAverageScore(m.content || ""),
   }));
   const fromFiles = Array.from(
@@ -1634,8 +1694,12 @@ async function loadTeamMembersFromFiles() {
   if (fromFiles.length) teamMembers = fromFiles;
 }
 
-function teamTemplate(name, nickname) {
-  return [`# ${name}`, "", `Nickname: ${nickname}`, "Ativo: Sim", "", "Notes:", "- "].join("\n") + "\n";
+function teamTemplate(name, nickname, area = "") {
+  const lines = [`# ${name}`, "", `Nickname: ${nickname}`];
+  const normalizedArea = normalizeTeamArea(area);
+  if (normalizedArea) lines.push(`Area: ${normalizedArea}`);
+  lines.push("Ativo: Sim", "", "Notes:", "- ");
+  return lines.join("\n") + "\n";
 }
 
 function setTeamActiveLine(content, activeValue) {
@@ -1715,12 +1779,19 @@ async function createTeamMemberFlow() {
   const rawNickname = window.prompt("Nickname", "");
   if (rawNickname === null) return;
   const nickname = rawNickname.trim();
+  const rawArea = window.prompt(`Area (${TEAM_AREAS.join(", ")})`, "");
+  if (rawArea === null) return;
+  const area = normalizeTeamArea(rawArea);
+  if (rawArea.trim() && !area) {
+    window.alert(`Invalid area. Use one of: ${TEAM_AREAS.join(", ")}`);
+    return;
+  }
   const suggestedFile = `${name.toLowerCase().replace(/[^a-z0-9 -]/gi, "").replace(/\s+/g, " ").trim()}.md`;
   const rawPath = window.prompt("Member file name (.md)", suggestedFile);
   if (!rawPath || !rawPath.trim()) return;
   let fileName = rawPath.trim();
   if (!fileName.toLowerCase().endsWith(".md")) fileName += ".md";
-  await createTeamMemberFile(fileName, teamTemplate(name, nickname));
+  await createTeamMemberFile(fileName, teamTemplate(name, nickname, area));
   await refreshTeamModalData(fileName);
   setStatus("file-based (`tech/team/*.md`) - member created");
 }
@@ -4537,12 +4608,13 @@ function renderWorkloadView() {
       assignment.laneIndex = laneIndex;
     });
     const laneCount = Math.max(1, laneEnds.length);
+    const memberArea = getTeamAreaByNickname(member);
 
     const memberCell = document.createElement("div");
     memberCell.className = "workload-member";
     memberCell.innerHTML = `
       <strong>${member}</strong>
-      <span>${assignments.length ? `${assignments.length} project${assignments.length === 1 ? "" : "s"}` : "Free in this range"}</span>
+      <span>${memberArea ? `${memberArea} • ` : ""}${assignments.length ? `${assignments.length} project${assignments.length === 1 ? "" : "s"}` : "Free in this range"}</span>
     `;
     view.appendChild(memberCell);
 
@@ -4688,8 +4760,9 @@ function renderSprintMembers() {
 
   entries.forEach(([member, tasks]) => {
     const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
+    const memberArea = getTeamAreaByNickname(member);
     node.querySelector(".topic-title").textContent = member;
-    node.querySelector(".topic-project").textContent = `${tasks.length} task${tasks.length === 1 ? "" : "s"}`;
+    node.querySelector(".topic-project").textContent = `${memberArea ? `${memberArea} • ` : ""}${tasks.length} task${tasks.length === 1 ? "" : "s"}`;
     const statusTag = node.querySelector(".topic-status-tag");
     statusTag.classList.add("hidden");
     node.querySelector(".topic-desc").textContent = `Sprint ${activeSprint.name}`;

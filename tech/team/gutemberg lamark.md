@@ -1,6 +1,7 @@
 # Gutemberg Lamark
 
 Nickname: Berg
+Area: Front
 Ativo: Sim
 
 Placar Tech Innovation

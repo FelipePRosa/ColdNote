@@ -853,7 +853,7 @@ main {
 }
 
 .workload-view {
-  --workload-member-width: 190px;
+  --workload-member-width: 210px;
   --workload-day-width: 52px;
   min-width: calc(var(--workload-member-width) + (var(--workload-columns) * var(--workload-day-width)));
   display: grid;
@@ -2132,15 +2132,19 @@ textarea:focus {
 }
 
 .team-col-member {
-  width: 58%;
+  width: 42%;
 }
 
 .team-col-nickname {
-  width: 26%;
+  width: 18%;
+}
+
+.team-col-area {
+  width: 22%;
 }
 
 .team-col-average {
-  width: 16%;
+  width: 18%;
 }
 
 .pjs-table th,

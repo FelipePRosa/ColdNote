@@ -1,6 +1,7 @@
 # Samuel Viana
 
 Nickname: Sam
+Area: Mobile
 Ativo: Sim
 
 Placar Tech Innovation

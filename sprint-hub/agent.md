@@ -167,6 +167,7 @@ Current behavior:
 - only includes projects that have both `Start Date` and `Delivery Date`
 - shows active projects across the full date interval for each involved member
 - only counts responsibles whose team file is marked `Ativo: Sim`
+- shows member area when available in the team file
 - workload cards show the project title only
 - leaves empty ranges visible so free capacity is easy to spot
 
@@ -405,6 +406,7 @@ Current parsing depends on:
 
 - first `# ` heading for member name
 - `Nickname: ...`
+- optional `Area: ...` using values such as `Back`, `Front`, `Mobile`, `Data`, `QA`, `UX/UI`, `Mkt`
 - `Ativo: ...` to determine whether the member appears in assignment and workload flows
 
 ## Process Guidance

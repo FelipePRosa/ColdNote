@@ -1,6 +1,7 @@
 # Augusto Cardoso
 
 Nickname: Guto
+Area: Back
 Ativo: Sim
 
 Placar Tech Innovation

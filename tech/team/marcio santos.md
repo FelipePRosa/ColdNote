@@ -1,6 +1,7 @@
 # Marcio Santos
 
 Nickname: Maxo
+Area: Back
 Ativo: Sim
 
 Placar Tech Innovation

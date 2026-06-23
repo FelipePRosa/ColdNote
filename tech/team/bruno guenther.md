@@ -1,6 +1,7 @@
 # Bruno Guenther
 
 Nickname: Brunin
+Area: Data
 Ativo: Sim
 
 Placar Tech Innovation

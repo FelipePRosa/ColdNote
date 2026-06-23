@@ -1,6 +1,7 @@
 # Hary Bernhardt
 
 Nickname: Hary
+Area: Front
 Ativo: Sim
 
 Placar Tech Innovation

@@ -1,6 +1,7 @@
 # Bruno Ruf
 
 Nickname: Bruf
+Area: Front
 Ativo: Sim
 
 Placar Tech Innovation
