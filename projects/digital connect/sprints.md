@@ -14,3 +14,4 @@ Regra: inclui apenas sprints depois de 26-01.
 
 ### Digital Connect - 2ª etapa
 - [ ] Telas aplicativo (Nu + Rich) [FEATURE: Formulário no aplicativo] [STATUS: Open] [AREA: UX/UI]
+- [ ] Desenvolvimento telas App [FEATURE: Formulário no aplicativo] [STATUS: Open] [AREA: Back, Mobile]

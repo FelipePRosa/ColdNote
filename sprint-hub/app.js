@@ -3411,7 +3411,10 @@ function collectWorkloadProjects({ projectFilter = selectedProjectKey, statusFil
   const query = normalizeSearchText(taskSearchText);
   return Array.from(projects.values())
     .map((project) => {
-      const currentEntries = latestProjectTaskEntries(project.taskEntries);
+      const currentEntries = latestProjectTaskEntries(project.taskEntries).filter(({ item }) => {
+        if (!selectedArea) return true;
+        return normalizeTaskAreas(item.areas || item.area).includes(selectedArea);
+      });
       const activeMembers = new Set(getActiveAssignableMembers());
       const responsibles = Array.from(
         new Set(
@@ -4686,6 +4689,15 @@ function renderWorkloadView() {
     });
   });
 
+  const membersToRender = allMembers.filter((member) => {
+    const assignments = assignmentsByMember.get(member) || [];
+    if (selectedArea) {
+      if (getTeamAreaByNickname(member) !== selectedArea) return false;
+      return assignments.length > 0;
+    }
+    return true;
+  });
+
   const view = document.createElement("section");
   view.className = "workload-view";
   view.style.setProperty("--workload-columns", String(weekColumns.length));
@@ -4710,7 +4722,7 @@ function renderWorkloadView() {
   });
   view.appendChild(head);
 
-  allMembers.forEach((member) => {
+  membersToRender.forEach((member) => {
     const assignments = [...(assignmentsByMember.get(member) || [])].sort((a, b) => {
       if (a.startIndex !== b.startIndex) return a.startIndex - b.startIndex;
       if (a.endIndex !== b.endIndex) return a.endIndex - b.endIndex;
