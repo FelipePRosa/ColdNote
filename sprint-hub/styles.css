@@ -1244,6 +1244,18 @@ main {
   margin: 8px 0 0;
 }
 
+.topic-areas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+
+.topic-areas.hidden {
+  display: none;
+}
+
 .topic-project {
   display: inline-flex;
   align-items: center;
@@ -1795,6 +1807,54 @@ textarea:focus {
 
 .task-status-field {
   min-width: 148px;
+}
+
+.task-area-field {
+  min-width: 220px;
+}
+
+.task-area-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.task-area-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.task-area-chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.task-area-chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(122, 117, 127, 0.28);
+  border-radius: 999px;
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.task-area-chip input:checked + span {
+  background: var(--md-sys-color-primary-container);
+  border-color: rgba(103, 80, 164, 0.3);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.task-area-chip span:hover {
+  transform: translateY(-1px);
 }
 
 .modal-actions {

@@ -41,4 +41,4 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Forecasting
-- [ ] Aplicação no Genia App (Brunin + Nu + Vicco)
+- [ ] Aplicação no Genia App (Brunin + Nu + Vicco) [STATUS: Testing] [AREA: QA]

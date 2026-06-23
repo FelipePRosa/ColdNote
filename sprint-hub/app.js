@@ -54,6 +54,7 @@ const el = {
   modalFeatureSelect: document.getElementById("modalFeatureSelect"),
   taskMetaRow: document.getElementById("taskMetaRow"),
   modalTaskStatusSelect: document.getElementById("modalTaskStatusSelect"),
+  modalTaskAreaOptions: document.getElementById("modalTaskAreaOptions"),
   modalHighPriorityCheck: document.getElementById("modalHighPriorityCheck"),
   modalBlockedReasonBlock: document.getElementById("modalBlockedReasonBlock"),
   modalBlockedReasonInput: document.getElementById("modalBlockedReasonInput"),
@@ -414,6 +415,8 @@ function normalizeItem(item) {
   if (!Array.isArray(item.responsibles)) item.responsibles = [];
   if (item.priority !== "high") item.priority = "normal";
   item.status = normalizeTaskFlowStatus(item.status);
+  item.areas = normalizeTaskAreas(item.areas || item.area);
+  delete item.area;
   item.blocked = Boolean(item.blocked);
   item.blockedReason = item.blocked ? String(item.blockedReason || "").trim() : "";
   item.followed = Boolean(item.followed);
@@ -1010,6 +1013,7 @@ function cloneActiveTopicItems(topic) {
       text: item.text,
       done: false,
       status: normalizeTaskFlowStatus(item.status),
+      areas: normalizeTaskAreas(item.areas || item.area),
       projectKey: topic.projectKey || "",
       followed: Boolean(item.followed),
       responsibles: [...(item.responsibles || [])],
@@ -1030,10 +1034,30 @@ function taskStatusLabel(status) {
   }[status] || "Open";
 }
 
+function parseTopicAreasFromEntries(entries = []) {
+  return Array.from(
+    new Set(
+      entries
+        .filter(({ item }) => item && !item.done)
+        .flatMap(({ item }) => normalizeTaskAreas(item.areas || item.area))
+        .filter(Boolean)
+    )
+  );
+}
+
 function normalizeTaskFlowStatus(value) {
   const raw = String(value || "").trim().toLowerCase();
   if (raw === "open" || raw === "doing" || raw === "testing") return raw;
   return "";
+}
+
+function normalizeTaskAreas(value) {
+  const rawValues = Array.isArray(value)
+    ? value
+    : String(value || "")
+        .split(",")
+        .map((entry) => entry.trim());
+  return Array.from(new Set(rawValues.map((entry) => normalizeTeamArea(entry)).filter(Boolean)));
 }
 
 function parseItemTextAndResponsibles(rawText) {
@@ -1044,6 +1068,7 @@ function parseItemTextAndResponsibles(rawText) {
   let followed = false;
   let featureName = "";
   let status = "";
+  let areas = [];
 
   const blockedReasonMatch = text.match(/\[BLOCKED\s*:\s*([^\]]+)\]/i);
   if (blockedReasonMatch) {
@@ -1061,6 +1086,11 @@ function parseItemTextAndResponsibles(rawText) {
     status = normalizeTaskFlowStatus(statusMatch[1]);
   }
 
+  const areaMatch = text.match(/\[AREA\s*:\s*([^\]]+)\]/i);
+  if (areaMatch) {
+    areas = normalizeTaskAreas(areaMatch[1]);
+  }
+
   const metaMatches = text.match(/\[(HIGH|BLOCKED|FOLLOWED)\]/gi) || [];
   metaMatches.forEach((m) => {
     if (/HIGH/i.test(m)) priority = "high";
@@ -1070,24 +1100,25 @@ function parseItemTextAndResponsibles(rawText) {
   text = text
     .replace(/\s*\[FEATURE\s*:\s*[^\]]+\]/gi, "")
     .replace(/\s*\[STATUS\s*:\s*[^\]]+\]/gi, "")
+    .replace(/\s*\[AREA\s*:\s*[^\]]+\]/gi, "")
     .replace(/\s*\[BLOCKED\s*:\s*[^\]]+\]/gi, "")
     .replace(/\s*\[(HIGH|BLOCKED|FOLLOWED)\]/gi, "")
     .trim();
 
   const m = text.match(/^(.*)\(([^()]*)\)\s*$/);
-  if (!m) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName, status };
+  if (!m) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName, status, areas };
 
   const body = m[1].trim();
   const namesRaw = m[2].trim();
-  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName, status };
+  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName, status, areas };
 
   const responsibles = namesRaw
     .split(/\s*\+\s*|\s*,\s*/)
     .map((x) => x.trim())
     .filter(Boolean);
 
-  if (!responsibles.length) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName, status };
-  return { text: body || text, responsibles, priority, blocked, blockedReason, followed, featureName, status };
+  if (!responsibles.length) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName, status, areas };
+  return { text: body || text, responsibles, priority, blocked, blockedReason, followed, featureName, status, areas };
 }
 
 function parseSprintMarkdown(fileName, markdown) {
@@ -1143,6 +1174,7 @@ function parseSprintMarkdown(fileName, markdown) {
             projectKey: currentTopic.projectKey,
             responsibles: parsed.responsibles,
             status: parsed.status,
+            areas: parsed.areas,
             priority: parsed.priority,
             blocked: parsed.blocked,
             blockedReason: parsed.blockedReason,
@@ -1167,6 +1199,7 @@ function parseSprintMarkdown(fileName, markdown) {
             projectKey: currentTopic.projectKey,
             responsibles: parsed.responsibles,
             status: parsed.status,
+            areas: parsed.areas,
             priority: parsed.priority,
             blocked: parsed.blocked,
             blockedReason: parsed.blockedReason,
@@ -1244,6 +1277,7 @@ function sprintToMarkdown(sprint) {
       let lineText = itemDisplayText(item);
       if (item.featureName) lineText += ` [FEATURE: ${String(item.featureName).replace(/\]/g, ")")}]`;
       if (normalizeTaskFlowStatus(item.status)) lineText += ` [STATUS: ${taskStatusLabel(item.status)}]`;
+      if (normalizeTaskAreas(item.areas || item.area).length) lineText += ` [AREA: ${normalizeTaskAreas(item.areas || item.area).join(", ")}]`;
       if (item.priority === "high") lineText += " [HIGH]";
       if (item.blocked) {
         const blockedReason = String(item.blockedReason || "").trim().replace(/\]/g, ")");
@@ -2159,6 +2193,7 @@ function openTaskModal({
   currentFeatureName = "",
   featureProjectKey = "",
   currentStatus = "open",
+  currentAreas = [],
   onSave,
   onDelete = null,
   backlogMode = false,
@@ -2171,6 +2206,7 @@ function openTaskModal({
   el.modalSaveBtn.textContent = saveLabel || "Apply";
   el.modalItemText.value = currentText?.text || "";
   el.modalTaskStatusSelect.value = currentStatus || "open";
+  renderTaskAreaSelect(currentAreas || currentText?.areas || currentText?.area || []);
   el.modalHighPriorityCheck.checked = currentText?.priority === "high";
   el.modalBlockedReasonInput.value = currentText?.blockedReason || "";
   const blockedSelected = (currentStatus || "open") === "blocked";
@@ -2945,6 +2981,26 @@ function renderTaskModalFeatureSelect(projectKey = "", currentFeatureName = "") 
   field.classList.toggle("hidden", features.length === 0);
 }
 
+function renderTaskAreaSelect(currentValue = "") {
+  const container = el.modalTaskAreaOptions;
+  if (!container) return;
+  const current = new Set(normalizeTaskAreas(currentValue));
+  container.innerHTML = "";
+  TEAM_AREAS.forEach((area) => {
+    const label = document.createElement("label");
+    label.className = "task-area-chip";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = area;
+    input.checked = current.has(area);
+    const span = document.createElement("span");
+    span.textContent = area;
+    label.appendChild(input);
+    label.appendChild(span);
+    container.appendChild(label);
+  });
+}
+
 function fillStatusSelect(select, currentStatus = "") {
   if (!select) return;
   const previousEmptyOption = select.querySelector('option[value=""]');
@@ -3167,6 +3223,7 @@ function taskMatchesSearch(item, topic, sprint) {
 
   return searchHaystack([
     item.text,
+    ...(item.areas || []),
     item.featureName,
     ...(item.responsibles || []),
     item.blockedReason,
@@ -3227,6 +3284,7 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
         startDate: topic.startDate || "",
         deliveryDate: topic.deliveryDate || "",
         description: topic.description || "",
+        areas: [],
         latestSprint: sprint,
         latestTopic: topic,
         taskEntries: [],
@@ -3255,7 +3313,9 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
   const filtersActive = Boolean(taskSearchText);
   return Array.from(projects.values())
     .map((project) => {
-      latestProjectTaskEntries(project.taskEntries)
+      const currentEntries = latestProjectTaskEntries(project.taskEntries);
+      project.areas = parseTopicAreasFromEntries(currentEntries);
+      currentEntries
         .filter(({ item, topic, sprint }) => taskMatchesSearch(item, topic, sprint))
         .forEach((entry) => {
           const featureLabel = String(entry.item.featureName || "").trim() || "Outros";
@@ -3514,9 +3574,19 @@ function createSprintTopicCard(topic, sprint, options = {}) {
   node.querySelector(".topic-project").textContent = multiSprintMode
     ? `${projectText} | Sprint ${sprint.name}`
     : projectText;
+  const topicAreasNode = node.querySelector(".topic-areas");
   const statusTag = node.querySelector(".topic-status-tag");
   const startTag = node.querySelector(".topic-start-tag");
   const deliveryTag = node.querySelector(".topic-delivery-tag");
+  const openTaskAreas = parseTopicAreasFromEntries((topic.items || []).map((item) => ({ item })));
+  topicAreasNode.innerHTML = "";
+  topicAreasNode.classList.toggle("hidden", openTaskAreas.length === 0);
+  openTaskAreas.forEach((area) => {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = area;
+    topicAreasNode.appendChild(tag);
+  });
   if (topic.status) {
     statusTag.textContent = topic.status;
     statusTag.dataset.status = topic.status;
@@ -3585,13 +3655,19 @@ function createSprintTopicCard(topic, sprint, options = {}) {
     `;
     li.querySelector(".item-text").textContent = itemDisplayText(item);
     const itemLine = li.querySelector(".item-line");
-    if (item.featureName) {
-      const tag = document.createElement("span");
-      tag.className = "tag";
-      tag.textContent = item.featureName;
-      itemLine.appendChild(tag);
-    }
-    if (item.priority === "high") {
+      if (item.featureName) {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = item.featureName;
+        itemLine.appendChild(tag);
+      }
+      normalizeTaskAreas(item.areas || item.area).forEach((area) => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = area;
+        itemLine.appendChild(tag);
+      });
+      if (item.priority === "high") {
       const tag = document.createElement("span");
       tag.className = "tag tag-high";
       tag.textContent = "HIGH";
@@ -3669,16 +3745,17 @@ function createSprintTopicCard(topic, sprint, options = {}) {
     openTaskModal({
       title: "New Task",
       saveLabel: "Create",
-      currentText: { text: "", priority: "normal", blocked: false, blockedReason: "" },
+      currentText: { text: "", priority: "normal", blocked: false, blockedReason: "", areas: [] },
       currentNames: [],
       featureProjectKey: topic.projectKey || "",
       currentStatus: deriveTaskStatus({}, topic),
-      onSave: ({ text, responsibles, priority, blocked, blockedReason, featureName, status }) => {
+      onSave: ({ text, responsibles, priority, blocked, blockedReason, featureName, status, areas }) => {
         topic.items.push({
           id: uid(),
           text,
           done: status === "done",
           status: status === "done" || status === "blocked" ? "" : normalizeTaskFlowStatus(status),
+          areas: normalizeTaskAreas(areas),
           projectKey: normalizeProjectKey(topic.projectKey),
           responsibles,
           priority,
@@ -3764,7 +3841,7 @@ function openTopicTaskEditor(topic, item) {
   openTaskModal({
     title: "Edit Task",
     saveLabel: "Apply",
-    currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason },
+    currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason, areas: item.areas },
     currentNames: item.responsibles || [],
     currentFeatureName: item.featureName || "",
     featureProjectKey: topic.projectKey || "",
@@ -3774,12 +3851,13 @@ function openTopicTaskEditor(topic, item) {
       persistState();
       render();
     },
-    onSave: ({ text, responsibles, priority, blocked, blockedReason, featureName, status }) => {
+    onSave: ({ text, responsibles, priority, blocked, blockedReason, featureName, status, areas }) => {
       item.text = text;
       item.responsibles = responsibles;
       item.priority = priority;
       item.done = status === "done";
       item.status = status === "done" || status === "blocked" ? "" : normalizeTaskFlowStatus(status);
+      item.areas = normalizeTaskAreas(areas);
       item.blocked = status === "blocked";
       item.blockedReason = item.blocked ? blockedReason : "";
       item.featureName = String(featureName || "").trim();
@@ -4051,6 +4129,12 @@ function renderTaskboard() {
         tag.textContent = item.featureName;
         tags.appendChild(tag);
       }
+      normalizeTaskAreas(item.areas || item.area).forEach((area) => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = area;
+        tags.appendChild(tag);
+      });
       if (item.priority === "high") {
         const tag = document.createElement("span");
         tag.className = "tag tag-high";
@@ -4674,9 +4758,18 @@ function renderProjectFeatureCards() {
     node.classList.toggle("topic-card-due-soon", isTopicDueSoon(project.deliveryDate));
     node.querySelector(".topic-title").textContent = project.title;
     node.querySelector(".topic-project").textContent = `${project.features.size} feature${project.features.size === 1 ? "" : "s"}`;
+    const topicAreasNode = node.querySelector(".topic-areas");
     const statusTag = node.querySelector(".topic-status-tag");
     const startTag = node.querySelector(".topic-start-tag");
     const deliveryTag = node.querySelector(".topic-delivery-tag");
+    topicAreasNode.innerHTML = "";
+    topicAreasNode.classList.toggle("hidden", !(project.areas || []).length);
+    (project.areas || []).forEach((area) => {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = area;
+      topicAreasNode.appendChild(tag);
+    });
     if (project.status) {
       statusTag.textContent = project.status;
       statusTag.dataset.status = project.status;
@@ -4794,6 +4887,12 @@ function renderSprintMembers() {
           tag.textContent = item.featureName;
           itemLine.appendChild(tag);
         }
+        normalizeTaskAreas(item.areas || item.area).forEach((area) => {
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.textContent = area;
+          itemLine.appendChild(tag);
+        });
         const status = taskStatusLabel(deriveTaskStatus(item, topic));
         if (status !== "Open") {
           const tag = document.createElement("span");
@@ -5305,11 +5404,13 @@ el.modalSaveBtn.addEventListener("click", () => {
     return;
   }
   const selected = Array.from(el.modalAssigneeSelect.selectedOptions).map((o) => o.value);
+  const selectedAreas = Array.from(el.modalTaskAreaOptions?.querySelectorAll('input[type="checkbox"]:checked') || []).map((input) => input.value);
   itemEditModalOnSave({
     text,
     projectKey: taskModalBacklogMode ? normalizeProjectKey(el.modalBacklogProjectSelect.value) : "",
     featureName: String(el.modalFeatureSelect?.value || "").trim(),
     status: taskModalBacklogMode ? "open" : (el.modalTaskStatusSelect.value || "open"),
+    areas: taskModalBacklogMode ? [] : normalizeTaskAreas(selectedAreas),
     responsibles: taskModalBacklogMode ? [] : selected,
     priority: taskModalBacklogMode ? "normal" : (el.modalHighPriorityCheck.checked ? "high" : "normal"),
     blocked: taskModalBacklogMode ? false : ((el.modalTaskStatusSelect.value || "open") === "blocked"),

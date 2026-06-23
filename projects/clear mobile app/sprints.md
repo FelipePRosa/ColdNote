@@ -94,11 +94,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Clear Mobile App
-- [ ] Base de pedidos (Fel) [HIGH]
-- [ ] Layout das telas (Nu) [HIGH]
-- [ ] Dev Mobile (Dani + Sam) [HIGH]
-- [ ] Documentação endpoints DrPortal (Fel) [HIGH]
-- [ ] Documentação genia Clear (Brunin + Fel) [HIGH]
-- [ ] Dados caso (status) e stl (Fel) [HIGH]
-- [ ] Desenvolvimento backend (Gui) [HIGH]
+- [ ] Base de pedidos (Fel) [STATUS: Doing] [AREA: Data] [HIGH]
+- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH]
+- [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH]
+- [ ] Documentação endpoints DrPortal (Fel) [HIGH] [FOLLOWED]
+- [ ] Documentação genia Clear (Fel) [STATUS: Doing] [HIGH] [FOLLOWED]
+- [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH]
+- [ ] Desenvolvimento backend (Gui) [STATUS: Doing] [AREA: Back] [HIGH]
 - [ ] Formulario de IPs (Gui)

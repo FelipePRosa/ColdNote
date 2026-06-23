@@ -117,5 +117,5 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Hub
-- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade]
-- [ ] Clear Hub (Berg)
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade]
+- [ ] Clear Hub (Berg) [STATUS: Testing] [AREA: Front]

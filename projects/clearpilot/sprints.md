@@ -18,6 +18,6 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### ClearPilot
-- [ ] Chamar endpoint de classificação (Bruf)
-- [ ] Integração do modelo de classificação (Gui) [HIGH]
-- [ ] Configuração de ambiente (Bruf + Gui) [HIGH]
+- [ ] Chamar endpoint de classificação (Bruf) [STATUS: Doing] [AREA: Front]
+- [ ] Integração do modelo de classificação (Gui) [STATUS: Doing] [AREA: Back] [HIGH]
+- [ ] Configuração de ambiente (Bruf + Gui) [STATUS: Doing] [AREA: Back, Front] [HIGH]

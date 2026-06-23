@@ -176,8 +176,8 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### ClearWallet
-- [ ] V3 LET'S GOOOO (Bruf + Fel + Maxo + Nu) [HIGH]
-- [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu)
-- [ ] Master Login (Bruf + Gui)
-- [ ] Bug retry pagamento (Maxo) [FOLLOWED]
-- [ ] Novas telas (Rich) [HIGH]
+- [ ] V3 LET'S GOOOO (Bruf + Fel + Maxo + Nu) [STATUS: Doing] [AREA: Back] [HIGH]
+- [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu) [STATUS: Doing] [AREA: QA]
+- [ ] Master Login (Bruf + Gui) [STATUS: Doing] [AREA: QA]
+- [ ] Bug retry pagamento (Maxo) [STATUS: Doing] [AREA: Back] [FOLLOWED]
+- [ ] Novas telas (Rich) [STATUS: Doing] [AREA: UX/UI] [HIGH]

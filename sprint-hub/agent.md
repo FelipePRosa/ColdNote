@@ -127,6 +127,7 @@ Current default behavior:
 
 - one card per project
 - feature list inside the project card
+- area tags in the card are derived from the open tasks currently associated with that project
 - tasks without feature are grouped under `Outros`
 - clicking a feature opens the current task set for that feature
 - repeated tasks across sprints are deduplicated and only the most recent occurrence is shown
@@ -217,6 +218,7 @@ Tasks are intentionally compact and leadership-readable.
 
 - `text`
 - `done`
+- `areas[]`
 - `responsibles[]`
 - `priority` (`normal` or `high`)
 - `blocked`
@@ -232,6 +234,7 @@ Important distinction:
 Task modal behavior:
 
 - task status is edited through a dropdown (`Open`, `Doing`, `Testing`, `Blocked`, `Done`)
+- task areas are edited through a multi-select (`Back`, `Front`, `Mobile`, `Data`, `QA`, `UX/UI`, `Mkt`)
 - blocked reason appears only when the task status is `Blocked`
 - project linkage for sprint tasks is implicit from the project card and is not edited in the task modal
 
@@ -359,6 +362,7 @@ Relevant conventions:
 
 - `## ... [project:folder-name]` links a sprint card to a project folder
 - `[FEATURE: ...]` links a task to a project feature
+- `[AREA: ...]` links a task to one or more delivery areas, comma-separated when needed
 - `[HIGH]` marks high priority
 - `[BLOCKED]` or `[BLOCKED: ...]` marks blocked state
 - `[FOLLOWED]` marks weekly follow-up/work, not completion
