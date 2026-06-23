@@ -17,6 +17,7 @@ const el = {
   workloadEndDateInput: document.getElementById("workloadEndDateInput"),
   taskSearchInput: document.getElementById("taskSearchInput"),
   responsibleFilter: document.getElementById("responsibleFilter"),
+  areaFilter: document.getElementById("areaFilter"),
   projectStatusFilter: document.getElementById("projectStatusFilter"),
   backlogProjectFilter: document.getElementById("backlogProjectFilter"),
   newBacklogItemBtn: document.getElementById("newBacklogItemBtn"),
@@ -181,6 +182,7 @@ let selectedProjectKey = "";
 let projectSearchText = "";
 let taskSearchText = "";
 let selectedResponsible = "";
+let selectedArea = "";
 let selectedProjectStatus = "";
 let selectedBacklogProject = "";
 let filterHighOnly = false;
@@ -2752,6 +2754,28 @@ function renderResponsibleFilter() {
   else select.value = "";
 }
 
+function renderAreaFilter() {
+  const select = el.areaFilter;
+  if (!select) return;
+
+  const current = normalizeTeamArea(selectedArea);
+  select.innerHTML = "";
+
+  const allOpt = document.createElement("option");
+  allOpt.value = "";
+  allOpt.textContent = "Area";
+  select.appendChild(allOpt);
+
+  TEAM_AREAS.forEach((area) => {
+    const opt = document.createElement("option");
+    opt.value = area;
+    opt.textContent = area;
+    select.appendChild(opt);
+  });
+
+  select.value = current;
+}
+
 function renderProjectStatusFilter() {
   const select = el.projectStatusFilter;
   if (!select) return;
@@ -3238,6 +3262,7 @@ function taskPassesBoardFilters(item, topic, sprint) {
   normalizeItem(item);
   if (!taskMatchesSearch(item, topic, sprint)) return false;
   if (selectedResponsible && !(item.responsibles || []).includes(selectedResponsible)) return false;
+  if (selectedArea && !normalizeTaskAreas(item.areas || item.area).includes(selectedArea)) return false;
   if (filterHighOnly && item.priority !== "high") return false;
   if (filterBlockedOnly && !item.blocked) return false;
   return true;
@@ -3316,7 +3341,11 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
       const currentEntries = latestProjectTaskEntries(project.taskEntries);
       project.areas = parseTopicAreasFromEntries(currentEntries);
       currentEntries
-        .filter(({ item, topic, sprint }) => taskMatchesSearch(item, topic, sprint))
+        .filter(({ item, topic, sprint }) => {
+          if (!taskMatchesSearch(item, topic, sprint)) return false;
+          if (selectedArea && !normalizeTaskAreas(item.areas || item.area).includes(selectedArea)) return false;
+          return true;
+        })
         .forEach((entry) => {
           const featureLabel = String(entry.item.featureName || "").trim() || "Outros";
           const feature = project.features.get(featureLabel) || { label: featureLabel, entries: [] };
@@ -3563,7 +3592,7 @@ function createSprintTopicCard(topic, sprint, options = {}) {
   const canDrag = Boolean(options.canDrag);
   const emptyHintText = options.emptyHintText || (canDrag ? "Drop task here" : "No matching tasks");
   const visibleItems = topic.items.filter((item) => taskPassesBoardFilters(item, topic, sprint));
-  if ((taskSearchText || selectedResponsible || filterHighOnly || filterBlockedOnly) && visibleItems.length === 0) {
+  if ((taskSearchText || selectedResponsible || selectedArea || filterHighOnly || filterBlockedOnly) && visibleItems.length === 0) {
     return null;
   }
 
@@ -3841,11 +3870,18 @@ function openTopicTaskEditor(topic, item) {
   openTaskModal({
     title: "Edit Task",
     saveLabel: "Apply",
-    currentText: { text: item.text, priority: item.priority, blocked: item.blocked, blockedReason: item.blockedReason, areas: item.areas },
+    currentText: {
+      text: item.text,
+      priority: item.priority,
+      blocked: item.blocked,
+      blockedReason: item.blockedReason,
+      areas: normalizeTaskAreas(item.areas || item.area),
+    },
     currentNames: item.responsibles || [],
     currentFeatureName: item.featureName || "",
     featureProjectKey: topic.projectKey || "",
     currentStatus: deriveTaskStatus(item, topic),
+    currentAreas: normalizeTaskAreas(item.areas || item.area),
     onDelete: () => {
       topic.items = topic.items.filter((x) => x.id !== item.id);
       persistState();
@@ -4989,9 +5025,11 @@ function renderTopics() {
     msg.className = "muted";
     if (taskSearchText) {
       msg.textContent = `No tasks found for "${taskSearchText}".`;
-    } else if (selectedResponsible) {
-      msg.textContent = `No tasks found for ${selectedResponsible} in this view.`;
-    } else if (filterHighOnly || filterBlockedOnly) {
+  } else if (selectedResponsible) {
+    msg.textContent = `No tasks found for ${selectedResponsible} in this view.`;
+  } else if (selectedArea) {
+    msg.textContent = `No tasks found for area ${selectedArea} in this view.`;
+  } else if (filterHighOnly || filterBlockedOnly) {
       msg.textContent = "No tasks found with the current task filters.";
     } else if (selectedProjectStatus) {
       msg.textContent = `No projects found with status ${selectedProjectStatus}.`;
@@ -5025,6 +5063,7 @@ function render() {
   renderTopicProjectSelect();
   renderTopicStatusSelect(el.topicStatusSelect?.value || "");
   renderResponsibleFilter();
+  renderAreaFilter();
   renderProjectStatusFilter();
   renderTaskFilterVisibility();
   renderBoardSprintSelect();
@@ -5322,6 +5361,10 @@ el.taskSearchInput.addEventListener("input", () => {
 });
 el.responsibleFilter.addEventListener("change", () => {
   selectedResponsible = el.responsibleFilter.value || "";
+  render();
+});
+el.areaFilter.addEventListener("change", () => {
+  selectedArea = normalizeTeamArea(el.areaFilter.value);
   render();
 });
 el.projectStatusFilter.addEventListener("change", () => {

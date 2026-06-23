@@ -399,6 +399,7 @@ main {
 }
 
 #responsibleFilter,
+#areaFilter,
 #projectStatusFilter,
 .delivery-sprint-select,
 .workload-date-input {
@@ -2449,6 +2450,7 @@ textarea:focus {
 
   #taskSearchInput,
   #responsibleFilter,
+  #areaFilter,
   #projectStatusFilter,
   .delivery-sprint-select {
     max-width: none;

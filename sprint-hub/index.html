@@ -67,6 +67,7 @@
             <div class="filter-controls" aria-label="Board filters">
               <div class="filter-selects">
                 <select id="responsibleFilter" aria-label="Filter by responsible"></select>
+                <select id="areaFilter" aria-label="Filter by area"></select>
                 <select id="projectStatusFilter" aria-label="Filter by project status"></select>
               </div>
               <div class="filter-toggles">
@@ -169,13 +170,13 @@
             <option value="done">Done</option>
           </select>
         </label>
-        <label class="field-block task-area-field">
-          <span class="field-label">Area</span>
-          <div id="modalTaskAreaOptions" class="task-area-options" aria-label="Task areas"></div>
-        </label>
         <label class="copy-options">
           <input id="modalHighPriorityCheck" type="checkbox" />
           High Priority
+        </label>
+        <label class="field-block task-area-field">
+          <span class="field-label">Area</span>
+          <div id="modalTaskAreaOptions" class="task-area-options" aria-label="Task areas"></div>
         </label>
       </div>
       <div id="modalBlockedReasonBlock" class="field-block hidden">

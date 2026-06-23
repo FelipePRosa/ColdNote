@@ -169,5 +169,5 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Neodent Mobile App
-- [ ] Boleto Clear (Fel + Gui + Vicco) [FEATURE: Dados de boleto Clear] [STATUS: Testing] [AREA: Back]
+- [ ] Boleto Clear (Fel + Gui + Vicco) [FEATURE: Dados de boleto Clear] [STATUS: Testing] [AREA: Back, Mobile, Data]
 - [ ] Integração clear -> boleto (Vicco) [STATUS: Testing] [AREA: Mobile]

@@ -244,6 +244,6 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] KPIs tela + logicas (Fel) [HIGH] [BLOCKED]
 - [ ] Notificações (Gui + Vicco) [BLOCKED]
 - [ ] Master login (Gui) [BLOCKED: Prioridade]
-- [ ] Salvar roteiro (Guto + Vicco) [STATUS: Doing] [AREA: Back]
+- [ ] Salvar roteiro (Guto + Vicco) [STATUS: Doing] [AREA: Back, Mobile]
 - [ ] Adaptar genia para query (Brunin) [STATUS: Doing] [AREA: Data] [FOLLOWED]
-- [ ] Reminder (Guto + Vicco) [STATUS: Doing] [AREA: Back]
+- [ ] Reminder (Guto + Vicco) [STATUS: Doing] [AREA: Back, Mobile]
