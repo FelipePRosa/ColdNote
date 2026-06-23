@@ -163,8 +163,11 @@ Current behavior:
 - only available in `Projects View`
 - hides backlog panel
 - uses week columns and maps projects into them from `startDate` to `deliveryDate`
-- creates one row per member
+- creates one row per active member from `tech/team/*.md`
+- only includes projects that have both `Start Date` and `Delivery Date`
 - shows active projects across the full date interval for each involved member
+- only counts responsibles whose team file is marked `Ativo: Sim`
+- workload cards show the project title only
 - leaves empty ranges visible so free capacity is easy to spot
 
 ## Main Data Model
@@ -402,7 +405,7 @@ Current parsing depends on:
 
 - first `# ` heading for member name
 - `Nickname: ...`
-- optional `Ativo: ...`
+- `Ativo: ...` to determine whether the member appears in assignment and workload flows
 
 ## Process Guidance
 

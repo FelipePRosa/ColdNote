@@ -11,7 +11,8 @@
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "moxbl67o_aiqqld",
@@ -24,7 +25,8 @@
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "moueaxgk_pl2erd",
@@ -37,7 +39,8 @@
       "projectKey": "neodent mobile app",
       "projectTitle": "Neodent Mobile App",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "moufasep_vh3cox",
@@ -50,7 +53,8 @@
       "projectKey": "genia web app",
       "projectTitle": "Genia Web App",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "moxbl67o_ax372c",
@@ -63,7 +67,8 @@
       "projectKey": "outros",
       "projectTitle": "Outros",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "moufasep_cipele",
@@ -76,7 +81,8 @@
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "moufasep_uqsqb8",
@@ -89,7 +95,8 @@
       "projectKey": "clearcorrect automations",
       "projectTitle": "clearcorrect automations",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "mouhefj2_55hlby",
@@ -102,7 +109,8 @@
       "projectKey": "clearwallet",
       "projectTitle": "ClearWallet",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "mouhefj2_c7r4ac",
@@ -115,7 +123,8 @@
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "moxbl67o_ezpwqa",
@@ -128,7 +137,8 @@
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "mp1lao8m_b80bjg",
@@ -141,7 +151,8 @@
       "blockedReason": "",
       "projectTitle": "material data",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "moufasep_9k7fwn",
@@ -154,7 +165,8 @@
       "projectKey": "straumann mobile app",
       "projectTitle": "Straumann Mobile App",
       "followed": false,
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     },
     {
       "id": "mppr1mbm_ur1lnx",
@@ -167,7 +179,8 @@
       "followed": false,
       "projectKey": "neodent mobile app",
       "projectTitle": "Neodent Mobile App",
-      "featureName": ""
+      "featureName": "",
+      "status": ""
     }
   ]
 }

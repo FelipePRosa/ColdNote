@@ -358,6 +358,7 @@ function isTeamMetricsFile(path) {
 function normalizeItem(item) {
   if (!Array.isArray(item.responsibles)) item.responsibles = [];
   if (item.priority !== "high") item.priority = "normal";
+  item.status = normalizeTaskFlowStatus(item.status);
   item.blocked = Boolean(item.blocked);
   item.blockedReason = item.blocked ? String(item.blockedReason || "").trim() : "";
   item.followed = Boolean(item.followed);
@@ -938,6 +939,8 @@ function getProjectFeatureNames(projectKey) {
 function deriveTaskStatus(item = {}, topic = null) {
   if (item?.done) return "done";
   if (item?.blocked) return "blocked";
+  const explicitStatus = normalizeTaskFlowStatus(item?.status);
+  if (explicitStatus) return explicitStatus;
   const topicStatus = normalizeProjectStatus(topic?.status);
   if (topicStatus === "Desenvolvimento") return "doing";
   if (topicStatus === "Teste") return "testing";
@@ -951,6 +954,7 @@ function cloneActiveTopicItems(topic) {
       id: uid(),
       text: item.text,
       done: false,
+      status: normalizeTaskFlowStatus(item.status),
       projectKey: topic.projectKey || "",
       followed: Boolean(item.followed),
       responsibles: [...(item.responsibles || [])],
@@ -971,6 +975,12 @@ function taskStatusLabel(status) {
   }[status] || "Open";
 }
 
+function normalizeTaskFlowStatus(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (raw === "open" || raw === "doing" || raw === "testing") return raw;
+  return "";
+}
+
 function parseItemTextAndResponsibles(rawText) {
   let text = String(rawText || "").trim();
   let priority = "normal";
@@ -978,6 +988,7 @@ function parseItemTextAndResponsibles(rawText) {
   let blockedReason = "";
   let followed = false;
   let featureName = "";
+  let status = "";
 
   const blockedReasonMatch = text.match(/\[BLOCKED\s*:\s*([^\]]+)\]/i);
   if (blockedReasonMatch) {
@@ -990,6 +1001,11 @@ function parseItemTextAndResponsibles(rawText) {
     featureName = String(featureMatch[1] || "").trim();
   }
 
+  const statusMatch = text.match(/\[STATUS\s*:\s*([^\]]+)\]/i);
+  if (statusMatch) {
+    status = normalizeTaskFlowStatus(statusMatch[1]);
+  }
+
   const metaMatches = text.match(/\[(HIGH|BLOCKED|FOLLOWED)\]/gi) || [];
   metaMatches.forEach((m) => {
     if (/HIGH/i.test(m)) priority = "high";
@@ -998,24 +1014,25 @@ function parseItemTextAndResponsibles(rawText) {
   });
   text = text
     .replace(/\s*\[FEATURE\s*:\s*[^\]]+\]/gi, "")
+    .replace(/\s*\[STATUS\s*:\s*[^\]]+\]/gi, "")
     .replace(/\s*\[BLOCKED\s*:\s*[^\]]+\]/gi, "")
     .replace(/\s*\[(HIGH|BLOCKED|FOLLOWED)\]/gi, "")
     .trim();
 
   const m = text.match(/^(.*)\(([^()]*)\)\s*$/);
-  if (!m) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName };
+  if (!m) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName, status };
 
   const body = m[1].trim();
   const namesRaw = m[2].trim();
-  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName };
+  if (!/[A-Za-z]/.test(namesRaw)) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName, status };
 
   const responsibles = namesRaw
     .split(/\s*\+\s*|\s*,\s*/)
     .map((x) => x.trim())
     .filter(Boolean);
 
-  if (!responsibles.length) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName };
-  return { text: body || text, responsibles, priority, blocked, blockedReason, followed, featureName };
+  if (!responsibles.length) return { text, responsibles: [], priority, blocked, blockedReason, followed, featureName, status };
+  return { text: body || text, responsibles, priority, blocked, blockedReason, followed, featureName, status };
 }
 
 function parseSprintMarkdown(fileName, markdown) {
@@ -1070,6 +1087,7 @@ function parseSprintMarkdown(fileName, markdown) {
             done,
             projectKey: currentTopic.projectKey,
             responsibles: parsed.responsibles,
+            status: parsed.status,
             priority: parsed.priority,
             blocked: parsed.blocked,
             blockedReason: parsed.blockedReason,
@@ -1093,6 +1111,7 @@ function parseSprintMarkdown(fileName, markdown) {
             done: false,
             projectKey: currentTopic.projectKey,
             responsibles: parsed.responsibles,
+            status: parsed.status,
             priority: parsed.priority,
             blocked: parsed.blocked,
             blockedReason: parsed.blockedReason,
@@ -1169,6 +1188,7 @@ function sprintToMarkdown(sprint) {
     topic.items.forEach((item) => {
       let lineText = itemDisplayText(item);
       if (item.featureName) lineText += ` [FEATURE: ${String(item.featureName).replace(/\]/g, ")")}]`;
+      if (normalizeTaskFlowStatus(item.status)) lineText += ` [STATUS: ${taskStatusLabel(item.status)}]`;
       if (item.priority === "high") lineText += " [HIGH]";
       if (item.blocked) {
         const blockedReason = String(item.blockedReason || "").trim().replace(/\]/g, ")");
@@ -1900,8 +1920,8 @@ function getActiveSprint() {
   return sprint || state.sprints[0] || null;
 }
 
-function beginTopicTaskDrag(topicId, itemId) {
-  dragTaskState = { sourceType: "topic", topicId, itemId };
+function beginTopicTaskDrag(topicId, itemId, sprintId = null) {
+  dragTaskState = { sourceType: "topic", topicId, itemId, sprintId };
 }
 
 function beginBacklogTaskDrag(itemId) {
@@ -3521,7 +3541,7 @@ function createSprintTopicCard(topic, sprint, options = {}) {
 
     if (canDrag) {
       li.addEventListener("dragstart", (e) => {
-        beginTopicTaskDrag(topic.id, item.id);
+        beginTopicTaskDrag(topic.id, item.id, sprint.id);
         li.classList.add("dragging");
         if (e.dataTransfer) {
           e.dataTransfer.effectAllowed = "move";
@@ -3587,6 +3607,7 @@ function createSprintTopicCard(topic, sprint, options = {}) {
           id: uid(),
           text,
           done: status === "done",
+          status: status === "done" || status === "blocked" ? "" : normalizeTaskFlowStatus(status),
           projectKey: normalizeProjectKey(topic.projectKey),
           responsibles,
           priority,
@@ -3594,8 +3615,6 @@ function createSprintTopicCard(topic, sprint, options = {}) {
           blockedReason: status === "blocked" ? blockedReason : "",
           featureName: String(featureName || "").trim(),
         });
-        if (status === "doing") topic.status = "Desenvolvimento";
-        else if (status === "testing") topic.status = "Teste";
         persistState();
         render();
       },
@@ -3689,12 +3708,11 @@ function openTopicTaskEditor(topic, item) {
       item.responsibles = responsibles;
       item.priority = priority;
       item.done = status === "done";
+      item.status = status === "done" || status === "blocked" ? "" : normalizeTaskFlowStatus(status);
       item.blocked = status === "blocked";
       item.blockedReason = item.blocked ? blockedReason : "";
       item.featureName = String(featureName || "").trim();
       item.projectKey = topic.projectKey;
-      if (status === "doing") topic.status = "Desenvolvimento";
-      else if (status === "testing") topic.status = "Teste";
       persistState();
       render();
     },
@@ -3876,11 +3894,7 @@ function renderTaskboard() {
 
       topic.items.forEach((item) => {
         if (!taskPassesBoardFilters(item, topic, sprint)) return;
-        let columnId = "open";
-        if (item.done) columnId = "done";
-        else if (item.blocked) columnId = "blocked";
-        else if (topic.status === "Desenvolvimento") columnId = "doing";
-        else if (topic.status === "Teste") columnId = "testing";
+        const columnId = deriveTaskStatus(item, topic);
         columnMap[columnId].items.push({ sprint, topic, item });
       });
     });
@@ -3991,7 +4005,7 @@ function renderTaskboard() {
         render();
       });
       card.addEventListener("dragstart", (e) => {
-        beginTopicTaskDrag(topic.id, item.id);
+        beginTopicTaskDrag(topic.id, item.id, sprint.id);
         card.classList.add("dragging");
         if (e.dataTransfer) {
           e.dataTransfer.effectAllowed = "move";
@@ -4015,7 +4029,9 @@ function renderTaskboard() {
 
 function moveDraggedTaskToTaskboardColumn(columnId) {
   if (!dragTaskState || dragTaskState.sourceType !== "topic") return false;
-  const sprint = getActiveSprint();
+  const sprint = dragTaskState.sprintId
+    ? state.sprints.find((entry) => entry.id === dragTaskState.sprintId)
+    : state.sprints.find((entry) => entry.topics.some((topic) => topic.id === dragTaskState.topicId));
   if (!sprint) return false;
   const topic = sprint.topics.find((t) => t.id === dragTaskState.topicId);
   if (!topic) return false;
@@ -4024,17 +4040,18 @@ function moveDraggedTaskToTaskboardColumn(columnId) {
 
   if (columnId === "done") {
     item.done = true;
+    item.status = "";
     item.blocked = false;
     item.blockedReason = "";
   } else if (columnId === "blocked") {
     item.done = false;
+    item.status = "";
     item.blocked = true;
   } else {
     item.done = false;
+    item.status = normalizeTaskFlowStatus(columnId);
     item.blocked = false;
     item.blockedReason = "";
-    if (columnId === "doing") topic.status = "Desenvolvimento";
-    else if (columnId === "testing") topic.status = "Teste";
   }
 
   persistState();

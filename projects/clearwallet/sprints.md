@@ -179,5 +179,5 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] V3 LET'S GOOOO (Bruf + Fel + Maxo + Nu) [HIGH]
 - [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu)
 - [ ] Master Login (Bruf + Gui)
-- [ ] Bug retry pagamento (Maxo)
+- [ ] Bug retry pagamento (Maxo) [FOLLOWED]
 - [ ] Novas telas (Rich) [HIGH]
