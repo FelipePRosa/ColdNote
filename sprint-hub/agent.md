@@ -172,6 +172,21 @@ Current behavior:
 - workload cards show the project title only
 - leaves empty ranges visible so free capacity is easy to spot
 
+### Project Load View
+
+Project Load is the project/week allocation calendar.
+
+Current behavior:
+
+- only available in `Projects View`
+- hides backlog panel
+- uses the same week columns and date range controls as `Workload View`
+- creates one row per active project card that has both `Start Date` and `Delivery Date`
+- project rows stay visible even when there is no responsible allocated yet
+- open task `areas[]` are rendered as separate internal timeline rows for that project
+- each internal row shows one area and the allocated members whose team file `Area` matches that task area
+- if an open task requires an area and no allocated member matches that area, that area row is highlighted in yellow
+
 ## Main Data Model
 
 ### Sprint

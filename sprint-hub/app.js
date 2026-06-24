@@ -38,6 +38,7 @@ const el = {
   memberViewBtn: document.getElementById("memberViewBtn"),
   deliveryViewBtn: document.getElementById("deliveryViewBtn"),
   workloadViewBtn: document.getElementById("workloadViewBtn"),
+  projectWorkloadViewBtn: document.getElementById("projectWorkloadViewBtn"),
   cancelTopicBtn: document.getElementById("cancelTopicBtn"),
   newSprintBtn: document.getElementById("newSprintBtn"),
   editSprintBtn: document.getElementById("editSprintBtn"),
@@ -1045,6 +1046,27 @@ function parseTopicAreasFromEntries(entries = []) {
         .filter(Boolean)
     )
   );
+}
+
+function summarizeProjectAreaCoverage(entries = []) {
+  const summary = new Map();
+  entries
+    .filter(({ item }) => item && !item.done)
+    .forEach(({ item }) => {
+      const itemAreas = normalizeTaskAreas(item.areas || item.area);
+      itemAreas.forEach((area) => {
+        const entry = summary.get(area) || { area, members: new Set() };
+        (item.responsibles || []).forEach((name) => {
+          if (getTeamAreaByNickname(name) === area) entry.members.add(name);
+        });
+        summary.set(area, entry);
+      });
+    });
+  return Array.from(summary.values()).map((entry) => ({
+    area: entry.area,
+    members: Array.from(entry.members).sort((a, b) => a.localeCompare(b)),
+    missing: entry.members.size === 0,
+  }));
 }
 
 function normalizeTaskFlowStatus(value) {
@@ -3361,7 +3383,7 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
     .sort((a, b) => a.title.localeCompare(b.title));
 }
 
-function collectWorkloadProjects({ projectFilter = selectedProjectKey, statusFilter = selectedProjectStatus } = {}) {
+function collectWorkloadProjects({ projectFilter = selectedProjectKey, statusFilter = selectedProjectStatus, allowUnassigned = false } = {}) {
   const projects = new Map();
 
   visibleSprints().forEach((sprint) => {
@@ -3431,7 +3453,7 @@ function collectWorkloadProjects({ projectFilter = selectedProjectKey, statusFil
       if (!isWorkloadProjectActive(project.status)) return false;
       if (!project.startDate || !project.deliveryDate) return false;
       if (diffDaysInclusive(project.startDate, project.deliveryDate) < 0) return false;
-      if (!project.responsibles.length) return false;
+      if (!project.responsibles.length && !allowUnassigned) return false;
       if (!query) return true;
       return searchHaystack([
         project.title,
@@ -4783,6 +4805,140 @@ function renderWorkloadView() {
   el.topicsGrid.appendChild(view);
 }
 
+function renderProjectWorkloadView() {
+  el.boardTitle.textContent = "Project Load";
+  el.boardMeta.textContent = selectedProjectKey
+    ? `Weekly project load for ${selectedProjectKey}.`
+    : "Weekly project load with required areas and allocated members.";
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid", "workload-grid");
+  el.topicsGrid.classList.add("workload-grid");
+
+  const projects = collectWorkloadProjects({ allowUnassigned: true });
+  if (!projects.length) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "No active projects with dates found for project load view.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  const filterStart = normalizeTopicStartDate(workloadStartDate) || getCurrentWeekStartIso();
+  const filterEnd = normalizeTopicDeliveryDate(workloadEndDate);
+  const rangeStart = filterStart;
+  const rangeEnd = filterEnd || projects.reduce((max, project) => (!max || project.deliveryDate > max ? project.deliveryDate : max), filterStart);
+  const weekColumns = buildWeeklyColumns(rangeStart, rangeEnd);
+  if (!weekColumns.length) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "No weekly columns available for project load view.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  const visibleProjects = projects
+    .map((project) => {
+      const activeIndexes = weekColumns
+        .filter((column) => timeColumnOverlapsRange(column, project.startDate, project.deliveryDate))
+        .map((column) => column.index);
+      if (!activeIndexes.length) return null;
+      const areaCoverage = summarizeProjectAreaCoverage(project.currentEntries || []);
+      if (selectedArea && !areaCoverage.some((entry) => entry.area === selectedArea)) return null;
+      return {
+        ...project,
+        areaCoverage,
+        startIndex: Math.min(...activeIndexes),
+        endIndex: Math.max(...activeIndexes),
+      };
+    })
+    .filter(Boolean);
+
+  if (!visibleProjects.length) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = selectedArea
+      ? `No projects found for area ${selectedArea} in the selected range.`
+      : "No active projects overlap the selected weekly range.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  const view = document.createElement("section");
+  view.className = "workload-view workload-project-view";
+  view.style.setProperty("--workload-columns", String(weekColumns.length));
+
+  const corner = document.createElement("div");
+  corner.className = "workload-corner";
+  corner.innerHTML = `<strong>Project</strong><span>${visibleProjects.length} active project${visibleProjects.length === 1 ? "" : "s"}</span>`;
+  view.appendChild(corner);
+
+  const head = document.createElement("div");
+  head.className = "workload-head";
+  weekColumns.forEach((column, columnIndex) => {
+    const cell = document.createElement("div");
+    cell.className = "workload-day";
+    if (columnIndex === 0 || column.start.getUTCDate() <= 7) cell.classList.add("month-break");
+    if (timeColumnOverlapsRange(column, localIsoToday(), localIsoToday())) cell.classList.add("is-today");
+    cell.innerHTML = `
+      <strong>${formatWeekColumnLabel(column)}</strong>
+      <span>${formatWeekColumnMeta(column)}</span>
+    `;
+    head.appendChild(cell);
+  });
+  view.appendChild(head);
+
+  visibleProjects.forEach((project) => {
+    const memberCell = document.createElement("div");
+    memberCell.className = "workload-member workload-project-member";
+    memberCell.innerHTML = `
+      <strong>${project.title}</strong>
+      <span>${project.areaCoverage.length ? `${project.areaCoverage.length} area${project.areaCoverage.length === 1 ? "" : "s"} required` : "No area tags"}</span>
+      <span>${project.responsibles.length ? `${project.responsibles.length} member${project.responsibles.length === 1 ? "" : "s"} allocated` : "No allocated members"}</span>
+    `;
+    memberCell.addEventListener("click", () => openProjectEditor(project));
+    view.appendChild(memberCell);
+
+    const lanes = document.createElement("div");
+    lanes.className = "workload-lanes";
+    const areaRows = project.areaCoverage.length
+      ? project.areaCoverage
+      : [{ area: "No area tags", members: [], missing: false, empty: true }];
+    lanes.style.setProperty("--workload-lanes", String(areaRows.length));
+
+    areaRows.forEach((entry, laneIndex) => {
+      weekColumns.forEach((column, columnIndex) => {
+        const bg = document.createElement("div");
+        bg.className = "workload-lane-cell";
+        bg.style.gridColumn = String(columnIndex + 1);
+        bg.style.gridRow = String(laneIndex + 1);
+        if (timeColumnOverlapsRange(column, localIsoToday(), localIsoToday())) bg.classList.add("is-today");
+        lanes.appendChild(bg);
+      });
+
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = `workload-assignment delivery-status-${normalizeStatusClass(project.status)}${entry.missing ? " workload-assignment-missing" : ""}${entry.empty ? " workload-assignment-empty" : ""}`;
+      card.style.gridColumn = `${project.startIndex + 1} / ${project.endIndex + 2}`;
+      card.style.gridRow = String(laneIndex + 1);
+      card.innerHTML = `
+        <strong>${entry.area}</strong>
+        <span>${entry.empty ? "No open task areas" : entry.members.length ? entry.members.join(", ") : "No allocated member from this area"}</span>
+      `;
+      card.title = entry.empty
+        ? `${project.title} | ${formatTopicStartDate(project.startDate)} - ${formatTopicDeliveryDate(project.deliveryDate)}`
+        : entry.missing
+          ? `${project.title} | ${entry.area}: no member allocated from this area`
+          : `${project.title} | ${entry.area}: ${entry.members.join(", ")}`;
+      card.addEventListener("click", () => openProjectEditor(project));
+      lanes.appendChild(card);
+    });
+
+    view.appendChild(lanes);
+  });
+
+  el.topicsGrid.appendChild(view);
+}
+
 function renderProjectFeatureCards() {
   el.boardTitle.textContent = "Project";
   el.boardMeta.textContent = selectedProjectKey
@@ -5087,11 +5243,12 @@ function render() {
   else if (taskLayoutView === "members" && boardView !== "projects") renderSprintMembers();
   else if (taskLayoutView === "delivery") renderDeliveryView();
   else if (taskLayoutView === "workload") renderWorkloadView();
+  else if (taskLayoutView === "project-workload") renderProjectWorkloadView();
   else renderTopics();
   renderBacklog();
   const projectsMode = boardView === "projects";
   const deliveryMode = taskLayoutView === "delivery";
-  const workloadMode = taskLayoutView === "workload";
+  const workloadMode = taskLayoutView === "workload" || taskLayoutView === "project-workload";
   const membersMode = taskLayoutView === "members" && !projectsMode;
   el.topicsGrid.closest(".workspace")?.classList.toggle("workspace-delivery", deliveryMode || workloadMode);
   el.newSprintBtn.classList.toggle("hidden", projectsMode);
@@ -5106,6 +5263,8 @@ function render() {
   el.deliveryViewBtn.classList.toggle("active", taskLayoutView === "delivery");
   el.workloadViewBtn?.classList.toggle("hidden", !projectsMode);
   el.workloadViewBtn?.classList.toggle("active", taskLayoutView === "workload");
+  el.projectWorkloadViewBtn?.classList.toggle("hidden", !projectsMode);
+  el.projectWorkloadViewBtn?.classList.toggle("active", taskLayoutView === "project-workload");
   el.backlogList.closest(".backlog-panel")?.classList.toggle("hidden", deliveryMode || workloadMode);
   el.viewModeBtn.textContent = projectsMode ? "Sprints View" : "Projects View";
   if (projectsMode) {
@@ -5307,12 +5466,22 @@ el.workloadViewBtn?.addEventListener("click", () => {
   }
   render();
 });
+el.projectWorkloadViewBtn?.addEventListener("click", () => {
+  boardView = "projects";
+  const nextIsProjectWorkload = taskLayoutView !== "project-workload";
+  taskLayoutView = nextIsProjectWorkload ? "project-workload" : "projects";
+  if (nextIsProjectWorkload) {
+    workloadStartDate = getCurrentWeekStartIso();
+    if (workloadEndDate && diffDaysInclusive(workloadStartDate, workloadEndDate) < 0) workloadEndDate = "";
+  }
+  render();
+});
 el.viewModeBtn.addEventListener("click", () => {
   if (boardView === "projects") {
     boardView = "sprints";
     projectSearchText = "";
     selectedProjectKey = "";
-    if (taskLayoutView === "delivery" || taskLayoutView === "workload") taskLayoutView = "projects";
+    if (taskLayoutView === "delivery" || taskLayoutView === "workload" || taskLayoutView === "project-workload") taskLayoutView = "projects";
   } else {
     boardView = "projects";
     selectedProjectKey = "";

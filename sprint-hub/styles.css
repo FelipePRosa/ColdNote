@@ -998,6 +998,27 @@ main {
   font-size: 0.68rem;
 }
 
+.workload-project-view {
+  --workload-member-width: 320px;
+}
+
+.workload-project-member {
+  align-content: start;
+  gap: 6px;
+}
+
+.workload-project-member span + span {
+  margin-top: -2px;
+}
+
+.workload-assignment-missing {
+  background: #c58a00;
+}
+
+.workload-assignment-empty {
+  background: #6b7280;
+}
+
 .delivery-plan-card-head span,
 .delivery-plan-count {
   color: rgba(255, 255, 255, 0.86);
@@ -2331,6 +2352,10 @@ textarea:focus {
   .workload-view {
     --workload-member-width: 156px;
     --workload-day-width: 46px;
+  }
+
+  .workload-project-view {
+    --workload-member-width: 240px;
   }
 }
 
