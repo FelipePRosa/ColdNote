@@ -94,6 +94,39 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### ClearCorrect Automations
+- [ ] Criação de Voucher FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Comparecimento FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Criação de vouchers de pacote (Fel) [STATUS: Doing] [AREA: Data] [FOLLOWED]
+
+## Sprint 26-26
+
+### ClearCorrect Automations
+- [ ] Criação de Voucher FastStart (Fel) [FEATURE: Fast Start] [AREA: Data] [BLOCKED] [FOLLOWED]
+- [x] Comparecimento FastStart (Fel) [FEATURE: Fast Start] [AREA: Data] [FOLLOWED]
+- [ ] Criação de vouchers de pacote (Fel) [AREA: Data] [BLOCKED] [FOLLOWED]
+
+### Friends&Family
+- [ ] Criação de Voucher (Fel) [FEATURE: LP Friends and Family] [STATUS: Open] [AREA: Data] [FOLLOWED]
+- [ ] LP dentista para validar código (Bruf + Fel) [FEATURE: LP Friends and Family] [AREA: Back, Mobile] [BLOCKED: Falta definição] [FOLLOWED]
+
+## Sprint 26-27
+
+### ClearCorrect Automations
+- [ ] Criação de Voucher FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Comparecimento FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Criação de vouchers de pacote (Fel) [STATUS: Doing] [AREA: Data] [FOLLOWED]
+
+## Sprint 26-28
+
+### ClearCorrect Automations
+- [ ] Comparecimento FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Criação de vouchers de pacote (Fel) [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [x] 🔓 PAPAIZ (Fel) [AREA: Back] [FOLLOWED]
+
+## Sprint 26-29
+
+### ClearCorrect Automations
 - [ ] Criação de Voucher FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data]
 - [ ] Comparecimento FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data]
 - [ ] Criação de vouchers de pacote (Fel) [STATUS: Doing] [AREA: Data]
+- [ ] Friends&Family (Bruf + Fel) [FEATURE: LP Friends and Family] [STATUS: Doing]

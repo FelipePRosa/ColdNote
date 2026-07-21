@@ -222,6 +222,7 @@ Each feature has:
 Runtime behavior in the UI:
 
 - features are managed through the Features modal
+- clicking a feature in that modal expands the current assigned tasks for that feature inline
 - each feature can be edited through its own pencil icon
 - in `Projects View`, a derived feature status is shown:
   - `Closed`: all tasks in that feature are done

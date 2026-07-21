@@ -194,7 +194,37 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Genia Web App
+- [ ] WakeWord (Brunin + Bruf + Hary) [AREA: Front] [BLOCKED] [FOLLOWED]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu) [STATUS: Open] [AREA: Front] [FOLLOWED]
+- [ ] Testes gerais (Berg + Nu) [STATUS: Open] [AREA: QA] [FOLLOWED]
+- [ ] Atualizar Raio-x digital (Bruf) [STATUS: Testing] [AREA: Front] [FOLLOWED]
+
+## Sprint 26-26
+
+### Genia Web App
+- [ ] WakeWord (Brunin + Bruf + Hary) [AREA: Front] [BLOCKED] [FOLLOWED]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu) [STATUS: Open] [AREA: Front] [FOLLOWED]
+- [ ] Testes gerais (Berg + Nu) [STATUS: Open] [AREA: QA] [FOLLOWED]
+- [ ] Atualizar Raio-x digital (Bruf) [STATUS: Testing] [AREA: Front] [FOLLOWED]
+
+## Sprint 26-27
+
+### Genia Web App
+- [ ] WakeWord (Brunin + Bruf + Hary) [AREA: Front] [BLOCKED] [FOLLOWED]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu) [STATUS: Open] [AREA: Front] [FOLLOWED]
+- [ ] Testes gerais (Berg + Nu) [STATUS: Open] [AREA: QA] [FOLLOWED]
+
+## Sprint 26-28
+
+### Genia Web App
+- [ ] WakeWord (Brunin + Bruf + Hary) [AREA: Front] [BLOCKED] [FOLLOWED]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu) [STATUS: Testing] [AREA: Front] [FOLLOWED]
+- [ ] Testes gerais (Berg + Nu) [STATUS: Open] [AREA: QA] [FOLLOWED]
+
+## Sprint 26-29
+
+### Genia Web App
 - [ ] WakeWord (Brunin + Bruf + Hary) [AREA: Front] [BLOCKED]
-- [ ] Echo Cancelation (Brunin + Bruf + Nu) [STATUS: Open] [AREA: Front]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu) [AREA: Front] [BLOCKED]
 - [ ] Testes gerais (Berg + Nu) [STATUS: Open] [AREA: QA]
-- [ ] Atualizar Raio-x digital (Bruf) [STATUS: Testing] [AREA: Front]
+- [ ] Adequação Cursos (Bruf) [STATUS: Testing] [AREA: Back, Front]

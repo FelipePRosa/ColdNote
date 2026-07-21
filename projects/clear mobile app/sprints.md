@@ -94,11 +94,56 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Clear Mobile App
-- [ ] Base de pedidos (Fel) [STATUS: Doing] [AREA: Data] [HIGH]
-- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH]
+- [ ] Base de pedidos (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
 - [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH] [FOLLOWED]
 - [ ] Documentação endpoints DrPortal (Fel) [HIGH] [FOLLOWED]
 - [ ] Documentação genia Clear (Fel) [STATUS: Doing] [HIGH] [FOLLOWED]
+- [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Formulario de IPs (Gui) [FOLLOWED]
+
+## Sprint 26-26
+
+### Clear Mobile App
+- [ ] Base de pedidos (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+- [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH] [FOLLOWED]
+- [ ] Documentação genia Clear (Brunin + Fel) [STATUS: Doing] [HIGH] [FOLLOWED]
+- [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento backend (Gui) [AREA: Back] [HIGH] [BLOCKED: Prioridades] [FOLLOWED]
+
+## Sprint 26-27
+
+### Clear Mobile App
+- [ ] Base de pedidos (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+- [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH] [FOLLOWED]
+- [ ] Documentação genia Clear (Fel) [STATUS: Doing] [HIGH] [FOLLOWED]
+- [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento backend (Gui) [AREA: Back] [HIGH] [BLOCKED] [FOLLOWED]
+- [ ] Formulario de IPs (Gui) [FOLLOWED]
+- [ ] Genia Clear (Brunin + Hary) [STATUS: Doing] [AREA: Data] [FOLLOWED]
+
+## Sprint 26-28
+
+### Clear Mobile App
+- [ ] Base de pedidos (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+- [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH] [FOLLOWED]
+- [ ] Documentação genia Clear (Fel) [STATUS: Doing] [HIGH] [FOLLOWED]
+- [x] Dados caso (status) e stl (Fel) [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento backend (Gui) [AREA: Back] [HIGH] [BLOCKED] [FOLLOWED]
+- [ ] Formulario de IPs (Gui) [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Genia Clear (Brunin + Hary) [STATUS: Doing] [AREA: Data] [FOLLOWED]
+
+## Sprint 26-29
+
+### Clear Mobile App
+- [ ] Base de pedidos (Fel) [STATUS: Doing] [AREA: Data] [HIGH]
+- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH]
+- [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH]
+- [ ] Documentação genia Clear (Fel) [STATUS: Doing] [HIGH]
 - [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH]
-- [ ] Desenvolvimento backend (Gui) [STATUS: Doing] [AREA: Back] [HIGH]
+- [ ] Desenvolvimento backend (Gui) [AREA: Back] [HIGH] [BLOCKED]
 - [ ] Formulario de IPs (Gui)
+- [ ] Genia Clear (Brunin + Hary) [STATUS: Doing] [AREA: Data]

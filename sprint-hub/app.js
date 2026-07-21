@@ -216,6 +216,7 @@ let currentTimelineEntries = [];
 let currentFeaturesProjectKey = "";
 let currentFeaturesEntries = [];
 let currentFeatureEditId = "";
+let currentExpandedFeatureName = "";
 const modalBackdropState = new WeakMap();
 let taskModalBacklogMode = false;
 const TEAMS_WEBHOOK_URL = "https://prod-116.westeurope.logic.azure.com:443/workflows/c6390517ac924f61ba70e7695a392fa6/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zKA-t3iOYLshX2GQBdol1aVMG4zaDu_H7IzjFVrEsmA";
@@ -2329,6 +2330,31 @@ function closeTimelineModal() {
   currentTimelineEntries = [];
 }
 
+function collectCurrentFeatureTaskEntries(projectKey, featureName) {
+  const normalizedProjectKey = normalizeProjectKey(projectKey);
+  const normalizedFeatureName = String(featureName || "").trim();
+  if (!normalizedProjectKey || !normalizedFeatureName) return [];
+
+  const entries = [];
+  state.sprints.forEach((sprint) => {
+    sprint.topics.forEach((topic) => {
+      normalizeTopic(topic);
+      if (normalizeProjectKey(topic.projectKey) !== normalizedProjectKey) return;
+      topic.items.forEach((item) => {
+        normalizeItem(item);
+        if (String(item.featureName || "").trim() !== normalizedFeatureName) return;
+        entries.push({ sprint, topic, item });
+      });
+    });
+  });
+
+  return latestProjectTaskEntries(entries).sort((a, b) => {
+    const leftStatus = taskStatusLabel(deriveTaskStatus(a.item, a.topic));
+    const rightStatus = taskStatusLabel(deriveTaskStatus(b.item, b.topic));
+    return leftStatus.localeCompare(rightStatus) || (a.item.text || "").localeCompare(b.item.text || "");
+  });
+}
+
 function renderFeaturesEntries() {
   el.featuresList.innerHTML = "";
   if (!currentFeaturesEntries.length) {
@@ -2340,20 +2366,61 @@ function renderFeaturesEntries() {
   }
 
   currentFeaturesEntries.forEach((entry) => {
+    const featureTasks = collectCurrentFeatureTaskEntries(currentFeaturesProjectKey, entry.name);
+    const expanded = currentExpandedFeatureName === entry.name;
     const node = document.createElement("article");
-    node.className = "timeline-entry";
+    node.className = `timeline-entry feature-timeline-entry${expanded ? " is-open" : ""}`;
     node.innerHTML = `
       <div class="timeline-entry-head">
-        <h4 class="timeline-entry-title"></h4>
+        <div class="feature-timeline-main">
+          <h4 class="timeline-entry-title"></h4>
+          <span class="feature-timeline-count"></span>
+        </div>
         <button type="button" class="btn-link btn-link-neutral feature-entry-edit" aria-label="Edit feature" title="Edit feature">✎</button>
       </div>
       <p class="timeline-entry-desc"></p>
     `;
     node.querySelector(".timeline-entry-title").textContent = entry.name;
+    node.querySelector(".feature-timeline-count").textContent = `${featureTasks.length} task${featureTasks.length === 1 ? "" : "s"}`;
     node.querySelector(".timeline-entry-desc").textContent = entry.description || "No description";
-    node.querySelector(".feature-entry-edit").addEventListener("click", () => {
+    node.addEventListener("click", () => {
+      currentExpandedFeatureName = expanded ? "" : entry.name;
+      renderFeaturesEntries();
+    });
+    node.querySelector(".feature-entry-edit").addEventListener("click", (event) => {
+      event.stopPropagation();
       openFeatureEditorModal(entry);
     });
+    if (expanded) {
+      const tasksList = document.createElement("div");
+      tasksList.className = "feature-task-list";
+      if (!featureTasks.length) {
+        const empty = document.createElement("div");
+        empty.className = "feature-task-empty";
+        empty.textContent = "No tasks assigned to this feature.";
+        tasksList.appendChild(empty);
+      } else {
+        featureTasks.forEach(({ topic, item }) => {
+          const task = document.createElement("button");
+          task.type = "button";
+          task.className = "feature-task-entry";
+          const status = taskStatusLabel(deriveTaskStatus(item, topic));
+          const responsibles = item.responsibles?.length ? item.responsibles.join(", ") : "No responsible";
+          const areas = normalizeTaskAreas(item.areas || item.area);
+          task.innerHTML = `
+            <strong>${itemDisplayText(item)}</strong>
+            <span>${status} | ${responsibles}${areas.length ? ` | ${areas.join(", ")}` : ""}</span>
+          `;
+          task.title = "Open task";
+          task.addEventListener("click", (event) => {
+            event.stopPropagation();
+            openTopicTaskEditor(topic, item);
+          });
+          tasksList.appendChild(task);
+        });
+      }
+      node.appendChild(tasksList);
+    }
     el.featuresList.appendChild(node);
   });
 }
@@ -2376,6 +2443,7 @@ async function openFeaturesModal(projectKey) {
   }
   currentFeaturesProjectKey = normalized;
   currentFeaturesEntries = parseFeaturesMarkdown(payload.content || "");
+  currentExpandedFeatureName = "";
   projectFeaturesCatalog[normalized] = [...currentFeaturesEntries];
   el.featuresTitle.textContent = `Features - ${normalized}`;
   el.featuresSubtitle.textContent = "Review project features and descriptions.";
@@ -2387,6 +2455,7 @@ function closeFeaturesModal() {
   el.featuresModal.classList.add("hidden");
   currentFeaturesProjectKey = "";
   currentFeaturesEntries = [];
+  currentExpandedFeatureName = "";
   el.featuresList.innerHTML = "";
 }
 

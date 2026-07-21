@@ -176,8 +176,42 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### ClearWallet
-- [ ] V3 LET'S GOOOO (Bruf + Fel + Maxo + Nu) [STATUS: Doing] [AREA: Back] [HIGH]
-- [ ] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu) [STATUS: Doing] [AREA: QA]
-- [ ] Master Login (Bruf + Gui) [STATUS: Doing] [AREA: QA]
+- [ ] V3 LET'S GOOOO (Bruf + Fel + Maxo + Nu) [STATUS: Doing] [AREA: Back] [HIGH] [FOLLOWED]
+- [x] Adicionar autorização na rota de profissionais (Bruf + Gui + Nu) [AREA: QA] [FOLLOWED]
+- [ ] Master Login (Bruf + Gui) [STATUS: Doing] [AREA: QA] [FOLLOWED]
 - [ ] Bug retry pagamento (Maxo) [STATUS: Doing] [AREA: Back] [FOLLOWED]
 - [ ] Novas telas (Rich) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+
+## Sprint 26-26
+
+### ClearWallet
+- [ ] V3 LET'S GOOOO (Bruf + Fel + Maxo) [STATUS: Doing] [AREA: Back] [HIGH] [FOLLOWED]
+- [ ] Master Login (Nu) [STATUS: Doing] [AREA: QA] [FOLLOWED]
+- [ ] Bug retry pagamento (Maxo) [STATUS: Doing] [AREA: Back] [FOLLOWED]
+- [ ] Novas telas (Rich) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+
+## Sprint 26-27
+
+### ClearWallet
+- [ ] V3 LET'S GOOOO (Bruf + Fel + Maxo) [STATUS: Doing] [AREA: Back] [HIGH] [FOLLOWED]
+- [ ] Master Login (Nu) [STATUS: Doing] [AREA: QA] [FOLLOWED]
+- [ ] Bug retry pagamento (Maxo) [STATUS: Doing] [AREA: Back] [FOLLOWED]
+- [ ] Novas telas (Rich) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+- [ ] Marcar com os 3 dentistas (Fel + Nu) [STATUS: Doing] [FOLLOWED]
+
+## Sprint 26-28
+
+### ClearWallet
+- [ ] V3 LET'S GOOOO (Bruf + Fel + Maxo) [STATUS: Doing] [AREA: Back] [HIGH] [FOLLOWED]
+- [ ] Master Login (Nu) [STATUS: Doing] [AREA: QA] [FOLLOWED]
+- [ ] Bug retry pagamento (Maxo) [STATUS: Doing] [AREA: Back] [FOLLOWED]
+- [ ] Novas telas (Rich) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+- [x] Marcar com os 3 dentistas (Fel + Nu) [FOLLOWED]
+
+## Sprint 26-29
+
+### ClearWallet
+- [ ] Master Login (Gui + Nu) [STATUS: Doing] [AREA: QA]
+- [ ] Bug retry pagamento (Gui) [STATUS: Doing] [AREA: Back]
+- [ ] Novas telas (Rich) [STATUS: Doing] [AREA: UX/UI] [HIGH]
+- [ ] Desenvolvimento V3 (Berg + Maxo) [STATUS: Doing] [AREA: Back, Front]

@@ -2087,6 +2087,66 @@ textarea:focus {
   line-height: 1.5;
 }
 
+.feature-timeline-entry {
+  cursor: pointer;
+}
+
+.feature-timeline-entry.is-open {
+  border-color: rgba(31, 127, 85, 0.34);
+}
+
+.feature-timeline-main {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.feature-timeline-count {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.74rem;
+  font-weight: 650;
+}
+
+.feature-task-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.feature-task-entry,
+.feature-task-empty {
+  padding: 10px 12px;
+  border-radius: var(--md-radius-md);
+  border: 1px solid rgba(202, 196, 208, 0.72);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-low) 70%, white);
+}
+
+.feature-task-entry {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.feature-task-entry strong,
+.feature-task-entry span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.feature-task-entry strong {
+  font-size: 0.84rem;
+}
+
+.feature-task-entry span,
+.feature-task-empty {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.78rem;
+}
+
 .projects-layout,
 .team-layout {
   margin-top: 8px;

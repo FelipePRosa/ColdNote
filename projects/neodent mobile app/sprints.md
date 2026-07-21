@@ -169,5 +169,30 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Neodent Mobile App
-- [ ] Boleto Clear (Fel + Gui + Vicco) [FEATURE: Dados de boleto Clear] [STATUS: Testing] [AREA: Back, Mobile, Data]
-- [ ] Integração clear -> boleto (Vicco) [STATUS: Testing] [AREA: Mobile]
+- [x] Boleto Clear (Fel + Gui + Vicco) [FEATURE: Dados de boleto Clear] [AREA: Back, Mobile, Data] [FOLLOWED]
+- [x] Integração clear -> boleto (Vicco) [AREA: Mobile] [FOLLOWED]
+
+## Sprint 26-26
+
+### Neodent Mobile App
+- [ ] Conector Meta (Vicco) [STATUS: Testing] [AREA: Mobile] [FOLLOWED]
+
+## Sprint 26-27
+
+### Neodent Mobile App
+- [ ] Deploy fluxo boleto (Fel + Gui) [AREA: Back, Data] [BLOCKED: Aguardando alteryx] [FOLLOWED]
+- [ ] Conector Meta (Vicco) [STATUS: Testing] [AREA: Mobile] [FOLLOWED]
+
+## Sprint 26-28
+
+### Neodent Mobile App
+- [ ] Deploy fluxo boleto (Fel + Gui) [AREA: Back, Data] [BLOCKED: Aguardando alteryx] [FOLLOWED]
+- [x] Conector Meta (Vicco) [AREA: Mobile] [FOLLOWED]
+- [ ] Validação de Contrato (Guto) [STATUS: Open] [AREA: Back] [FOLLOWED]
+
+## Sprint 26-29
+
+### Neodent Mobile App
+- [ ] Deploy fluxo boleto (Fel + Gui) [AREA: Back, Data] [BLOCKED: Aguardando alteryx]
+- [ ] Validação de Contrato (Guto) [STATUS: Open] [AREA: Back]
+- [ ] Bug Scheduler (Fel) [STATUS: Open] [HIGH]

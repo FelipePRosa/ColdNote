@@ -117,5 +117,29 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-25
 
 ### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Berg) [STATUS: Testing] [AREA: Front] [FOLLOWED]
+
+## Sprint 26-26
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Gui + Berg) [STATUS: Testing] [AREA: Back, Front] [FOLLOWED]
+
+## Sprint 26-27
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Gui + Berg) [STATUS: Testing] [AREA: Back, Front] [FOLLOWED]
+
+## Sprint 26-28
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+
+## Sprint 26-29
+
+### Hub
 - [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade]
-- [ ] Clear Hub (Berg) [STATUS: Testing] [AREA: Front]
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED]
+- [ ] Bug Banner (Guto) [STATUS: Testing] [AREA: Back]
