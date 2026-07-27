@@ -193,6 +193,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-29
 
 ### Neodent Mobile App
+- [ ] Deploy fluxo boleto (Fel + Gui) [AREA: Back, Data] [BLOCKED: Aguardando alteryx] [FOLLOWED]
+- [ ] Validação de Contrato (Guto) [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Bug Scheduler (Fel) [STATUS: Open] [HIGH] [FOLLOWED]
+
+## Sprint 26-30
+
+### Neodent Mobile App
 - [ ] Deploy fluxo boleto (Fel + Gui) [AREA: Back, Data] [BLOCKED: Aguardando alteryx]
 - [ ] Validação de Contrato (Guto) [STATUS: Open] [AREA: Back]
 - [ ] Bug Scheduler (Fel) [STATUS: Open] [HIGH]

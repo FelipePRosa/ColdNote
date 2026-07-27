@@ -300,6 +300,25 @@ Regra: inclui apenas sprints depois de 26-01.
 
 ### Digital -> Genia Mobile App
 - [x] Criar insights digital (Fel) [FEATURE: Atualização campos digital] [AREA: Data] [FOLLOWED]
+- [ ] Adequar insights digital [STATUS: Open] [AREA: Mobile] [FOLLOWED]
+
+### Genia Geral
+- [ ] Endpoints p/ User Geral [FEATURE: Genia Geral] [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Adequação Genia Mobile App (Bruf + Vicco) [FEATURE: Genia Geral] [STATUS: Open] [AREA: Front, Mobile] [FOLLOWED]
+- [ ] Fluxo dados Micro Região Geral (Fel) [STATUS: Open] [AREA: Data] [FOLLOWED]
+
+### Genia Mobile App
+- [ ] Filtros V2 (Nu) [BLOCKED] [FOLLOWED]
+- [ ] KPIs tela + logicas (Fel) [HIGH] [BLOCKED] [FOLLOWED]
+- [ ] Notificações (Guto + Vicco) [STATUS: Doing] [AREA: Back, Mobile] [FOLLOWED]
+- [ ] Master login (Gui) [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Adaptar genia para query (Brunin) [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Reminder (Guto + Vicco) [STATUS: Doing] [AREA: Back, Mobile] [FOLLOWED]
+- [ ] Validação de Contrato (Guto) [STATUS: Doing] [AREA: Back] [FOLLOWED]
+
+## Sprint 26-30
+
+### Digital -> Genia Mobile App
 - [ ] Adequar insights digital [STATUS: Open] [AREA: Mobile]
 
 ### Genia Geral
@@ -312,6 +331,6 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] KPIs tela + logicas (Fel) [HIGH] [BLOCKED]
 - [ ] Notificações (Guto + Vicco) [STATUS: Doing] [AREA: Back, Mobile]
 - [ ] Master login (Gui) [BLOCKED: Prioridade]
-- [ ] Adaptar genia para query (Brunin) [STATUS: Doing] [AREA: Data]
+- [ ] Adaptar genia para query (Brunin + Nu) [STATUS: Testing] [AREA: Data]
 - [ ] Reminder (Guto + Vicco) [STATUS: Doing] [AREA: Back, Mobile]
 - [ ] Validação de Contrato (Guto) [STATUS: Doing] [AREA: Back]

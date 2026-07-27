@@ -140,6 +140,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-29
 
 ### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+- [ ] Bug Banner (Guto) [STATUS: Testing] [AREA: Back] [FOLLOWED]
+
+## Sprint 26-30
+
+### Hub
 - [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade]
 - [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED]
 - [ ] Bug Banner (Guto) [STATUS: Testing] [AREA: Back]

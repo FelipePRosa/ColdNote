@@ -25,4 +25,9 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-29
 
 ### Testes Automáticos
+- [ ] Apresentação E2E (Berg) [STATUS: Doing] [AREA: Front] [FOLLOWED]
+
+## Sprint 26-30
+
+### Testes Automáticos
 - [ ] Apresentação E2E (Berg) [STATUS: Doing] [AREA: Front]

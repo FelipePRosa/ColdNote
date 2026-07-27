@@ -541,7 +541,7 @@ main {
   width: 1em;
   text-align: center;
   transform-origin: center;
-  transform: translateY(1px) scaleX(1.22);
+  transform: none;
 }
 
 .topics-grid.taskboard-grid {
