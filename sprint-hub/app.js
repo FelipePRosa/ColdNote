@@ -1019,7 +1019,7 @@ function cloneActiveTopicItems(topic) {
       status: normalizeTaskFlowStatus(item.status),
       areas: normalizeTaskAreas(item.areas || item.area),
       projectKey: topic.projectKey || "",
-      followed: Boolean(item.followed),
+      followed: false,
       responsibles: [...(item.responsibles || [])],
       priority: item.priority === "high" ? "high" : "normal",
       blocked: Boolean(item.blocked),
@@ -2572,9 +2572,11 @@ function openCopyTargetModal(options, onPick) {
     btn.textContent = sprint.name;
     btn.addEventListener("click", () => {
       if (copyTargetOnPick) {
-        copyTargetOnPick(sprint.id);
+        const shouldClose = copyTargetOnPick(sprint.id);
+        if (shouldClose !== false) {
+          closeCopyTargetModal();
+        }
       }
-      closeCopyTargetModal();
     });
     el.copyTargetList.appendChild(btn);
   });
@@ -3656,6 +3658,23 @@ function openSprintTopicProjectModal(topic, sprint) {
     (targetSprintId) => {
       const targetSprint = state.sprints.find((s) => s.id === targetSprintId);
       if (!targetSprint) return;
+
+      const sourceProjectKey = normalizeProjectKey(topic.projectKey);
+      const sourceTitle = String(topic.title || "").trim().toLowerCase();
+      const projectAlreadyPresent = targetSprint.topics.some((candidate) => {
+        const candidateProjectKey = normalizeProjectKey(candidate.projectKey);
+        if (sourceProjectKey && candidateProjectKey) {
+          return candidateProjectKey === sourceProjectKey;
+        }
+        return !sourceProjectKey
+          && !candidateProjectKey
+          && String(candidate.title || "").trim().toLowerCase() === sourceTitle;
+      });
+
+      if (projectAlreadyPresent) {
+        window.alert("projeto já presente na sprint selecionada");
+        return false;
+      }
 
       const cloned = {
         id: uid(),
