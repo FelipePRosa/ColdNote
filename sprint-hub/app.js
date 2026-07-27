@@ -3929,7 +3929,7 @@ function renderFocusMode() {
     return;
   }
 
-  el.focusModeTitle.textContent = entry.topic.title;
+  el.focusModeTitle.textContent = "Foco";
   el.focusModeSubtitle.textContent = `Sprint ${entry.sprint.name} • ${focusModeIndex + 1} of ${focusModeEntries.length}`;
   el.focusModeContent.innerHTML = "";
   el.focusModeContent.appendChild(card.node);
