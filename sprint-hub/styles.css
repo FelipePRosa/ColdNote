@@ -519,29 +519,24 @@ main {
 }
 
 .board-title-row #focusModeBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
   width: 42px;
   min-width: 42px;
   height: 42px;
   padding: 0;
   border-radius: 999px;
-  font-size: 1.7rem;
-  font-weight: 700;
-  line-height: 1;
+  line-height: 0;
 }
 
 .board-title-row #focusModeBtn.hidden {
   display: none;
 }
 
-.board-title-row #focusModeBtn span {
-  display: inline-block;
-  width: 1em;
-  text-align: center;
-  transform-origin: center;
-  transform: none;
+.board-title-row #focusModeBtn img {
+  display: block;
+  width: 22px;
+  height: 22px;
 }
 
 .topics-grid.taskboard-grid {
@@ -1965,19 +1960,23 @@ textarea:focus {
 }
 
 .focus-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
   width: 46px;
   height: 46px;
+  padding: 0;
   border: 1px solid rgba(202, 196, 208, 0.86);
   border-radius: 999px;
   background: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 92%, white);
   color: var(--md-sys-color-primary);
-  font-size: 1.7rem;
-  line-height: 1;
   cursor: pointer;
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.focus-nav-btn img {
+  display: block;
+  width: 22px;
+  height: 22px;
 }
 
 .focus-nav-btn:hover {
