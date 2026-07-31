@@ -134,7 +134,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-30
 
 ### ClearCorrect Automations
-- [ ] Criação de Voucher FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data]
-- [ ] Comparecimento FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data]
-- [ ] Criação de vouchers de pacote (Fel) [STATUS: Doing] [AREA: Data]
+- [x] Comparecimento FastStart (Fel) [FEATURE: Fast Start] [AREA: Data] [FOLLOWED]
+- [ ] Criação de vouchers de pacote (Fel) [STATUS: Doing] [AREA: Data] [FOLLOWED]
 - [ ] Friends&Family (Bruf + Fel) [FEATURE: LP Friends and Family] [STATUS: Doing] [FOLLOWED]
+
+## Sprint 26-31
+
+### ClearCorrect Automations
+- [ ] Criação de Voucher FastStart (Fel) [FEATURE: Fast Start] [STATUS: Doing] [AREA: Data]
+- [ ] Criação de vouchers de pacote (Fel) [STATUS: Doing] [AREA: Data]
+- [ ] Friends&Family (Bruf + Fel) [FEATURE: LP Friends and Family] [STATUS: Doing]

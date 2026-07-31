@@ -170,7 +170,15 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-30
 
 ### Kit Resgate
-- [ ] Desenvolvimento Back + Adequação -> Admin (Gui + Nu) [STATUS: Testing] [AREA: Back] [HIGH]
-- [ ] Desenvolvimento mobile (Dani + Nu) [AREA: Mobile] [BLOCKED: Web first]
-- [ ] Desenvolvimento Front -> Admin (Bruf + Berg + Nu) [STATUS: Testing] [AREA: Front, QA] [HIGH]
-- [ ] Criação de Pedido [STATUS: Open] [AREA: Data]
+- [ ] Desenvolvimento Back + Adequação -> Admin (Gui + Nu) [STATUS: Testing] [AREA: Back] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento mobile (Dani + Nu) [STATUS: Doing] [AREA: Mobile] [FOLLOWED]
+- [ ] Desenvolvimento Front -> Admin (Bruf + Berg + Nu) [STATUS: Testing] [AREA: Front, QA] [HIGH] [FOLLOWED]
+- [ ] Criação de Pedido [AREA: Data] [BLOCKED: Aguardando Alá] [FOLLOWED]
+
+## Sprint 26-31
+
+### Kit Resgate
+- [ ] KPI Back (Gui + Nu) [STATUS: Testing] [AREA: Back] [HIGH]
+- [ ] Desenvolvimento mobile (Dani + Nu) [STATUS: Doing] [AREA: Mobile]
+- [ ] KPI Front (Bruf + Nu) [STATUS: Testing] [AREA: Front, QA] [HIGH]
+- [ ] Criação de Pedido [AREA: Data] [BLOCKED: Aguardando Alá]

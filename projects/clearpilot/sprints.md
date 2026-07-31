@@ -54,5 +54,11 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-30
 
 ### ClearPilot
+- [ ] Atualizar versão (Bruf + Gui) [STATUS: Doing] [HIGH] [FOLLOWED]
+- [ ] Ceph Analysis (Bruf + Fel + Gui) [STATUS: Doing] [AREA: Back, Front, Data] [FOLLOWED]
+
+## Sprint 26-31
+
+### ClearPilot
 - [ ] Atualizar versão (Bruf + Gui) [STATUS: Doing] [HIGH]
 - [ ] Ceph Analysis (Bruf + Fel + Gui) [STATUS: Doing] [AREA: Back, Front, Data]

@@ -76,14 +76,19 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-30
 
 ### Acordo Partner
-- [ ] Tela parceria (Rich) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: UX/UI]
-- [ ] Dev Telas (Vicco) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Mobile]
-- [ ] Dev Back (Guto) [FEATURE: Tela de parceria Neodent App] [AREA: Back] [BLOCKED: Falta definições]
+- [ ] Tela parceria (Rich) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: UX/UI] [FOLLOWED]
+- [ ] Dev Telas (Vicco) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Mobile] [FOLLOWED]
+- [ ] Dev Back (Guto) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Back] [FOLLOWED]
+
+### Digital Connect - 1ª etapa
+- [ ] (no items)
+
+### Digital Connect - 2ª etapa
+- [ ] Telas aplicativo (Nu + Rich) [FEATURE: Formulário no aplicativo] [AREA: UX/UI] [BLOCKED] [FOLLOWED]
+- [ ] Desenvolvimento telas App [FEATURE: Formulário no aplicativo] [AREA: Back, Mobile] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-31
 
 ### Digital Connect - 1ª etapa
 - [ ] Gerar lead (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back]
 - [ ] CRON para enviar tarefa para o financeiro (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back]
-
-### Digital Connect - 2ª etapa
-- [ ] Telas aplicativo (Nu + Rich) [FEATURE: Formulário no aplicativo] [AREA: UX/UI] [BLOCKED]
-- [ ] Desenvolvimento telas App [FEATURE: Formulário no aplicativo] [AREA: Back, Mobile] [BLOCKED]

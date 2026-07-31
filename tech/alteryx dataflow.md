@@ -7,7 +7,7 @@ import pyodbc
 import math
 from itertools import islice
 from functools import reduce
-from ayx import Alteryx
+from ayx import Alteryxhttps://teams.microsoft.com/v2/
 
 
 
