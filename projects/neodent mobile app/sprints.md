@@ -202,4 +202,4 @@ Regra: inclui apenas sprints depois de 26-01.
 ### Neodent Mobile App
 - [ ] Deploy fluxo boleto (Fel + Gui) [AREA: Back, Data] [BLOCKED: Aguardando alteryx]
 - [ ] Validação de Contrato (Guto) [STATUS: Open] [AREA: Back]
-- [x] Bug Scheduler (Fel) [HIGH] [FOLLOWED]
+- [ ] Bug Scheduler (Fel) [STATUS: Open] [HIGH]

@@ -81,8 +81,8 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Dev Back (Guto) [FEATURE: Tela de parceria Neodent App] [AREA: Back] [BLOCKED: Falta definições]
 
 ### Digital Connect - 1ª etapa
-- [ ] Gerar lead (Guto) [FEATURE: Envio de lead + financeiro] [AREA: Back] [BLOCKED]
-- [ ] CRON para enviar tarefa para o financeiro (Guto) [FEATURE: Envio de lead + financeiro] [AREA: Back] [BLOCKED]
+- [ ] Gerar lead (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back]
+- [ ] CRON para enviar tarefa para o financeiro (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back]
 
 ### Digital Connect - 2ª etapa
 - [ ] Telas aplicativo (Nu + Rich) [FEATURE: Formulário no aplicativo] [AREA: UX/UI] [BLOCKED]

@@ -156,6 +156,6 @@ Regra: inclui apenas sprints depois de 26-01.
 - [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH]
 - [ ] Documentação genia Clear (Fel) [STATUS: Doing] [HIGH]
 - [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH]
-- [ ] Desenvolvimento backend (Gui) [AREA: Back] [HIGH] [BLOCKED]
+- [ ] Desenvolvimento backend (Gui) [STATUS: Open] [AREA: Back] [HIGH]
 - [ ] Formulario de IPs (Gui)
 - [ ] Genia Clear (Brunin + Hary) [STATUS: Doing] [AREA: Data]

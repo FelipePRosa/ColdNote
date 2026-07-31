@@ -319,7 +319,7 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-30
 
 ### Digital -> Genia Mobile App
-- [ ] Adequar insights digital [STATUS: Open] [AREA: Mobile]
+- [ ] Adequar insights digital (Guto + Fel + Vicco) [STATUS: Open] [AREA: Mobile] [FOLLOWED]
 
 ### Genia Geral
 - [ ] Endpoints p/ User Geral [FEATURE: Genia Geral] [STATUS: Open] [AREA: Back]
