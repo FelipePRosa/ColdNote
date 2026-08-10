@@ -207,5 +207,10 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-31
 
 ### Neodent Mobile App
-- [ ] Deploy fluxo boleto (Fel + Gui) [STATUS: Open] [AREA: Back, Data]
+- [x] Deploy fluxo boleto (Fel + Gui) [AREA: Back, Data] [FOLLOWED]
+- [ ] Nome do Paciente (Fel + Gui) [STATUS: Open] [AREA: Back, Data] [FOLLOWED]
+
+## Sprint 26-32
+
+### Neodent Mobile App
 - [ ] Nome do Paciente (Fel + Gui) [STATUS: Open] [AREA: Back, Data]

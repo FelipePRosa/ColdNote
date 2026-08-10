@@ -226,6 +226,13 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-31
 
 ### ClearWallet
-- [ ] Master Login (Gui + Nu) [STATUS: Doing] [AREA: QA] [HIGH]
+- [ ] Master Login (Bruf + Gui + Nu) [STATUS: Doing] [AREA: QA] [HIGH] [FOLLOWED]
+- [ ] Novas telas (Rich) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento V3 (Berg + Maxo) [FEATURE: ClearWallet V3] [STATUS: Doing] [AREA: Back, Front] [HIGH] [FOLLOWED]
+
+## Sprint 26-32
+
+### ClearWallet
+- [ ] Master Login (Bruf + Gui + Nu) [STATUS: Doing] [AREA: QA] [HIGH]
 - [ ] Novas telas (Rich) [STATUS: Doing] [AREA: UX/UI] [HIGH]
-- [ ] Desenvolvimento V3 (Berg + Maxo) [STATUS: Doing] [AREA: Back, Front] [HIGH]
+- [ ] Desenvolvimento V3 (Berg + Maxo) [FEATURE: ClearWallet V3] [STATUS: Doing] [AREA: Back, Front] [HIGH]

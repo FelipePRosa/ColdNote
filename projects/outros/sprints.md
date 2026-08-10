@@ -314,8 +314,16 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-31
 
 ### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [x] Bloqueio ZSEB (Gui) [AREA: Back] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-32
+
+### Outros
 - [ ] Cotação, Rastreio (Fel) [BLOCKED]
 - [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
 - [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing]
-- [ ] Bloqueio ZSEB (Gui) [STATUS: Open] [AREA: Back]
 - [ ] Teste Mikado (Gui + Nu) [STATUS: Open]

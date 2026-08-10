@@ -3663,12 +3663,13 @@ function openSprintTopicProjectModal(topic, sprint) {
       const sourceTitle = String(topic.title || "").trim().toLowerCase();
       const projectAlreadyPresent = targetSprint.topics.some((candidate) => {
         const candidateProjectKey = normalizeProjectKey(candidate.projectKey);
+        const candidateTitle = String(candidate.title || "").trim().toLowerCase();
         if (sourceProjectKey && candidateProjectKey) {
-          return candidateProjectKey === sourceProjectKey;
+          return candidateProjectKey === sourceProjectKey && candidateTitle === sourceTitle;
         }
         return !sourceProjectKey
           && !candidateProjectKey
-          && String(candidate.title || "").trim().toLowerCase() === sourceTitle;
+          && candidateTitle === sourceTitle;
       });
 
       if (projectAlreadyPresent) {

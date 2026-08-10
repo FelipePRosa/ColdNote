@@ -178,7 +178,14 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-31
 
 ### Kit Resgate
-- [ ] KPI Back (Gui + Nu) [STATUS: Testing] [AREA: Back] [HIGH]
+- [x] KPI Back (Gui + Nu) [AREA: Back] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento mobile (Dani + Nu) [STATUS: Doing] [AREA: Mobile] [FOLLOWED]
+- [ ] KPI Front (Bruf + Nu) [STATUS: Testing] [AREA: Front, QA] [HIGH] [FOLLOWED]
+- [ ] Criação de Pedido [AREA: Data] [BLOCKED: Aguardando Alá] [FOLLOWED]
+
+## Sprint 26-32
+
+### Kit Resgate
 - [ ] Desenvolvimento mobile (Dani + Nu) [STATUS: Doing] [AREA: Mobile]
 - [ ] KPI Front (Bruf + Nu) [STATUS: Testing] [AREA: Front, QA] [HIGH]
 - [ ] Criação de Pedido [AREA: Data] [BLOCKED: Aguardando Alá]

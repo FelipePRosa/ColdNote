@@ -163,9 +163,18 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-31
 
 ### Clear Mobile App
+- [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento backend (Gui) [STATUS: Open] [AREA: Back] [HIGH] [FOLLOWED]
+- [ ] Genia Clear (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Genia Update - video + imagem (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+
+## Sprint 26-32
+
+### Clear Mobile App
 - [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH]
 - [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH]
 - [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH]
 - [ ] Desenvolvimento backend (Gui) [STATUS: Open] [AREA: Back] [HIGH]
 - [ ] Formulario de IPs (Gui)
-- [ ] Genia Clear (Brunin + Hary) [STATUS: Doing] [AREA: Data]
+- [ ] Genia Clear (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data]
+- [ ] Genia Update - video + imagem (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data]

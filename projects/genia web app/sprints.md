@@ -239,7 +239,15 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-31
 
 ### Genia Web App
+- [ ] WakeWord (Brunin + Bruf + Hary) [AREA: Front] [BLOCKED] [FOLLOWED]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu) [STATUS: Testing] [AREA: Front] [FOLLOWED]
+- [ ] Testes gerais (Bruf + Nu) [STATUS: Open] [AREA: QA] [FOLLOWED]
+- [ ] Adequação Cursos (Bruf + Nu) [STATUS: Testing] [AREA: Back, Front] [FOLLOWED]
+
+## Sprint 26-32
+
+### Genia Web App
 - [ ] WakeWord (Brunin + Bruf + Hary) [AREA: Front] [BLOCKED]
-- [ ] Echo Cancelation (Brunin + Bruf + Nu) [AREA: Front] [BLOCKED]
-- [ ] Testes gerais (Berg + Nu) [STATUS: Open] [AREA: QA]
-- [ ] Adequação Cursos (Bruf) [STATUS: Testing] [AREA: Back, Front]
+- [ ] Echo Cancelation (Brunin + Bruf + Nu) [STATUS: Testing] [AREA: Front]
+- [ ] Testes gerais (Bruf + Nu) [STATUS: Open] [AREA: QA]
+- [ ] Adequação Cursos (Bruf + Nu) [STATUS: Testing] [AREA: Back, Front]
