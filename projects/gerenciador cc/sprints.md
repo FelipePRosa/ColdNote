@@ -45,4 +45,19 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-32
 
 ### Gerenciador CC
+- [ ] Fluxos de dados (Fel) [AREA: Data] [BLOCKED: rly?] [FOLLOWED]
+
+## Sprint 26-33
+
+### Gerenciador CC
+- [ ] Fluxos de dados (Fel) [AREA: Data] [BLOCKED: rly?] [FOLLOWED]
+
+## Sprint 26-34
+
+### Gerenciador CC
+- [ ] Fluxos de dados (Fel) [AREA: Data] [BLOCKED: rly?] [FOLLOWED]
+
+## Sprint 26-35
+
+### Gerenciador CC
 - [ ] Fluxos de dados (Fel) [AREA: Data] [BLOCKED: rly?]

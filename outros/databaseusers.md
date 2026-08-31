@@ -11,3 +11,7 @@ ReadOnly
 DigitalAdmin
 - digital_admin
 - digiadm@2025
+
+Clearcomm
+- ClearComm_RO4
+- safety@123456!

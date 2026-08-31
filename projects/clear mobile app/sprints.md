@@ -171,8 +171,40 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-32
 
 ### Clear Mobile App
+- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+- [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH] [FOLLOWED]
+- [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento backend (Gui) [STATUS: Open] [AREA: Back] [HIGH] [FOLLOWED]
+- [ ] Formulario de IPs (Gui) [FOLLOWED]
+- [ ] Genia Clear (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Genia Update - video + imagem (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+
+## Sprint 26-33
+
+### Clear Mobile App
+- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+- [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento backend (Gui) [STATUS: Open] [AREA: Back] [HIGH] [FOLLOWED]
+- [ ] Formulario de IPs (Gui) [FOLLOWED]
+- [ ] Genia Clear (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Genia Update - video + imagem (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+
+## Sprint 26-34
+
+### Clear Mobile App
+- [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH] [FOLLOWED]
+- [ ] Dev Mobile (Sam + Vicco) [STATUS: Doing] [AREA: Mobile] [HIGH] [FOLLOWED]
+- [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH] [FOLLOWED]
+- [ ] Desenvolvimento backend (Gui) [STATUS: Open] [AREA: Back] [HIGH] [FOLLOWED]
+- [ ] Formulario de IPs (Gui) [FOLLOWED]
+- [ ] Genia Clear (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+- [ ] Genia Update - video + imagem (Brunin + Hary) [FEATURE: Genia v3] [STATUS: Doing] [AREA: Data] [FOLLOWED]
+
+## Sprint 26-35
+
+### Clear Mobile App
 - [ ] Layout das telas (Nu) [STATUS: Doing] [AREA: UX/UI] [HIGH]
-- [ ] Dev Mobile (Dani + Sam) [STATUS: Doing] [AREA: Mobile] [HIGH]
+- [ ] Dev Mobile (Sam + Vicco) [STATUS: Doing] [AREA: Mobile] [HIGH]
 - [ ] Dados caso (status) e stl (Fel) [STATUS: Doing] [AREA: Data] [HIGH]
 - [ ] Desenvolvimento backend (Gui) [STATUS: Open] [AREA: Back] [HIGH]
 - [ ] Formulario de IPs (Gui)

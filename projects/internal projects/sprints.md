@@ -41,4 +41,19 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-32
 
 ### Apresentações
+- [ ] Finesse (Bruf) [STATUS: Doing] [AREA: Front] [FOLLOWED]
+
+## Sprint 26-33
+
+### Apresentações
+- [ ] (no items) (no items)
+
+## Sprint 26-34
+
+### Apresentações
+- [ ] Finesse (Bruf) [STATUS: Doing] [AREA: Front] [FOLLOWED]
+
+## Sprint 26-35
+
+### Apresentações
 - [ ] Finesse (Bruf) [STATUS: Doing] [AREA: Front]

@@ -202,6 +202,27 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-32
 
 ### Mapping
+- [ ] Aguardando IPs autorizados (Guto) [BLOCKED] [FOLLOWED]
+- [ ] Teste (Guto + Nu) [BLOCKED] [FOLLOWED]
+- [ ] Espelhamento da base prod (Guto) [BLOCKED] [FOLLOWED]
+
+## Sprint 26-33
+
+### Mapping
+- [ ] Aguardando IPs autorizados (Guto) [BLOCKED] [FOLLOWED]
+- [ ] Teste (Guto + Nu) [BLOCKED] [FOLLOWED]
+- [ ] Espelhamento da base prod (Guto) [BLOCKED] [FOLLOWED]
+
+## Sprint 26-34
+
+### Mapping
+- [ ] Aguardando IPs autorizados (Guto) [BLOCKED] [FOLLOWED]
+- [ ] Teste (Guto + Nu) [BLOCKED] [FOLLOWED]
+- [ ] Espelhamento da base prod (Guto) [BLOCKED] [FOLLOWED]
+
+## Sprint 26-35
+
+### Mapping
 - [ ] Aguardando IPs autorizados (Guto) [BLOCKED]
 - [ ] Teste (Guto + Nu) [BLOCKED]
 - [ ] Espelhamento da base prod (Guto) [BLOCKED]

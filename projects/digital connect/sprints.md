@@ -108,17 +108,65 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-32
 
 ### Acordo Partner
+- [ ] Tela parceria (Rich) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: UX/UI] [FOLLOWED]
+- [ ] Dev Telas (Vicco) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Mobile] [FOLLOWED]
+- [ ] Dev Back (Guto) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Back] [FOLLOWED]
+- [ ] Dev Front (Hary) [STATUS: Open] [AREA: Front] [FOLLOWED]
+
+### Digital Connect - 1ª etapa
+- [ ] CRON para enviar tarefa para o financeiro (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Criar registro CRM (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Fluxo de dados p/ participantes (Fel) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Data] [FOLLOWED]
+- [ ] Hub controle de crédito (Hary) [STATUS: Open] [FOLLOWED]
+
+### Digital Connect - 2ª etapa
+- [ ] Telas aplicativo (Nu + Rich) [FEATURE: Formulário no aplicativo] [AREA: UX/UI] [BLOCKED] [FOLLOWED]
+- [ ] Desenvolvimento telas App [FEATURE: Formulário no aplicativo] [AREA: Back, Mobile] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-33
+
+### Acordo Partner
+- [ ] Tela parceria (Rich) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: UX/UI] [FOLLOWED]
+- [ ] Dev Telas (Vicco) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Mobile] [FOLLOWED]
+- [ ] Dev Back (Guto) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Back] [FOLLOWED]
+- [ ] Dev Front (Hary) [STATUS: Open] [AREA: Front] [FOLLOWED]
+
+### Digital Connect
+- [ ] CRON para enviar tarefa para o financeiro (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Criar registro CRM (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Telas aplicativo (Nu + Rich) [FEATURE: Formulário no aplicativo] [STATUS: Open] [AREA: UX/UI] [FOLLOWED]
+- [ ] Desenvolvimento telas App [FEATURE: Formulário no aplicativo] [STATUS: Open] [AREA: Back, Mobile] [FOLLOWED]
+- [ ] Fluxo de dados p/ participantes (Fel) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Data] [FOLLOWED]
+- [ ] Hub controle de crédito (Hary) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-34
+
+### Acordo Partner
+- [ ] Tela parceria (Rich) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: UX/UI] [FOLLOWED]
+- [ ] Dev Telas (Vicco) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Mobile] [FOLLOWED]
+- [ ] Dev Back (Guto) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Back] [FOLLOWED]
+- [ ] Dev Front (Hary) [STATUS: Open] [AREA: Front] [FOLLOWED]
+
+### Digital Connect
+- [ ] CRON para enviar tarefa para o financeiro (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Criar registro CRM (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Telas aplicativo (Nu + Rich) [FEATURE: Formulário no aplicativo] [AREA: UX/UI] [BLOCKED] [FOLLOWED]
+- [ ] Desenvolvimento telas App [FEATURE: Formulário no aplicativo] [AREA: Back, Mobile] [BLOCKED] [FOLLOWED]
+- [ ] Fluxo de dados p/ participantes (Fel) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Data] [FOLLOWED]
+- [ ] Hub controle de crédito (Hary) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-35
+
+### Acordo Partner
 - [ ] Tela parceria (Rich) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: UX/UI]
 - [ ] Dev Telas (Vicco) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Mobile]
 - [ ] Dev Back (Guto) [FEATURE: Tela de parceria Neodent App] [STATUS: Doing] [AREA: Back]
 - [ ] Dev Front (Hary) [STATUS: Open] [AREA: Front]
 
-### Digital Connect - 1ª etapa
+### Digital Connect
 - [ ] CRON para enviar tarefa para o financeiro (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back]
 - [ ] Criar registro CRM (Guto) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Back]
-- [ ] Fluxo de dados p/ participantes (Fel) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Data]
-- [ ] Hub controle de crédito (Hary) [STATUS: Open]
-
-### Digital Connect - 2ª etapa
 - [ ] Telas aplicativo (Nu + Rich) [FEATURE: Formulário no aplicativo] [AREA: UX/UI] [BLOCKED]
 - [ ] Desenvolvimento telas App [FEATURE: Formulário no aplicativo] [AREA: Back, Mobile] [BLOCKED]
+- [ ] Fluxo de dados p/ participantes (Fel) [FEATURE: Envio de lead + financeiro] [STATUS: Open] [AREA: Data]
+- [ ] Hub controle de crédito (Hary) [STATUS: Open]

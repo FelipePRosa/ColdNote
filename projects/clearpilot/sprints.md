@@ -66,5 +66,32 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-32
 
 ### ClearPilot
+- [ ] Atualizar versão (Bruf + Gui) [STATUS: Doing] [HIGH] [FOLLOWED]
+- [ ] Ceph Analysis (Bruf + Fel + Gui + Nu) [STATUS: Doing] [AREA: Back, Front, Data] [FOLLOWED]
+
+## Sprint 26-33
+
+### ClearPilot
+- [ ] Atualizar versão (Bruf + Gui) [STATUS: Doing] [HIGH] [FOLLOWED]
+- [ ] Ceph Analysis (Bruf + Fel + Gui + Nu) [STATUS: Doing] [AREA: Back, Front, Data] [FOLLOWED]
+- [ ] Atualização Layout Ceph Analysis (Bruf) [STATUS: Doing] [AREA: Front] [FOLLOWED]
+- [ ] Novo botão de Records Upload (Bruf) [STATUS: Doing] [AREA: Front] [FOLLOWED]
+- [ ] Layout tamanhos e formatos arquivos (Bruf) [STATUS: Doing] [AREA: Front] [FOLLOWED]
+
+## Sprint 26-34
+
+### ClearPilot
+- [ ] Atualizar versão (Bruf + Gui) [STATUS: Doing] [HIGH] [FOLLOWED]
+- [ ] Ceph Analysis (Bruf + Fel + Gui + Nu) [STATUS: Doing] [AREA: Back, Front, Data] [FOLLOWED]
+- [ ] Atualização Layout Ceph Analysis (Bruf) [STATUS: Doing] [AREA: Front] [FOLLOWED]
+- [ ] Novo botão de Records Upload (Bruf) [STATUS: Doing] [AREA: Front] [FOLLOWED]
+- [ ] Layout tamanhos e formatos arquivos (Bruf) [STATUS: Doing] [AREA: Front] [FOLLOWED]
+
+## Sprint 26-35
+
+### ClearPilot
 - [ ] Atualizar versão (Bruf + Gui) [STATUS: Doing] [HIGH]
 - [ ] Ceph Analysis (Bruf + Fel + Gui + Nu) [STATUS: Doing] [AREA: Back, Front, Data]
+- [ ] Atualização Layout Ceph Analysis (Bruf) [STATUS: Doing] [AREA: Front]
+- [ ] Novo botão de Records Upload (Bruf) [STATUS: Doing] [AREA: Front]
+- [ ] Layout tamanhos e formatos arquivos (Bruf) [STATUS: Doing] [AREA: Front]

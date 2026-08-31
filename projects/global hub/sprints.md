@@ -159,4 +159,19 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-32
 
 ### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-33
+
+### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-34
+
+### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-35
+
+### Hub
 - [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED]

@@ -323,6 +323,30 @@ Regra: inclui apenas sprints depois de 26-01.
 ## Sprint 26-32
 
 ### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-33
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-34
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-35
+
+### Outros
 - [ ] Cotação, Rastreio (Fel) [BLOCKED]
 - [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
 - [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing]
