@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "id": "mthm1jxd_iim7yi",
+      "projectKey": "neodent mobile app",
+      "name": "Neodent Mobile App",
+      "goal": "",
+      "status": "planning",
+      "owner": "Fel",
+      "rawPlannedStartDate": "2026-07-10",
+      "rawTargetReleaseDate": "2026-07-24",
+      "plannedStartDate": "2026-07-10",
+      "targetReleaseDate": "2026-07-24",
+      "features": [
+        {
+          "id": "required_planning_mu5sbfl7_1fukuh",
+          "name": "Planejamento",
+          "type": "planning",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Product Management"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_design_mu5sbfl7_2zwkq4",
+          "name": "Design",
+          "type": "design",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "UX/UI"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_testing_mu5sbfl7_aruxz5",
+          "name": "Testes",
+          "type": "testing",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "QA"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_hypercare_mu5sbfl7_7egrdd",
+          "name": "Hypercare",
+          "type": "hypercare",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Support"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "mu5sbfl7_4qcrlp",
+          "name": "Dados de boleto Clear",
+          "type": "development",
+          "status": "open",
+          "description": "Buscar dados de caso clear do boleto",
+          "assignee": "",
+          "stack": [],
+          "startDate": "2026-07-10",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": false
+        }
+      ],
+      "createdAt": "2026-09-17T17:09:33.739Z",
+      "updatedAt": "2026-09-17T17:39:08.011Z"
+    }
+  ]
+}

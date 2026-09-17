@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "id": "mu5tgpa0_xto4je",
+      "projectKey": "patient mobile app",
+      "name": "patient mobile app v1",
+      "goal": "",
+      "status": "planning",
+      "owner": "Fel",
+      "rawPlannedStartDate": "2026-09-17",
+      "rawTargetReleaseDate": "2026-10-09",
+      "plannedStartDate": "2026-09-17",
+      "targetReleaseDate": "2026-10-09",
+      "features": [
+        {
+          "id": "required_planning_mu5tgch4_qntun2",
+          "name": "Planejamento",
+          "type": "planning",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Product Management"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_design_mu5tgch4_23axor",
+          "name": "Design",
+          "type": "design",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "UX/UI"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_testing_mu5tgch4_esyvz9",
+          "name": "Testes",
+          "type": "testing",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "QA"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_hypercare_mu5tgch4_5plnje",
+          "name": "Hypercare",
+          "type": "hypercare",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Support"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        }
+      ],
+      "createdAt": "2026-09-17T17:41:39.192Z",
+      "updatedAt": "2026-09-17T17:43:01.898Z"
+    }
+  ]
+}

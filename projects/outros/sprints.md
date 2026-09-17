@@ -2,4 +2,380 @@
 
 Regra: inclui apenas sprints depois de 26-01.
 
-_Sem tasks vinculadas neste periodo._
+## Sprint 26-02
+
+### Kit Recuperação
+- [x] Aguardando documentação do escopo
+
+### Outros
+- [x] Correçao do retorno de erro (Maxo)
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel)
+- [x] SAP -> Acompanhamento Criação de Cotação -> Preciso de att (Fel)
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Reaberto (Fel + Gui)
+- [x] SAP -> Acompanhamento adição de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovação do Global (Fel)
+- [x] PIX aparecendo como boleto (Fel)
+
+## Sprint 26-03
+
+### Kit Recuperação
+- [x] Aguardando informações do processo
+
+### Outros
+- [x] Correçao do retorno de erro (Maxo)
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel)
+- [x] SAP -> Acompanhamento Criação de Cotação -> Preciso de att (Fel)
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui)
+- [x] SAP -> Acompanhamento adição de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovação do Global (Fel)
+- [x] PIX aparecendo como boleto (Fel)
+
+## Sprint 26-04
+
+### Kit Recuperação
+- [x] Aguardando informações do processo
+
+### Outros
+- [x] Analisar PR (Gui)
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel)
+- [x] SAP -> Acompanhamento Criação de Cotação -> Preciso de att (Fel)
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) (até sprint 26-05)
+- [x] SAP -> Acompanhamento adição de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovação do Global (Fel)
+
+## Sprint 26-05
+
+### Kit Recuperação
+- [x] Aguardando informações do processo
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel)
+- [x] Analisar PR (Gui)
+- [x] SAP -> Acompanhamento Criação de Cotação -> Preciso de att (Fel)
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) (até sprint 26-05)
+- [x] SAP -> Acompanhamento adição de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovação do Global (Fel)
+
+## Sprint 26-06
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Analisar PR (Gui)
+- [x] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+
+## Sprint 26-07
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+
+## Sprint 26-08
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+
+## Sprint 26-09
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+
+## Sprint 26-10
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+- [x] Deadlock (Guto + Gui)
+- [x] Troca URL Criação ZSEB (Gui)
+
+## Sprint 26-11
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Aguardando novo contrato neodent app (Nu) [BLOCKED]
+
+## Sprint 26-12
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Divulgacao Straumann + Sales App (Mkt)
+- [x] Aguardando novo contrato neodent app (Nu + Aline compliance) [BLOCKED]
+
+## Sprint 26-13
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Erro NFs nos pedidos -> Acompanhamento (Gui) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
+- [x] Aguardando novo contrato neodent app (Nu + Aline compliance) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+- [x] Alinhamento problemas ONEID (Nu)
+
+## Sprint 26-14
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
+- [x] Aguardando novo contrato neodent app (Fel + Nu) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel)
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+
+## Sprint 26-15
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
+- [x] Aguardando novo contrato neodent app (Fel + Nu) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel)
+- [x] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED]
+- [x] Migração Alteryx (Fel) [HIGH]
+
+## Sprint 26-16
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
+- [x] Aguardando novo contrato neodent app (Fel + Nu) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED: Aguardando desenvolvimento]
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+- [x] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+
+## Sprint 26-17
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
+- [x] Aguardando novo contrato neodent app (Fel + Nu) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+- [x] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+
+## Sprint 26-18
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento cotação ClearWallet -> Acompanhamento (Gui) [BLOCKED]
+- [x] Aguardando novo contrato neodent app (Fel + Nu)
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+- [x] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+- [x] Forecasting (Brunin)
+
+## Sprint 26-19
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+- [x] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+- [x] Documentação de endpoints SAP (Gui) [HIGH]
+
+## Sprint 26-20
+
+### Outros
+- [x] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED]
+- [x] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED]
+- [x] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED]
+- [x] Lambda Pipeline (Brunin + Bruf + Gui)
+- [x] Migração Alteryx (Fel) [HIGH]
+- [x] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH]
+- [x] Documentação de endpoints SAP (Gui) [HIGH]
+
+## Sprint 26-21
+
+### Outros
+- [ ] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED] [FOLLOWED]
+- [ ] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED] [FOLLOWED]
+- [ ] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED] [FOLLOWED]
+- [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH] [FOLLOWED]
+- [ ] Documentação de endpoints SAP (Gui) [HIGH] [FOLLOWED]
+
+## Sprint 26-22
+
+### Outros
+- [ ] SAP -> Acompanhamento Bloqueio ZSEB -> Teste falhou, aguardando retorno (Fel) [BLOCKED: Falta definição] [FOLLOWED]
+- [ ] SAP -> Acompanhamento Criacao de Cotacao -> Preciso de att (Fel) [BLOCKED: Falta definição] [FOLLOWED]
+- [ ] SAP -> Acompanhamento adicao de ZSEB / Clear / Consignado no pedido -> Aguardando Aprovacao do Global (Fel) [BLOCKED: Falta definição] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED] [FOLLOWED]
+- [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH] [FOLLOWED]
+
+## Sprint 26-23
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED] [FOLLOWED]
+- [ ] Bug 450 database connectors (Fel + Gui + Maxo) [HIGH] [FOLLOWED]
+- [ ] Revisão CNPJ (Bruf + Fel + Gui + Vicco) [HIGH] [FOLLOWED]
+
+## Sprint 26-24
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [BLOCKED] [FOLLOWED]
+- [x] Revisão CNPJ (Bruf + Fel + Gui) [HIGH] [FOLLOWED]
+- [x] Dados de cadastro Costa Rica - Blip [FOLLOWED]
+
+## Sprint 26-25
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [STATUS: Testing] [FOLLOWED]
+- [x] Revisão CNPJ (Nu) [AREA: QA] [HIGH] [FOLLOWED]
+- [ ] Bloqueio ZSEB (Gui) [STATUS: Open] [AREA: Back] [FOLLOWED]
+
+## Sprint 26-26
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [STATUS: Testing] [FOLLOWED]
+- [x] Revisão CNPJ (Nu) [AREA: QA] [HIGH] [FOLLOWED]
+- [x] Migrar Alteryx (Fel) [AREA: Data] [FOLLOWED]
+
+## Sprint 26-27
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [STATUS: Testing] [FOLLOWED]
+- [ ] Bloqueio ZSEB (Gui) [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Migrar Alteryx (Fel) [STATUS: Open] [AREA: Data] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-28
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Bruf + Gui) [STATUS: Testing] [FOLLOWED]
+- [ ] Bloqueio ZSEB (Gui) [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [x] Migrar Alteryx (Fel) [AREA: Data] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-29
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Bloqueio ZSEB (Gui) [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [ ] Migrar Alteryx (Fel) [STATUS: Open] [AREA: Data] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-30
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Bloqueio ZSEB (Gui) [STATUS: Open] [AREA: Back] [FOLLOWED]
+- [x] Migrar Alteryx (Fel) [AREA: Data] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-31
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [x] Bloqueio ZSEB (Gui) [AREA: Back] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-32
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-33
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-34
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-35
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-36
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED: Falta definição] [FOLLOWED]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED: Falta definição] [FOLLOWED]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing] [FOLLOWED]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open] [FOLLOWED]
+
+## Sprint 26-37
+
+### Outros
+- [ ] Cotação, Rastreio (Fel) [BLOCKED: Falta definição]
+- [ ] Endpoints CRM de visita e confirmação + adição de comentários (Fel) [BLOCKED: Falta definição]
+- [ ] Lambda Pipeline (Brunin + Fel) [STATUS: Testing]
+- [ ] Teste Mikado (Gui + Nu) [STATUS: Open]

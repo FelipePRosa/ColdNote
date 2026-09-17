@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "id": "mu5tf62g_ypt7rd",
+      "projectKey": "straumann web app",
+      "name": "Straumann Web App V1",
+      "goal": "",
+      "status": "planning",
+      "owner": "Fel",
+      "rawPlannedStartDate": "2026-09-17",
+      "rawTargetReleaseDate": "2026-10-09",
+      "plannedStartDate": "2026-09-17",
+      "targetReleaseDate": "2026-10-09",
+      "features": [
+        {
+          "id": "required_planning_mu5teny7_700n2b",
+          "name": "Planejamento",
+          "type": "planning",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Product Management"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_design_mu5teny7_id56gc",
+          "name": "Design",
+          "type": "design",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "UX/UI"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_testing_mu5teny7_x23tap",
+          "name": "Testes",
+          "type": "testing",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "QA"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_hypercare_mu5teny7_m5wqk7",
+          "name": "Hypercare",
+          "type": "hypercare",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Support"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        }
+      ],
+      "createdAt": "2026-09-17T17:40:27.640Z",
+      "updatedAt": "2026-09-17T17:40:36.746Z"
+    }
+  ]
+}

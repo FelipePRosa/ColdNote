@@ -33,6 +33,8 @@ const el = {
   topicStatusSelect: document.getElementById("topicStatusSelect"),
   topicDescInput: document.getElementById("topicDescInput"),
   newTopicBtn: document.getElementById("newTopicBtn"),
+  executiveViewBtn: document.getElementById("executiveViewBtn"),
+  diagnosticsViewBtn: document.getElementById("diagnosticsViewBtn"),
   projectCardsViewBtn: document.getElementById("projectCardsViewBtn"),
   taskboardViewBtn: document.getElementById("taskboardViewBtn"),
   memberViewBtn: document.getElementById("memberViewBtn"),
@@ -49,6 +51,10 @@ const el = {
   assigneeModal: document.getElementById("assigneeModal"),
   modalTitle: document.getElementById("modalTitle"),
   modalSubtitle: document.getElementById("modalSubtitle"),
+  modalTaskContext: document.getElementById("modalTaskContext"),
+  modalTaskProject: document.getElementById("modalTaskProject"),
+  modalTaskRelease: document.getElementById("modalTaskRelease"),
+  modalTaskFeature: document.getElementById("modalTaskFeature"),
   modalItemText: document.getElementById("modalItemText"),
   modalBacklogProjectField: document.getElementById("modalBacklogProjectField"),
   modalBacklogProjectSelect: document.getElementById("modalBacklogProjectSelect"),
@@ -728,12 +734,23 @@ function inferProjectKeyFromTitle(title) {
   return match || "";
 }
 
+function resolveRawIsoDate(value, previousRaw) {
+  const current = String(value || "").trim();
+  let raw = previousRaw === undefined ? current : String(previousRaw || "").trim();
+  const normalizedRaw = normalizeTopicDeliveryDate(raw);
+  if (current && current !== normalizedRaw) raw = current;
+  else if (!current && normalizedRaw) raw = "";
+  return raw;
+}
+
 function normalizeTopic(topic) {
   topic.releaseId = String(topic.releaseId || uid()).trim();
   topic.projectKey = normalizeProjectKey(topic.projectKey) || inferProjectKeyFromTitle(topic.title);
   topic.status = normalizeProjectStatus(topic.status);
-  topic.startDate = normalizeTopicStartDate(topic.startDate);
-  topic.deliveryDate = normalizeTopicDeliveryDate(topic.deliveryDate);
+  topic.rawStartDate = resolveRawIsoDate(topic.startDate, topic.rawStartDate);
+  topic.rawDeliveryDate = resolveRawIsoDate(topic.deliveryDate, topic.rawDeliveryDate);
+  topic.startDate = normalizeTopicStartDate(topic.rawStartDate);
+  topic.deliveryDate = normalizeTopicDeliveryDate(topic.rawDeliveryDate);
   topic.description = String(topic.description || "").trim();
   if (!Array.isArray(topic.items)) topic.items = [];
   topic.items = topic.items.map((item) => {
@@ -1313,7 +1330,9 @@ function parseSprintMarkdown(fileName, markdown) {
         currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", startDate: "", deliveryDate: "", description: "", items: [] };
         topics.push(currentTopic);
       }
-      currentTopic.startDate = normalizeTopicStartDate(line.replace(/^Start Date:\s*/i, "").trim());
+      const rawStartDate = line.replace(/^Start Date:\s*/i, "").trim();
+      currentTopic.rawStartDate = rawStartDate;
+      currentTopic.startDate = normalizeTopicStartDate(rawStartDate);
       continue;
     }
 
@@ -1322,7 +1341,9 @@ function parseSprintMarkdown(fileName, markdown) {
         currentTopic = { id: uid(), title: "Updates", projectKey: "", status: "", startDate: "", deliveryDate: "", description: "", items: [] };
         topics.push(currentTopic);
       }
-      currentTopic.deliveryDate = normalizeTopicDeliveryDate(line.replace(/^Delivery Date:\s*/i, "").trim());
+      const rawDeliveryDate = line.replace(/^Delivery Date:\s*/i, "").trim();
+      currentTopic.rawDeliveryDate = rawDeliveryDate;
+      currentTopic.deliveryDate = normalizeTopicDeliveryDate(rawDeliveryDate);
       continue;
     }
 
@@ -1353,10 +1374,12 @@ function sprintToMarkdown(sprint) {
     normalizeTopic(topic);
     lines.push(`## ${formatTopicHeading(topic)}`);
     if (topic.status) lines.push(`Status: ${normalizeProjectStatus(topic.status)}`);
-    if (topic.startDate) lines.push(`Start Date: ${normalizeTopicStartDate(topic.startDate)}`);
-    if (topic.deliveryDate) lines.push(`Delivery Date: ${normalizeTopicDeliveryDate(topic.deliveryDate)}`);
+    const serializedStartDate = topic.startDate || topic.rawStartDate;
+    const serializedDeliveryDate = topic.deliveryDate || topic.rawDeliveryDate;
+    if (serializedStartDate) lines.push(`Start Date: ${serializedStartDate}`);
+    if (serializedDeliveryDate) lines.push(`Delivery Date: ${serializedDeliveryDate}`);
     if (topic.description) lines.push(topic.description, "");
-    else if (topic.status || topic.startDate || topic.deliveryDate) lines.push("");
+    else if (topic.status || serializedStartDate || serializedDeliveryDate) lines.push("");
 
     if (!topic.items.length) {
       lines.push("- [ ] (no items)", "");
@@ -2281,6 +2304,7 @@ function openTaskModal({
   currentNames,
   currentProjectKey = "",
   currentFeatureName = "",
+  currentReleaseName = "",
   featureProjectKey = "",
   featureReleaseId = "",
   currentStatus = "open",
@@ -2294,6 +2318,14 @@ function openTaskModal({
   taskModalBacklogMode = backlogMode;
   el.modalTitle.textContent = title || "Edit Task";
   el.modalSubtitle.textContent = subtitle || "Update task text and responsibles.";
+  const contextProjectKey = normalizeProjectKey(featureProjectKey || currentProjectKey);
+  const contextReleaseName = String(currentReleaseName || "").trim();
+  const contextFeatureName = String(currentFeatureName || "").trim();
+  const showTaskContext = !backlogMode && Boolean(contextProjectKey || contextReleaseName);
+  el.modalTaskContext?.classList.toggle("hidden", !showTaskContext);
+  if (el.modalTaskProject) el.modalTaskProject.textContent = contextProjectKey ? projectLabel(contextProjectKey) : "No project";
+  if (el.modalTaskRelease) el.modalTaskRelease.textContent = contextReleaseName || "No release";
+  if (el.modalTaskFeature) el.modalTaskFeature.textContent = contextFeatureName || "No feature";
   el.modalSaveBtn.textContent = saveLabel || "Apply";
   el.modalItemText.value = currentText?.text || "";
   el.modalTaskStatusSelect.value = currentStatus || "open";
@@ -3441,8 +3473,10 @@ function taskPassesBoardFilters(item, topic, sprint) {
   return true;
 }
 
-function projectTaskDedupeKey(item) {
-  return normalizeSearchText(item?.text || itemDisplayText(item));
+function projectTaskDedupeKey(item, topic = {}) {
+  return [topic.title, item?.featureName, item?.text || itemDisplayText(item)]
+    .map(normalizeSearchText)
+    .join("|");
 }
 
 function latestProjectTaskEntries(entries) {
@@ -3450,7 +3484,7 @@ function latestProjectTaskEntries(entries) {
   const latestByTask = new Map();
 
   entries.forEach((entry) => {
-    const taskKey = projectTaskDedupeKey(entry.item);
+    const taskKey = projectTaskDedupeKey(entry.item, entry.topic);
     if (!taskKey) return;
     const currentOrder = sprintOrder.get(entry.sprint.id) ?? -1;
     const previous = latestByTask.get(taskKey);
@@ -3465,6 +3499,30 @@ function latestProjectTaskEntries(entries) {
 
 function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, statusFilter = selectedProjectStatus } = {}) {
   const projects = new Map();
+
+  projectCatalog.forEach((projectKey) => {
+    if (projectFilter && projectKey !== projectFilter) return;
+    const projectStatus = getProjectCurrentStatus(projectKey);
+    if (statusFilter && projectStatus !== statusFilter) return;
+    const releases = releaseCatalog[projectKey] || [];
+    if (!releases.length) return;
+    const plannedStartDates = releases.map((release) => release.plannedStartDate).filter(Boolean).sort();
+    const targetReleaseDates = releases.map((release) => release.targetReleaseDate).filter(Boolean).sort();
+    projects.set(projectKey, {
+      projectKey,
+      title: projectLabel(projectKey),
+      status: projectStatus,
+      startDate: plannedStartDates[0] || "",
+      deliveryDate: targetReleaseDates[targetReleaseDates.length - 1] || "",
+      description: releases.find((release) => release.goal)?.goal || "",
+      areas: [],
+      latestSprint: null,
+      latestTopic: null,
+      taskEntries: [],
+      features: new Map(),
+      releases,
+    });
+  });
 
   visibleSprints().forEach((sprint) => {
     sprint.topics.forEach((topic) => {
@@ -3487,6 +3545,7 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
         latestTopic: topic,
         taskEntries: [],
         features: new Map(),
+        releases: releaseCatalog[projectKey] || [],
       };
 
       project.status = projectStatus || project.status;
@@ -3528,7 +3587,17 @@ function collectProjectFeatureSummaries({ projectFilter = selectedProjectKey, st
       return project;
     })
     .filter((project) => {
+      if (selectedArea && !project.areas.includes(selectedArea)) return false;
       if (project.features.size > 0) return true;
+      if (project.releases.length) {
+        if (!filtersActive) return true;
+        return searchHaystack([
+          project.title,
+          project.projectKey,
+          project.description,
+          ...project.releases.map((release) => `${release.name || ""} ${release.goal || ""} ${release.owner || ""}`),
+        ]).includes(normalizeSearchText(taskSearchText));
+      }
       return !filtersActive && Boolean(project.description);
     })
     .sort((a, b) => a.title.localeCompare(b.title));
@@ -3712,8 +3781,10 @@ function openSprintTopicProjectModal(topic, sprint) {
       topic.description = description;
       topic.projectKey = normalizeProjectKey(projectKey);
       topic.status = normalizeProjectStatus(status);
-      topic.startDate = normalizeTopicStartDate(startDate);
-      topic.deliveryDate = normalizeTopicDeliveryDate(deliveryDate);
+      topic.rawStartDate = String(startDate || "").trim();
+      topic.rawDeliveryDate = String(deliveryDate || "").trim();
+      topic.startDate = normalizeTopicStartDate(topic.rawStartDate);
+      topic.deliveryDate = normalizeTopicDeliveryDate(topic.rawDeliveryDate);
       topic.items.forEach((item) => {
         normalizeItem(item);
         item.projectKey = topic.projectKey;
@@ -4009,6 +4080,7 @@ function createSprintTopicCard(topic, sprint, options = {}) {
       saveLabel: "Create",
       currentText: { text: "", priority: "normal", blocked: false, blockedReason: "", areas: [] },
       currentNames: [],
+      currentReleaseName: topic.title || "",
       featureProjectKey: topic.projectKey || "",
       featureReleaseId: topic.releaseId || "",
       currentStatus: deriveTaskStatus({}, topic),
@@ -4113,6 +4185,7 @@ function openTopicTaskEditor(topic, item) {
     },
     currentNames: item.responsibles || [],
     currentFeatureName: item.featureName || "",
+    currentReleaseName: topic.title || "",
     featureProjectKey: topic.projectKey || "",
     featureReleaseId: topic.releaseId || "",
     currentStatus: deriveTaskStatus(item, topic),
@@ -5573,7 +5646,537 @@ function renderProjectWorkloadView() {
   el.topicsGrid.appendChild(view);
 }
 
+function isFinishedProjectStatus(status) {
+  return normalizeProjectStatus(status) === "Finalizado";
+}
+
+function isFinishedRelease(release) {
+  const status = normalizeSearchText(release?.status);
+  if (["done", "closed", "completed", "released", "finalizado", "finished"].includes(status)) return true;
+  const features = release?.features || [];
+  if (features.length && features.every((feature) => ["done", "closed", "completed", "released", "finalizado", "finished"].includes(normalizeSearchText(feature.status)))) return true;
+  const linked = findTopicForReleaseId(release?.id);
+  if (!linked) return false;
+  if (isFinishedProjectStatus(linked.topic.status)) return true;
+  return Boolean(linked.topic.items?.length && linked.topic.items.every((item) => item.done));
+}
+
+function isValidCalendarIso(value) {
+  const normalized = normalizeTopicDeliveryDate(value);
+  const parsed = dateFromIso(normalized);
+  return Boolean(normalized && parsed && isoFromDate(parsed) === normalized);
+}
+
+function collectExecutiveProjects() {
+  const projects = new Map();
+
+  projectCatalog.forEach((projectKey) => {
+    projects.set(projectKey, {
+      projectKey,
+      title: projectControls[projectKey]?.name || projectLabel(projectKey),
+      status: getProjectCurrentStatus(projectKey),
+      startDate: "",
+      deliveryDate: "",
+      description: "",
+      latestSprint: null,
+      latestTopic: null,
+      taskEntries: [],
+    });
+  });
+
+  state.sprints.forEach((sprint) => {
+    (sprint.topics || []).forEach((topic) => {
+      normalizeTopic(topic);
+      const projectKey = normalizeProjectKey(topic.projectKey);
+      if (!projectKey) return;
+      const project = projects.get(projectKey) || {
+        projectKey,
+        title: projectLabel(projectKey),
+        status: getProjectCurrentStatus(projectKey),
+        startDate: "",
+        deliveryDate: "",
+        description: "",
+        latestSprint: null,
+        latestTopic: null,
+        taskEntries: [],
+      };
+      project.status = getProjectCurrentStatus(projectKey) || topic.status || project.status;
+      project.startDate = topic.startDate;
+      project.deliveryDate = topic.deliveryDate;
+      project.description = topic.description;
+      project.latestSprint = sprint;
+      project.latestTopic = topic;
+      (topic.items || []).forEach((item) => project.taskEntries.push({ sprint, topic, item }));
+      projects.set(projectKey, project);
+    });
+  });
+
+  const query = normalizeSearchText(taskSearchText);
+  return Array.from(projects.values())
+    .map((project) => {
+      const currentEntries = latestProjectTaskEntries(project.taskEntries);
+      const visibleEntries = currentEntries.filter(({ item, topic, sprint }) => {
+        if (selectedArea && !normalizeTaskAreas(item.areas || item.area).includes(selectedArea)) return false;
+        if (query && !taskMatchesSearch(item, topic, sprint)) return false;
+        return true;
+      });
+      const openEntries = visibleEntries.filter(({ item }) => !item.done);
+      const blockedEntries = openEntries.filter(({ item, topic }) => deriveTaskStatus(item, topic) === "blocked");
+      const unassignedEntries = openEntries.filter(({ item }) => !(item.responsibles || []).length);
+      return {
+        ...project,
+        currentEntries,
+        visibleEntries,
+        openEntries,
+        blockedEntries,
+        unassignedEntries,
+        releases: releaseCatalog[project.projectKey] || [],
+      };
+    })
+    .filter((project) => {
+      if (selectedProjectKey && project.projectKey !== selectedProjectKey) return false;
+      if (selectedProjectStatus && project.status !== selectedProjectStatus) return false;
+      if (selectedArea && !project.currentEntries.some(({ item }) => normalizeTaskAreas(item.areas || item.area).includes(selectedArea))) return false;
+      if (!query) return true;
+      return searchHaystack([
+        project.title,
+        project.projectKey,
+        project.status,
+        project.description,
+        ...project.currentEntries.map(({ item }) => `${item.text || ""} ${item.featureName || ""}`),
+        ...project.releases.map((release) => `${release.name || ""} ${release.goal || ""} ${release.owner || ""}`),
+      ]).includes(query);
+    })
+    .sort((a, b) => a.title.localeCompare(b.title));
+}
+
+function collectExecutiveDeliveries(projects = collectExecutiveProjects()) {
+  const today = localIsoToday();
+  const deliveries = [];
+
+  projects.forEach((project) => {
+    const planned = (project.releases || []).filter((release) => release.targetReleaseDate);
+    planned.forEach((release) => {
+      deliveries.push({
+        projectKey: project.projectKey,
+        projectTitle: project.title,
+        title: release.name,
+        date: release.targetReleaseDate,
+        owner: release.owner || "",
+        completed: isFinishedRelease(release),
+        daysUntil: diffDaysInclusive(today, release.targetReleaseDate),
+        kind: "release",
+        release,
+      });
+    });
+    if (!planned.length && project.deliveryDate) {
+      deliveries.push({
+        projectKey: project.projectKey,
+        projectTitle: project.title,
+        title: project.latestTopic?.title || project.title,
+        date: project.deliveryDate,
+        owner: "",
+        completed: isFinishedProjectStatus(project.status),
+        daysUntil: diffDaysInclusive(today, project.deliveryDate),
+        kind: "project",
+        topic: project.latestTopic,
+        sprint: project.latestSprint,
+      });
+    }
+  });
+
+  return deliveries
+    .filter((entry) => isValidCalendarIso(entry.date))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.projectTitle.localeCompare(b.projectTitle));
+}
+
+function releaseSourceLabel(release) {
+  const linked = findTopicForReleaseId(release?.id);
+  if (linked?.sprint) return `Sprint ${linked.sprint.name}`;
+  const shortId = String(release?.id || "").trim().slice(0, 8);
+  return shortId ? `ID ${shortId}` : "Release sem ID";
+}
+
+function collectDataDiagnostics(projects = collectExecutiveProjects()) {
+  const issues = [];
+  const allowedProjectKeys = new Set(projects.map((project) => project.projectKey));
+  const projectMatches = (projectKey) => {
+    const key = normalizeProjectKey(projectKey);
+    if (!key) return !selectedProjectKey && !selectedProjectStatus && !selectedArea;
+    return allowedProjectKeys.has(key);
+  };
+  const add = (severity, title, detail, context = {}) => {
+    issues.push({ id: uid(), severity, title, detail, ...context });
+  };
+
+  state.sprints.forEach((sprint) => {
+    (sprint.topics || []).forEach((topic) => {
+      normalizeTopic(topic);
+      const projectKey = normalizeProjectKey(topic.projectKey);
+      const sprintLabel = `Sprint ${sprint.name}`;
+      if (!projectMatches(projectKey)) return;
+      if (!projectKey) {
+        add("warning", `Release sem projeto — ${sprintLabel}`, `${topic.title} não está ligada a uma pasta de projeto.`, { kind: "project", topic, sprint });
+        return;
+      }
+      if (!projectCatalog.includes(projectKey)) {
+        add("error", `Projeto inexistente — ${sprintLabel}`, `${topic.title} referencia projects/${projectKey}, mas essa pasta não foi encontrada.`, { projectKey, kind: "project", topic, sprint });
+      }
+      const rawStartDate = String(topic.rawStartDate || topic.startDate || "").trim();
+      const rawDeliveryDate = String(topic.rawDeliveryDate || topic.deliveryDate || "").trim();
+      if (rawStartDate && !isValidCalendarIso(rawStartDate)) {
+        add("error", `Data inicial inválida — ${sprintLabel}`, `${topic.title} usa ${rawStartDate} como data inicial.`, { projectKey, kind: "project", topic, sprint });
+      }
+      if (rawDeliveryDate && !isValidCalendarIso(rawDeliveryDate)) {
+        add("error", `Data de entrega inválida — ${sprintLabel}`, `${topic.title} usa ${rawDeliveryDate} como data de entrega.`, { projectKey, kind: "project", topic, sprint });
+      }
+      if (isValidCalendarIso(rawStartDate) && isValidCalendarIso(rawDeliveryDate) && rawStartDate > rawDeliveryDate) {
+        add("error", `Intervalo de projeto invertido — ${sprintLabel}`, `${topic.title}: início ${formatTopicStartDate(rawStartDate)} após entrega ${formatTopicDeliveryDate(rawDeliveryDate)}.`, { projectKey, kind: "project", topic, sprint });
+      }
+    });
+  });
+
+  projects.forEach((project) => {
+    const projectStatus = normalizeProjectStatus(project.status);
+    const projectDatesAreOptional = ["Bloqueado", "Acompanhamento"].includes(projectStatus);
+    const hasPlannedRange = (project.releases || []).some((release) => release.plannedStartDate && release.targetReleaseDate);
+    if (!projectDatesAreOptional && !isFinishedProjectStatus(project.status) && (!project.startDate || !project.deliveryDate) && !hasPlannedRange) {
+      const existingRelease = (project.releases || []).find((release) => !release.plannedStartDate || !release.targetReleaseDate)
+        || (project.releases || [])[0]
+        || null;
+      add("warning", "Projeto sem janela de entrega", `${project.title} não possui início e entrega completos.`, {
+        projectKey: project.projectKey,
+        kind: "project",
+        topic: project.latestTopic,
+        sprint: project.latestSprint,
+        release: existingRelease,
+      });
+    }
+
+    const knownFeatures = new Set(getProjectFeatureNames(project.projectKey).map((name) => normalizeSearchText(name)));
+    project.currentEntries.forEach(({ sprint, topic, item }) => {
+      normalizeItem(item);
+      if (item.done) return;
+      if (selectedArea && !normalizeTaskAreas(item.areas || item.area).includes(selectedArea)) return;
+      if (!(item.responsibles || []).length) {
+        add("info", "Task sem responsável", `${project.title}: ${item.text}`, { projectKey: project.projectKey, kind: "task", sprint, topic, item });
+      }
+      if (deriveTaskStatus(item, topic) === "blocked" && !String(item.blockedReason || "").trim()) {
+        add("warning", "Bloqueio sem motivo", `${project.title}: ${item.text}`, { projectKey: project.projectKey, kind: "task", sprint, topic, item });
+      }
+      const featureName = String(item.featureName || "").trim();
+      if (featureName && !knownFeatures.has(normalizeSearchText(featureName))) {
+        add("warning", "Feature não cadastrada", `${project.title}: “${featureName}” é usada por ${item.text}.`, { projectKey: project.projectKey, kind: "task", sprint, topic, item });
+      }
+    });
+
+    const releasesByName = new Map();
+    (project.releases || []).forEach((release) => {
+      const key = normalizeSearchText(release.name);
+      const group = releasesByName.get(key) || [];
+      group.push(release);
+      releasesByName.set(key, group);
+    });
+    releasesByName.forEach((releases) => {
+      if (!releases.length || releases.length === 1) return;
+      add(
+        "warning",
+        "Releases com o mesmo nome",
+        `${project.title}: ${releases[0].name} possui ${releases.length} registros (${releases.map(releaseSourceLabel).join(", ")}).`,
+        { projectKey: project.projectKey }
+      );
+    });
+
+    (project.releases || []).forEach((release) => {
+      const releaseSource = releaseSourceLabel(release);
+      if (!release.owner) {
+        add("warning", `Release sem responsável — ${releaseSource}`, `${project.title}: ${release.name}`, { projectKey: project.projectKey, kind: "release", release });
+      }
+      const rawPlannedStartDate = String(release.rawPlannedStartDate || release.plannedStartDate || "").trim();
+      const rawTargetReleaseDate = String(release.rawTargetReleaseDate || release.targetReleaseDate || "").trim();
+      if (!projectDatesAreOptional && (!rawPlannedStartDate || !rawTargetReleaseDate)) {
+        add("warning", `Release sem datas completas — ${releaseSource}`, `${project.title}: ${release.name}`, { projectKey: project.projectKey, kind: "release", release });
+      }
+      if (rawPlannedStartDate && !isValidCalendarIso(rawPlannedStartDate)) {
+        add("error", `Início de release inválido — ${releaseSource}`, `${project.title}: ${release.name} usa ${rawPlannedStartDate}.`, { projectKey: project.projectKey, kind: "release", release });
+      }
+      if (rawTargetReleaseDate && !isValidCalendarIso(rawTargetReleaseDate)) {
+        add("error", `Entrega de release inválida — ${releaseSource}`, `${project.title}: ${release.name} usa ${rawTargetReleaseDate}.`, { projectKey: project.projectKey, kind: "release", release });
+      }
+      if (isValidCalendarIso(rawPlannedStartDate) && isValidCalendarIso(rawTargetReleaseDate) && rawPlannedStartDate > rawTargetReleaseDate) {
+        add("error", `Intervalo de release invertido — ${releaseSource}`, `${project.title}: ${release.name} começa após a entrega alvo.`, { projectKey: project.projectKey, kind: "release", release });
+      }
+      (release.features || []).forEach((feature) => {
+        if (isValidCalendarIso(feature.scheduledStartDate) && isValidCalendarIso(feature.scheduledEndDate) && feature.scheduledStartDate > feature.scheduledEndDate) {
+          add("error", `Intervalo de feature invertido — ${releaseSource}`, `${project.title}: ${feature.name} em ${release.name}.`, { projectKey: project.projectKey, kind: "release", release });
+        }
+      });
+    });
+  });
+
+  if (!selectedProjectKey && !selectedProjectStatus && !selectedArea) {
+    (state.backlog || []).forEach((item) => {
+      const projectKey = normalizeProjectKey(item.projectKey);
+      if (!projectKey) {
+        add("info", "Backlog sem projeto", item.text || "Item de backlog sem texto.");
+      } else if (!projectCatalog.includes(projectKey)) {
+        add("warning", "Backlog aponta para projeto inexistente", `${item.text} referencia projects/${projectKey}.`, { projectKey });
+      }
+    });
+  }
+
+  const query = normalizeSearchText(taskSearchText);
+  const severityOrder = { error: 0, warning: 1, info: 2 };
+  const seen = new Set();
+  return issues
+    .filter((issue) => !query || searchHaystack([issue.title, issue.detail, issue.projectKey]).includes(query))
+    .filter((issue) => {
+      const key = `${issue.severity}|${issue.title}|${issue.detail}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity] || a.title.localeCompare(b.title));
+}
+
+function openDiagnosticIssue(issue) {
+  if (issue.kind === "task" && issue.topic && issue.item) {
+    openTopicTaskEditor(issue.topic, issue.item);
+    return;
+  }
+  if (issue.kind === "release" && issue.projectKey && issue.release) {
+    openReleaseEditor(issue.projectKey, issue.release);
+    return;
+  }
+  if (issue.kind === "project") {
+    if (issue.topic && issue.sprint) {
+      openSprintTopicProjectModal(issue.topic, issue.sprint);
+      return;
+    }
+    if (issue.release && issue.projectKey) {
+      openReleaseEditor(issue.projectKey, issue.release);
+      return;
+    }
+    if (issue.projectKey) openReleaseEditor(issue.projectKey);
+  }
+}
+
+function diagnosticIssueIsActionable(issue) {
+  return Boolean(
+    (issue.kind === "task" && issue.topic && issue.item)
+    || (issue.kind === "release" && issue.projectKey && issue.release)
+    || (issue.kind === "project" && ((issue.topic && issue.sprint) || issue.projectKey))
+  );
+}
+
+function renderDiagnosticRows(container, issues, emptyText, limit = Infinity) {
+  container.innerHTML = "";
+  if (!issues.length) {
+    const empty = document.createElement("p");
+    empty.className = "executive-empty";
+    empty.textContent = emptyText;
+    container.appendChild(empty);
+    return;
+  }
+
+  issues.slice(0, limit).forEach((issue) => {
+    const actionable = diagnosticIssueIsActionable(issue);
+    const row = document.createElement(actionable ? "button" : "div");
+    if (actionable) row.type = "button";
+    row.className = `diagnostic-row diagnostic-${issue.severity || "info"}`;
+    const badge = document.createElement("span");
+    badge.className = "diagnostic-badge";
+    badge.textContent = issue.severity === "error" ? "Error" : issue.severity === "warning" ? "Attention" : "Info";
+    const content = document.createElement("span");
+    content.className = "diagnostic-content";
+    const title = document.createElement("strong");
+    title.textContent = issue.title;
+    const detail = document.createElement("span");
+    detail.textContent = issue.detail;
+    content.append(title, detail);
+    row.append(badge, content);
+    if (actionable) {
+      const action = document.createElement("span");
+      action.className = "diagnostic-action";
+      action.textContent = issue.kind === "project" && !issue.topic && !issue.release ? "Plan" : "Open";
+      row.appendChild(action);
+      row.addEventListener("click", () => openDiagnosticIssue(issue));
+    }
+    container.appendChild(row);
+  });
+}
+
+function createExecutiveSection(title, subtitle = "") {
+  const section = document.createElement("section");
+  section.className = "executive-section";
+  const head = document.createElement("div");
+  head.className = "executive-section-head";
+  const heading = document.createElement("h4");
+  heading.textContent = title;
+  head.appendChild(heading);
+  if (subtitle) {
+    const meta = document.createElement("span");
+    meta.textContent = subtitle;
+    head.appendChild(meta);
+  }
+  const body = document.createElement("div");
+  body.className = "executive-section-body";
+  section.append(head, body);
+  return { section, body };
+}
+
+function renderExecutiveCockpit() {
+  const projects = collectExecutiveProjects();
+  const diagnostics = collectDataDiagnostics(projects);
+  const deliveries = collectExecutiveDeliveries(projects);
+  const today = localIsoToday();
+  const activeProjects = projects.filter((project) => !isFinishedProjectStatus(project.status));
+  const overdue = deliveries.filter((entry) => !entry.completed && entry.daysUntil < 0);
+  const upcoming = deliveries.filter((entry) => !entry.completed && entry.daysUntil >= 0 && entry.daysUntil <= 30);
+  const blocked = projects.flatMap((project) => project.blockedEntries.map((entry) => ({ project, ...entry })));
+  const dataProblems = diagnostics.filter((issue) => issue.severity !== "info");
+
+  el.boardTitle.textContent = "Executive Cockpit";
+  el.boardMeta.textContent = "Portfolio exceptions, upcoming deliveries and data quality.";
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.className = "topics-grid executive-grid";
+
+  const dashboard = document.createElement("div");
+  dashboard.className = "executive-dashboard";
+  const kpis = document.createElement("section");
+  kpis.className = "executive-kpis";
+  const addKpi = (label, value, hint, tone = "neutral", onClick = null) => {
+    const card = document.createElement(onClick ? "button" : "article");
+    if (onClick) card.type = "button";
+    card.className = `executive-kpi executive-kpi-${tone}`;
+    const valueNode = document.createElement("strong");
+    valueNode.textContent = String(value);
+    const labelNode = document.createElement("span");
+    labelNode.textContent = label;
+    const hintNode = document.createElement("small");
+    hintNode.textContent = hint;
+    card.append(valueNode, labelNode, hintNode);
+    if (onClick) card.addEventListener("click", onClick);
+    kpis.appendChild(card);
+  };
+  addKpi("Active projects", activeProjects.length, `${projects.length} visible in portfolio`);
+  addKpi("Next 30 days", upcoming.length, "planned deliveries", upcoming.length ? "attention" : "good");
+  addKpi("Overdue", overdue.length, "deliveries requiring review", overdue.length ? "error" : "good");
+  addKpi("Blocked", blocked.length, "current open tasks", blocked.length ? "attention" : "good");
+  addKpi("Data health", dataProblems.length, `${diagnostics.length} total findings`, dataProblems.length ? "error" : "good", () => {
+    taskLayoutView = "diagnostics";
+    render();
+  });
+  dashboard.appendChild(kpis);
+
+  const content = document.createElement("div");
+  content.className = "executive-content";
+  const attentionSection = createExecutiveSection("Attention needed", `${overdue.length + blocked.length + dataProblems.length} signals`);
+  const attentionIssues = [
+    ...overdue.map((entry) => ({
+      ...entry,
+      severity: "error",
+      title: "Overdue delivery",
+      detail: `${entry.projectTitle}: ${entry.title} was due ${formatTopicDeliveryDate(entry.date)}.`,
+    })),
+    ...blocked.map(({ project, sprint, topic, item }) => ({
+      severity: "warning",
+      title: "Blocked task",
+      detail: `${project.title}: ${item.text}${item.blockedReason ? ` — ${item.blockedReason}` : ""}`,
+      projectKey: project.projectKey,
+      kind: "task",
+      sprint,
+      topic,
+      item,
+    })),
+    ...dataProblems,
+  ];
+  renderDiagnosticRows(attentionSection.body, attentionIssues, "No critical exceptions with the current filters.", 8);
+
+  const deliverySection = createExecutiveSection("Upcoming deliveries", "next 30 days");
+  const deliveryIssues = upcoming.map((entry) => ({
+    ...entry,
+    severity: entry.daysUntil <= 7 ? "warning" : "info",
+    title: `${formatTopicDeliveryDate(entry.date)} — ${entry.title}`,
+    detail: `${entry.projectTitle}${entry.owner ? ` • ${entry.owner}` : " • no owner"}${entry.daysUntil === 0 ? " • today" : ` • ${entry.daysUntil} days`}`,
+  }));
+  renderDiagnosticRows(deliverySection.body, deliveryIssues, `No delivery planned between ${formatTopicDeliveryDate(today)} and the next 30 days.`, 10);
+
+  const statusSection = createExecutiveSection("Portfolio status", `${projects.length} projects`);
+  statusSection.body.classList.add("executive-status-list");
+  const statusCounts = new Map();
+  projects.forEach((project) => statusCounts.set(project.status || "No status", (statusCounts.get(project.status || "No status") || 0) + 1));
+  if (!statusCounts.size) {
+    const empty = document.createElement("p");
+    empty.className = "executive-empty";
+    empty.textContent = "No projects match the current filters.";
+    statusSection.body.appendChild(empty);
+  } else {
+    Array.from(statusCounts.entries()).sort(([a], [b]) => a.localeCompare(b)).forEach(([status, count]) => {
+      const row = document.createElement("div");
+      row.className = "executive-status-row";
+      const label = document.createElement("span");
+      label.textContent = status;
+      const value = document.createElement("strong");
+      value.textContent = String(count);
+      row.append(label, value);
+      statusSection.body.appendChild(row);
+    });
+  }
+
+  content.append(attentionSection.section, deliverySection.section, statusSection.section);
+  dashboard.appendChild(content);
+  el.topicsGrid.appendChild(dashboard);
+}
+
+function renderDiagnosticsView() {
+  const projects = collectExecutiveProjects();
+  const diagnostics = collectDataDiagnostics(projects);
+  const counts = diagnostics.reduce((result, issue) => {
+    result[issue.severity] = (result[issue.severity] || 0) + 1;
+    return result;
+  }, { error: 0, warning: 0, info: 0 });
+
+  el.boardTitle.textContent = "Data Diagnostics";
+  el.boardMeta.textContent = "Read-only validation of sprints, projects, releases, tasks and backlog.";
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.className = "topics-grid executive-grid";
+
+  const dashboard = document.createElement("div");
+  dashboard.className = "executive-dashboard diagnostics-dashboard";
+  const summary = document.createElement("section");
+  summary.className = "diagnostic-summary";
+  [
+    ["Errors", counts.error, "error"],
+    ["Attention", counts.warning, "warning"],
+    ["Information", counts.info, "info"],
+  ].forEach(([label, value, severity]) => {
+    const card = document.createElement("article");
+    card.className = `diagnostic-summary-card diagnostic-${severity}`;
+    const count = document.createElement("strong");
+    count.textContent = String(value);
+    const text = document.createElement("span");
+    text.textContent = label;
+    card.append(count, text);
+    summary.appendChild(card);
+  });
+  dashboard.appendChild(summary);
+
+  const groups = [
+    ["Errors", "Problems that can invalidate dates or references.", "error"],
+    ["Attention", "Missing context that can affect leadership review.", "warning"],
+    ["Information", "Completeness opportunities that do not block usage.", "info"],
+  ];
+  groups.forEach(([title, subtitle, severity]) => {
+    const section = createExecutiveSection(title, subtitle);
+    renderDiagnosticRows(section.body, diagnostics.filter((issue) => issue.severity === severity), `No ${title.toLowerCase()} found.`);
+    dashboard.appendChild(section.section);
+  });
+  el.topicsGrid.appendChild(dashboard);
+}
+
 function renderProjectFeatureCards() {
+  el.topicsGrid.className = "topics-grid";
   el.boardTitle.textContent = "Project";
   el.boardMeta.textContent = selectedProjectKey
     ? `Project: ${selectedProjectKey}`
@@ -5595,7 +6198,11 @@ function renderProjectFeatureCards() {
     const node = el.topicTemplate.content.firstElementChild.cloneNode(true);
     node.classList.toggle("topic-card-due-soon", isTopicDueSoon(project.deliveryDate));
     node.querySelector(".topic-title").textContent = project.title;
-    node.querySelector(".topic-project").textContent = `${project.features.size} feature${project.features.size === 1 ? "" : "s"}`;
+    const releaseCount = (project.releases || []).length;
+    const featureCount = project.features.size;
+    node.querySelector(".topic-project").textContent = releaseCount
+      ? `${releaseCount} release${releaseCount === 1 ? "" : "s"} • ${featureCount} feature${featureCount === 1 ? "" : "s"}`
+      : `${featureCount} feature${featureCount === 1 ? "" : "s"}`;
     const topicAreasNode = node.querySelector(".topic-areas");
     const statusTag = node.querySelector(".topic-status-tag");
     const startTag = node.querySelector(".topic-start-tag");
@@ -5631,8 +6238,30 @@ function renderProjectFeatureCards() {
       deliveryTag.textContent = "";
       deliveryTag.classList.add("hidden");
     }
-    node.querySelector(".topic-desc").textContent = project.description || "No description";
-    node.querySelector(".topic-edit-btn").addEventListener("click", () => openProjectEditor(project));
+    node.querySelector(".topic-desc").textContent = project.description || (releaseCount ? "Release planned; no tasks linked to a sprint yet." : "No description");
+    node.querySelector(".topic-edit-btn").addEventListener("click", () => {
+      if (project.latestTopic) openProjectEditor(project);
+      else if (project.releases?.length) openReleaseEditor(project.projectKey, project.releases[0]);
+    });
+
+    const releaseSummary = node.querySelector(".release-summary");
+    releaseSummary.innerHTML = "";
+    releaseSummary.classList.toggle("hidden", releaseCount === 0);
+    (project.releases || []).forEach((release) => {
+      const releaseButton = document.createElement("button");
+      releaseButton.type = "button";
+      releaseButton.className = "release-summary-item";
+      const targetDate = release.targetReleaseDate
+        ? formatTopicDeliveryDate(release.targetReleaseDate)
+        : "no target date";
+      releaseButton.textContent = `${release.name} · ${targetDate} · ${releaseSourceLabel(release)}`;
+      releaseButton.title = "Open release";
+      releaseButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openReleaseEditor(project.projectKey, release);
+      });
+      releaseSummary.appendChild(releaseButton);
+    });
 
     const addItemBtn = node.querySelector(".add-item-btn");
     addItemBtn.classList.add("hidden");
@@ -5873,7 +6502,10 @@ function render() {
   renderWorkloadDateRangeInputs();
   renderBoardProjectSelect();
   renderBacklogProjectFilter();
-  if (taskLayoutView === "taskboard") renderTaskboard();
+  el.topicsGrid.classList.remove("executive-grid");
+  if (taskLayoutView === "executive" && boardView === "projects") renderExecutiveCockpit();
+  else if (taskLayoutView === "diagnostics" && boardView === "projects") renderDiagnosticsView();
+  else if (taskLayoutView === "taskboard") renderTaskboard();
   else if (taskLayoutView === "members" && boardView !== "projects") renderSprintMembers();
   else if (taskLayoutView === "delivery") renderDeliveryView();
   else if (taskLayoutView === "workload") renderWorkloadView();
@@ -5881,13 +6513,20 @@ function render() {
   else renderTopics();
   renderBacklog();
   const projectsMode = boardView === "projects";
+  const executiveMode = projectsMode && taskLayoutView === "executive";
+  const diagnosticsMode = projectsMode && taskLayoutView === "diagnostics";
   const deliveryMode = taskLayoutView === "delivery";
   const workloadMode = taskLayoutView === "workload" || taskLayoutView === "project-workload";
+  const wideMode = executiveMode || diagnosticsMode || deliveryMode || workloadMode;
   const membersMode = taskLayoutView === "members" && !projectsMode;
-  el.topicsGrid.closest(".workspace")?.classList.toggle("workspace-delivery", deliveryMode || workloadMode);
+  el.topicsGrid.closest(".workspace")?.classList.toggle("workspace-delivery", wideMode);
   el.newSprintBtn.classList.toggle("hidden", projectsMode);
   el.newTopicBtn.disabled = projectsMode || membersMode;
   el.editSprintBtn.disabled = projectsMode;
+  el.executiveViewBtn?.classList.toggle("hidden", !projectsMode);
+  el.executiveViewBtn?.classList.toggle("active", executiveMode);
+  el.diagnosticsViewBtn?.classList.toggle("hidden", !projectsMode);
+  el.diagnosticsViewBtn?.classList.toggle("active", diagnosticsMode);
   el.projectCardsViewBtn.classList.toggle("active", taskLayoutView === "projects");
   el.focusModeBtn.classList.toggle("hidden", boardView !== "sprints" || taskLayoutView !== "projects");
   el.taskboardViewBtn.classList.toggle("active", taskLayoutView === "taskboard");
@@ -5899,7 +6538,7 @@ function render() {
   el.workloadViewBtn?.classList.toggle("active", taskLayoutView === "workload");
   el.projectWorkloadViewBtn?.classList.toggle("hidden", !projectsMode);
   el.projectWorkloadViewBtn?.classList.toggle("active", taskLayoutView === "project-workload");
-  el.backlogList.closest(".backlog-panel")?.classList.toggle("hidden", deliveryMode || workloadMode);
+  el.backlogList.closest(".backlog-panel")?.classList.toggle("hidden", wideMode);
   el.viewModeBtn.textContent = projectsMode ? "Sprints View" : "Projects View";
   if (projectsMode) {
     el.topicForm.classList.add("hidden");
@@ -6017,6 +6656,8 @@ async function loadFromFiles() {
     normalizeAllTopics();
     normalizeAllBacklog();
     dataMode = "local";
+    releaseCatalog = {};
+    await loadAllProjectReleases();
     setStatus("localStorage fallback (run `python sprint-hub/server.py` for file mode)");
   }
   render();
@@ -6066,6 +6707,16 @@ el.editSprintBtn.addEventListener("click", () => {
 });
 el.pjsBtn.addEventListener("click", openPjsModal);
 el.projectsBtn.addEventListener("click", openProjectsModal);
+el.executiveViewBtn?.addEventListener("click", () => {
+  boardView = "projects";
+  taskLayoutView = "executive";
+  render();
+});
+el.diagnosticsViewBtn?.addEventListener("click", () => {
+  boardView = "projects";
+  taskLayoutView = "diagnostics";
+  render();
+});
 el.projectCardsViewBtn.addEventListener("click", () => {
   taskLayoutView = "projects";
   render();
@@ -6116,7 +6767,7 @@ el.viewModeBtn.addEventListener("click", () => {
     boardView = "sprints";
     projectSearchText = "";
     selectedProjectKey = "";
-    if (taskLayoutView === "delivery" || taskLayoutView === "workload" || taskLayoutView === "project-workload") taskLayoutView = "projects";
+    if (["delivery", "workload", "project-workload", "executive", "diagnostics"].includes(taskLayoutView)) taskLayoutView = "projects";
   } else {
     boardView = "projects";
     selectedProjectKey = "";
@@ -6251,6 +6902,9 @@ el.modalTaskStatusSelect.addEventListener("change", () => {
 el.modalBacklogProjectSelect.addEventListener("change", () => {
   if (!taskModalBacklogMode) return;
   renderTaskModalFeatureSelect(el.modalBacklogProjectSelect.value, "");
+});
+el.modalFeatureSelect?.addEventListener("change", () => {
+  if (el.modalTaskFeature) el.modalTaskFeature.textContent = el.modalFeatureSelect.value || "No feature";
 });
 el.modalSaveBtn.addEventListener("click", () => {
   if (!itemEditModalOnSave) {
@@ -6698,6 +7352,8 @@ function requiredReleaseFeatures() {
 }
 
 function normalizeRelease(release = {}, projectKey = "") {
+  const rawPlannedStartDate = resolveRawIsoDate(release.plannedStartDate, release.rawPlannedStartDate);
+  const rawTargetReleaseDate = resolveRawIsoDate(release.targetReleaseDate, release.rawTargetReleaseDate);
   return {
     id: String(release.id || uid()),
     projectKey: normalizeProjectKey(release.projectKey || projectKey),
@@ -6705,8 +7361,10 @@ function normalizeRelease(release = {}, projectKey = "") {
     goal: String(release.goal || "").trim(),
     status: String(release.status || "planning").trim() || "planning",
     owner: String(release.owner || "").trim(),
-    plannedStartDate: normalizeTopicStartDate(release.plannedStartDate),
-    targetReleaseDate: normalizeTopicDeliveryDate(release.targetReleaseDate),
+    rawPlannedStartDate,
+    rawTargetReleaseDate,
+    plannedStartDate: normalizeTopicStartDate(rawPlannedStartDate),
+    targetReleaseDate: normalizeTopicDeliveryDate(rawTargetReleaseDate),
     features: (release.features || []).map((feature) => normalizeReleaseFeature(feature)),
     createdAt: String(release.createdAt || new Date().toISOString()),
     updatedAt: String(release.updatedAt || new Date().toISOString()),
@@ -6951,6 +7609,7 @@ function renderReleasesList() {
     meta.className = "release-meta";
     [
       formatReleaseRange(release),
+      releaseSourceLabel(release),
       release.owner ? `Owner: ${release.owner}` : "No owner",
       `${release.features.length} feature${release.features.length === 1 ? "" : "s"}`,
     ].forEach((text) => {
@@ -7343,8 +8002,9 @@ function openReleaseEditor(projectKey, release = null) {
   }, projectKey);
   editingReleaseId = release ? source.id : "";
   releaseEditorFeatures = source.features;
-  releaseEl.editorTitle.textContent = release ? "Edit Release" : "New Release";
+  releaseEl.editorTitle.textContent = release ? `Edit Release — ${releaseSourceLabel(source)}` : "New Release";
   renderReleaseProjectSelect(releaseEl.editorProjectSelect, source.projectKey || projectKey);
+  releaseEl.editorProjectSelect.disabled = Boolean(release);
   setReleaseEditorOwnerOptions(source.owner);
   releaseEl.editorNameInput.value = source.name;
   releaseEl.editorStartInput.value = source.plannedStartDate;
@@ -7372,6 +8032,38 @@ function closeReleaseEditor() {
   releaseEditorFeatures = [];
 }
 
+async function deleteReleaseEditor() {
+  const projectKey = normalizeProjectKey(releaseEl.editorProjectSelect.value);
+  const releaseId = String(editingReleaseId || "").trim();
+  const releases = releaseCatalog[projectKey] || [];
+  const release = releases.find((entry) => entry.id === releaseId);
+  if (!projectKey || !releaseId || !release) return;
+
+  const linked = findTopicForReleaseId(releaseId);
+  const linkedWarning = linked
+    ? `\n\nThis release is linked to Sprint ${linked.sprint.name}. The sprint card will remain, but its release plan will be removed.`
+    : "";
+  if (!window.confirm(`Remove release "${release.name}"? This cannot be undone from the app.${linkedWarning}`)) return;
+
+  const previousReleases = releases.map((entry) => normalizeRelease(entry, projectKey));
+  releaseCatalog[projectKey] = releases.filter((entry) => entry.id !== releaseId);
+  scheduleFeaturesByCapacity(releaseCatalog);
+
+  try {
+    await persistProjectReleases(projectKey);
+    selectedReleaseProjectKey = projectKey;
+    renderReleaseProjectSelect(releaseEl.projectSelect, projectKey);
+    renderReleasesList();
+    closeReleaseEditor();
+    render();
+    setStatus(`release removed (${projectKey})`);
+  } catch (error) {
+    releaseCatalog[projectKey] = previousReleases;
+    scheduleFeaturesByCapacity(releaseCatalog);
+    window.alert(`Failed to remove release: ${error.message}`);
+  }
+}
+
 async function saveReleaseEditor() {
   const projectKey = normalizeProjectKey(releaseEl.editorProjectSelect.value);
   const name = releaseEl.editorNameInput.value.trim();
@@ -7389,6 +8081,8 @@ async function saveReleaseEditor() {
     owner: releaseEl.editorOwnerSelect.value,
     plannedStartDate: releaseEl.editorStartInput.value,
     targetReleaseDate: releaseEl.editorTargetInput.value,
+    rawPlannedStartDate: releaseEl.editorStartInput.value,
+    rawTargetReleaseDate: releaseEl.editorTargetInput.value,
     features: releaseEditorFeatures,
     updatedAt: new Date().toISOString(),
   }, projectKey);
@@ -7403,7 +8097,7 @@ async function saveReleaseEditor() {
     renderReleaseProjectSelect(releaseEl.projectSelect, projectKey);
     renderReleasesList();
     closeReleaseEditor();
-    if (shouldRefreshCard) render();
+    render();
     setStatus(`releases updated (${projectKey})`);
   } catch (error) {
     window.alert(`Failed to save release: ${error.message}`);
@@ -7494,8 +8188,14 @@ async function openCardReleasePlan(topic) {
     release.projectKey = projectKey;
     release.name = topic.title;
     release.goal = topic.description;
-    release.plannedStartDate = topic.startDate;
-    release.targetReleaseDate = topic.deliveryDate;
+    if (!release.plannedStartDate && topic.startDate) {
+      release.rawPlannedStartDate = topic.startDate;
+      release.plannedStartDate = topic.startDate;
+    }
+    if (!release.targetReleaseDate && topic.deliveryDate) {
+      release.rawTargetReleaseDate = topic.deliveryDate;
+      release.targetReleaseDate = topic.deliveryDate;
+    }
   }
 
   importLegacyFeaturesIntoRelease(topic, release);
@@ -7531,6 +8231,7 @@ function initializeReleaseManagement() {
     renderReleaseFeatureEditors();
   });
   releaseEl.editorSaveBtn.addEventListener("click", saveReleaseEditor);
+  releaseEl.editorDeleteBtn.addEventListener("click", deleteReleaseEditor);
   bindBackdropClose(releaseEl.editorModal, closeReleaseEditor);
   bindBackdropClose(releaseEl.waterfallModal, closeReleaseWaterfallModal);
 }

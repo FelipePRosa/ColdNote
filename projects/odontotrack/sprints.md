@@ -2,4 +2,7 @@
 
 Regra: inclui apenas sprints depois de 26-01.
 
-_Sem tasks vinculadas neste periodo._
+## Sprint 26-23
+
+### Odontotrack
+- [ ] Base CNES - Digital (Fel) [FOLLOWED]

@@ -52,6 +52,8 @@
               <button id="editSprintBtn" class="icon-btn" type="button" aria-label="Edit sprint" title="Edit sprint">
                 <span aria-hidden="true">✎</span>
               </button>
+              <button id="executiveViewBtn" class="btn btn-ghost hidden" type="button">Cockpit</button>
+              <button id="diagnosticsViewBtn" class="btn btn-ghost hidden" type="button">Diagnostics</button>
               <button id="projectCardsViewBtn" class="btn btn-ghost" type="button">Release Cards</button>
               <button id="taskboardViewBtn" class="btn btn-ghost" type="button">Taskboard</button>
               <button id="memberViewBtn" class="btn btn-ghost" type="button">Members</button>
@@ -148,6 +150,20 @@
     <div class="modal-card">
       <h3 id="modalTitle">Edit Task</h3>
       <p id="modalSubtitle" class="muted">Update task text and responsibles.</p>
+      <div id="modalTaskContext" class="task-context hidden" aria-label="Task context">
+        <div class="task-context-item">
+          <span>Project</span>
+          <strong id="modalTaskProject">No project</strong>
+        </div>
+        <div class="task-context-item">
+          <span>Release</span>
+          <strong id="modalTaskRelease">No release</strong>
+        </div>
+        <div class="task-context-item">
+          <span>Feature</span>
+          <strong id="modalTaskFeature">No feature</strong>
+        </div>
+      </div>
       <input id="modalItemText" type="text" placeholder="Task text" />
       <label id="modalBacklogProjectField" class="field-block hidden" hidden aria-hidden="true" style="display: none;">
         <span class="field-label">Project</span>

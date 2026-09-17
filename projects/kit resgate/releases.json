@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "id": "mu5t0qmk_lgzy7z",
+      "projectKey": "kit resgate",
+      "name": "Kit Resgate V1",
+      "goal": "",
+      "status": "planning",
+      "owner": "Fel",
+      "rawPlannedStartDate": "2026-09-17",
+      "rawTargetReleaseDate": "2026-09-25",
+      "plannedStartDate": "2026-09-17",
+      "targetReleaseDate": "2026-09-25",
+      "features": [
+        {
+          "id": "required_planning_mu5t0bn0_tbyak0",
+          "name": "Planejamento",
+          "type": "planning",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Product Management"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_design_mu5t0bn0_dkor4p",
+          "name": "Design",
+          "type": "design",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "UX/UI"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_testing_mu5t0bn0_3zrkx7",
+          "name": "Testes",
+          "type": "testing",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "QA"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_hypercare_mu5t0bn0_r2z713",
+          "name": "Hypercare",
+          "type": "hypercare",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Support"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        }
+      ],
+      "createdAt": "2026-09-17T17:29:14.444Z",
+      "updatedAt": "2026-09-17T17:39:03.397Z"
+    }
+  ]
+}

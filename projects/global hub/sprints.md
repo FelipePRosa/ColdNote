@@ -2,4 +2,186 @@
 
 Regra: inclui apenas sprints depois de 26-01.
 
-_Sem tasks vinculadas neste periodo._
+## Sprint 26-02
+
+### Global Hub
+- [x] Arquitetura (Bruf)
+- [x] Testes de autenticação (Gui)
+
+## Sprint 26-03
+
+### Global Hub
+- [x] Testes de autenticação (Gui)
+
+## Sprint 26-04
+
+### Global Hub
+- [x] Correções (Bruf)
+
+## Sprint 26-05
+
+### Global Hub
+- [x] Correções (Bruf)
+
+## Sprint 26-08
+
+### Global Hub
+- [x] Correcoes (Berg)
+- [x] Tela categorias FAQ (Berg)
+
+## Sprint 26-09
+
+### Global Hub
+- [x] Correcoes (Berg)
+- [x] Tela categorias FAQ (Berg)
+
+## Sprint 26-10
+
+### Hub
+- [x] Tela categorias FAQ (Berg + Nu)
+
+## Sprint 26-11
+
+### Hub
+- [x] Teste categorias FAQ (Nu)
+
+## Sprint 26-12
+
+### Hub
+- [x] Teste categorias FAQ (Nu)
+- [x] Acompanhamento FAQ (Maxo)
+- [x] Back Kit resgate (Guto)
+
+## Sprint 26-13
+
+### Hub
+- [x] Teste categorias FAQ (Nu)
+- [x] Tela Kit resgate admin (Berg)
+- [x] acompanhamento FAQ (Maxo)
+- [x] Back Kit resgate (Guto)
+
+## Sprint 26-14
+
+### Hub
+- [x] Back Kit resgate (Guto)
+
+## Sprint 26-15
+
+### Hub
+- [x] Revisão endpoints HUB (Maxo)
+- [x] Revisar funcionalidades (Bruf + Nu)
+
+## Sprint 26-16
+
+### Hub
+- [x] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Nuala tá curtindo]
+
+## Sprint 26-18
+
+### Hub
+- [x] Revisar funcionalidades (Bruf + Maxo + Nu)
+
+## Sprint 26-19
+
+### Hub
+- [x] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade]
+
+## Sprint 26-20
+
+### Hub
+- [x] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade]
+
+## Sprint 26-21
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Bruf) [FOLLOWED]
+
+## Sprint 26-22
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Bruf) [FOLLOWED]
+
+## Sprint 26-23
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade] [FOLLOWED]
+
+## Sprint 26-24
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Berg) [FOLLOWED]
+
+## Sprint 26-25
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Berg) [STATUS: Testing] [AREA: Front] [FOLLOWED]
+
+## Sprint 26-26
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Gui + Berg) [STATUS: Testing] [AREA: Back, Front] [FOLLOWED]
+
+## Sprint 26-27
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Gui + Berg) [STATUS: Testing] [AREA: Back, Front] [FOLLOWED]
+
+## Sprint 26-28
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+
+## Sprint 26-29
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+- [ ] Bug Banner (Guto) [STATUS: Testing] [AREA: Back] [FOLLOWED]
+
+## Sprint 26-30
+
+### Hub
+- [ ] Revisar funcionalidades (Bruf + Maxo + Nu) [AREA: QA] [BLOCKED: Prioridade] [FOLLOWED]
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+- [x] Bug Banner (Guto) [AREA: Back] [FOLLOWED]
+
+## Sprint 26-31
+
+### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-32
+
+### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-33
+
+### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-34
+
+### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-35
+
+### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED] [FOLLOWED]
+
+## Sprint 26-36
+
+### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED: Falta definição] [FOLLOWED]
+
+## Sprint 26-37
+
+### Hub
+- [ ] Clear Hub (Gui + Berg) [AREA: Back, Front] [BLOCKED: Falta definição]

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "id": "mthm1jx8_wg0vjn",
+      "projectKey": "neodent web app",
+      "name": "Neodent Web App",
+      "goal": "",
+      "status": "planning",
+      "owner": "Fel",
+      "rawPlannedStartDate": "",
+      "rawTargetReleaseDate": "",
+      "plannedStartDate": "",
+      "targetReleaseDate": "",
+      "features": [
+        {
+          "id": "required_planning_mu5t27kn_jz893o",
+          "name": "Planejamento",
+          "type": "planning",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Product Management"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_design_mu5t27kn_b6wbcu",
+          "name": "Design",
+          "type": "design",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "UX/UI"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_testing_mu5t27kn_pj47sl",
+          "name": "Testes",
+          "type": "testing",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "QA"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_hypercare_mu5t27kn_8fwad9",
+          "name": "Hypercare",
+          "type": "hypercare",
+          "status": "open",
+          "description": "",
+          "assignee": "",
+          "stack": [
+            "Support"
+          ],
+          "startDate": "",
+          "estimatedHours": 0,
+          "scheduledStartDate": "",
+          "scheduledEndDate": "",
+          "scheduledAllocations": [],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        }
+      ],
+      "createdAt": "2026-09-17T17:30:23.063Z",
+      "updatedAt": "2026-09-17T17:38:59.302Z"
+    }
+  ]
+}
