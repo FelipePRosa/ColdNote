@@ -677,19 +677,28 @@ function formatTimelineDate(dateText) {
 
 function parseTopicHeading(rawHeading) {
   const raw = String(rawHeading || "").trim();
-  const m = raw.match(/^(.*?)\s*\[project:([^\]]+)\]\s*$/i);
-  if (!m) return { title: raw, projectKey: "" };
+  const projectMatch = raw.match(/\[project:([^\]]+)\]/i);
+  const releaseMatch = raw.match(/\[release:([^\]]+)\]/i);
+  const title = raw
+    .replace(/\s*\[project:[^\]]+\]/gi, "")
+    .replace(/\s*\[release:[^\]]+\]/gi, "")
+    .trim();
   return {
-    title: (m[1] || "").trim() || raw,
-    projectKey: normalizeProjectKey(m[2]),
+    title: title || raw,
+    projectKey: normalizeProjectKey(projectMatch?.[1]),
+    releaseId: String(releaseMatch?.[1] || "").trim(),
   };
 }
 
 function formatTopicHeading(topic) {
   const title = String(topic.title || "").trim();
   const projectKey = normalizeProjectKey(topic.projectKey);
-  if (!projectKey) return title;
-  return `${title} [project:${projectKey.replace(/\]/g, "")}]`;
+  const releaseId = String(topic.releaseId || "").trim().replace(/\]/g, "");
+  const metadata = [
+    projectKey ? `[project:${projectKey.replace(/\]/g, "")}]` : "",
+    releaseId ? `[release:${releaseId}]` : "",
+  ].filter(Boolean);
+  return metadata.length ? `${title} ${metadata.join(" ")}` : title;
 }
 
 function extractRootProjectKeys(dirs, files) {
@@ -720,6 +729,7 @@ function inferProjectKeyFromTitle(title) {
 }
 
 function normalizeTopic(topic) {
+  topic.releaseId = String(topic.releaseId || uid()).trim();
   topic.projectKey = normalizeProjectKey(topic.projectKey) || inferProjectKeyFromTitle(topic.title);
   topic.status = normalizeProjectStatus(topic.status);
   topic.startDate = normalizeTopicStartDate(topic.startDate);
@@ -901,12 +911,35 @@ function deriveWorkloadMemberRange(project, member) {
       }, "")
     : project.deliveryDate;
 
-  const latestTopicItems = Array.isArray(project.latestTopic?.items) ? project.latestTopic.items : [];
-  const activeInLatestTopic = latestTopicItems.some((item) => (item.responsibles || []).includes(member));
   const startIso = isoMax(project.startDate, firstAssignedIso);
-  const endIso = activeInLatestTopic ? project.deliveryDate : isoMin(project.deliveryDate, lastAssignedIso);
+  const endIso = isoMin(project.deliveryDate, lastAssignedIso);
   if (!startIso || !endIso || diffDaysInclusive(startIso, endIso) < 0) return null;
   return { startIso, endIso };
+}
+
+function collectWorkloadMemberWeekRanges(project, member, weekColumns) {
+  const assignedSprintRanges = project.taskEntries
+    .filter(({ item }) => (item.responsibles || []).includes(member))
+    .map(({ sprint }) => sprintWeekRange(sprint?.name))
+    .filter(Boolean);
+  if (!assignedSprintRanges.length) return [];
+
+  const activeIndexes = weekColumns
+    .filter((column) => assignedSprintRanges.some((range) =>
+      column.start.getTime() <= range.end.getTime() && column.end.getTime() >= range.start.getTime()
+    ))
+    .map((column) => column.index);
+  if (!activeIndexes.length) return [];
+
+  return activeIndexes.reduce((ranges, index) => {
+    const previous = ranges[ranges.length - 1];
+    if (previous && index === previous.endIndex + 1) {
+      previous.endIndex = index;
+    } else {
+      ranges.push({ startIndex: index, endIndex: index });
+    }
+    return ranges;
+  }, []);
 }
 
 function isTopicDueSoon(value) {
@@ -976,6 +1009,7 @@ async function refreshProjectCatalog() {
     updateProjectCatalogFromTree(payload.dirs || [], payload.files || []);
     await refreshProjectControls();
     await refreshProjectFeaturesCatalog();
+    await loadAllProjectReleases();
   } catch {
     projectCatalog = [];
     projectControls = {};
@@ -991,7 +1025,36 @@ function itemDisplayText(item) {
 
 function getProjectFeatureEntries(projectKey) {
   const key = normalizeProjectKey(projectKey);
-  return key ? [...(projectFeaturesCatalog[key] || [])] : [];
+  if (!key) return [];
+  const legacyEntries = [...(projectFeaturesCatalog[key] || [])];
+  const releaseEntries = (releaseCatalog[key] || []).flatMap((release) =>
+    (release.features || []).map((feature) => ({
+      id: feature.id,
+      name: feature.name,
+      description: feature.description || `${release.name} — ${RELEASE_FEATURE_TYPE_LABELS[feature.type] || feature.type}`,
+    }))
+  );
+  const seen = new Set();
+  return [...releaseEntries, ...legacyEntries].filter((entry) => {
+    const name = String(entry?.name || "").trim();
+    if (!name || seen.has(name.toLowerCase())) return false;
+    seen.add(name.toLowerCase());
+    return true;
+  });
+}
+
+function getReleaseFeatureEntries(projectKey, releaseId) {
+  const key = normalizeProjectKey(projectKey);
+  const id = String(releaseId || "").trim();
+  if (!key || !id) return [];
+  const release = (releaseCatalog[key] || []).find((entry) => String(entry.id || "").trim() === id);
+  return (release?.features || [])
+    .map((feature) => normalizeReleaseFeature(feature))
+    .filter((feature) => feature.name);
+}
+
+function getReleaseFeatureNames(projectKey, releaseId) {
+  return getReleaseFeatureEntries(projectKey, releaseId).map((feature) => feature.name);
 }
 
 function getProjectFeatureNames(projectKey) {
@@ -1172,6 +1235,7 @@ function parseSprintMarkdown(fileName, markdown) {
       const heading = parseTopicHeading(line.replace(/^##\s+/, "").trim());
       currentTopic = {
         id: uid(),
+        releaseId: heading.releaseId || uid(),
         title: heading.title,
         projectKey: heading.projectKey,
         status: "",
@@ -1286,6 +1350,7 @@ function sprintToMarkdown(sprint) {
   if (sprint.goal) lines.push(`Goal: ${sprint.goal}`, "");
 
   sprint.topics.forEach((topic) => {
+    normalizeTopic(topic);
     lines.push(`## ${formatTopicHeading(topic)}`);
     if (topic.status) lines.push(`Status: ${normalizeProjectStatus(topic.status)}`);
     if (topic.startDate) lines.push(`Start Date: ${normalizeTopicStartDate(topic.startDate)}`);
@@ -2217,6 +2282,7 @@ function openTaskModal({
   currentProjectKey = "",
   currentFeatureName = "",
   featureProjectKey = "",
+  featureReleaseId = "",
   currentStatus = "open",
   currentAreas = [],
   onSave,
@@ -2248,14 +2314,22 @@ function openTaskModal({
   });
 
   renderBacklogModalProjectSelect(currentProjectKey);
-  renderTaskModalFeatureSelect(backlogMode ? currentProjectKey : featureProjectKey, currentFeatureName);
+  const featureNames = backlogMode
+    ? getProjectFeatureNames(currentProjectKey)
+    : getReleaseFeatureNames(featureProjectKey, featureReleaseId);
+  if (currentFeatureName && !featureNames.includes(currentFeatureName)) featureNames.push(currentFeatureName);
+  renderTaskModalFeatureSelect(
+    backlogMode ? currentProjectKey : featureProjectKey,
+    currentFeatureName,
+    backlogMode ? "" : featureReleaseId
+  );
   el.modalBacklogProjectField.classList.add("hidden");
   el.taskMetaRow.classList.toggle("hidden", backlogMode);
   el.modalBlockedReasonInput.classList.toggle("hidden", backlogMode || !blockedSelected);
   el.modalAssigneeSelect.classList.toggle("hidden", backlogMode);
   el.modalFeatureField.classList.toggle(
     "hidden",
-    getProjectFeatureNames(backlogMode ? currentProjectKey : featureProjectKey).length === 0
+    featureNames.length === 0
   );
   el.modalDeleteBtn.classList.toggle("hidden", !onDelete);
 
@@ -2533,6 +2607,8 @@ function closeDeliveryInfoModal() {
 }
 
 function openProjectModal(topic, currentSprintId, onSave, onDelete, onCopy, onTimeline) {
+  normalizeTopic(topic);
+  currentProjectModalTopic = topic;
   projectModalOnSave = onSave;
   projectModalOnDelete = onDelete || null;
   projectModalOnCopy = onCopy || null;
@@ -2559,6 +2635,7 @@ function closeProjectModal() {
   projectModalOnDelete = null;
   projectModalOnCopy = null;
   projectModalOnTimeline = null;
+  currentProjectModalTopic = null;
   projectModalCopyOptions = [];
 }
 
@@ -3073,12 +3150,16 @@ function renderBacklogModalProjectSelect(currentProjectKey = "") {
   select.value = projectCatalog.includes(normalized) ? normalized : "";
 }
 
-function renderTaskModalFeatureSelect(projectKey = "", currentFeatureName = "") {
+function renderTaskModalFeatureSelect(projectKey = "", currentFeatureName = "", releaseId = "") {
   const select = el.modalFeatureSelect;
   const field = el.modalFeatureField;
   if (!select || !field) return;
 
-  const features = getProjectFeatureNames(projectKey);
+  const features = (releaseId
+    ? getReleaseFeatureNames(projectKey, releaseId)
+    : getProjectFeatureNames(projectKey));
+  const normalizedFeature = String(currentFeatureName || "").trim();
+  if (normalizedFeature && !features.includes(normalizedFeature)) features.push(normalizedFeature);
   select.innerHTML = "";
 
   const none = document.createElement("option");
@@ -3093,7 +3174,6 @@ function renderTaskModalFeatureSelect(projectKey = "", currentFeatureName = "") 
     select.appendChild(opt);
   });
 
-  const normalizedFeature = String(currentFeatureName || "").trim();
   select.value = features.includes(normalizedFeature) ? normalizedFeature : "";
   field.classList.toggle("hidden", features.length === 0);
 }
@@ -3698,6 +3778,44 @@ function openSprintTopicProjectModal(topic, sprint) {
   );
 }
 
+function getTopicReleasePlan(topic) {
+  const projectKey = normalizeProjectKey(topic?.projectKey);
+  const releaseId = String(topic?.releaseId || "").trim();
+  if (!projectKey || !releaseId) return null;
+  return (releaseCatalog[projectKey] || []).find((release) => String(release.id || "").trim() === releaseId) || null;
+}
+
+function renderTopicReleaseSummary(container, topic) {
+  if (!container) return;
+  const release = getTopicReleasePlan(topic);
+  container.innerHTML = "";
+  container.classList.toggle("hidden", !release);
+  if (!release) return;
+
+  const features = (release.features || []).map((feature) => normalizeReleaseFeature(feature));
+  const totalHours = features.reduce((total, feature) => total + Number(feature.estimatedHours || 0), 0);
+  const assignees = Array.from(new Set(features.map((feature) => feature.assignee).filter(Boolean)));
+  const forecast = features.reduce((latest, feature) => {
+    const date = normalizeTopicDeliveryDate(feature.scheduledEndDate);
+    return !latest || (date && date > latest) ? date : latest;
+  }, "");
+  const taskFeatureNames = new Set(features.map((feature) => feature.name));
+  const linkedTasks = (topic.items || []).filter((item) => taskFeatureNames.has(String(item.featureName || "").trim()));
+  const doneTasks = linkedTasks.filter((item) => item.done).length;
+  const values = [
+    `${features.length} feature${features.length === 1 ? "" : "s"}`,
+    totalHours ? `${totalHours}h planned` : "No hours estimated",
+    assignees.length ? assignees.join(", ") : "No responsible",
+    forecast ? `Forecast: ${formatTopicDeliveryDate(forecast)}` : "No forecast",
+    linkedTasks.length ? `${doneTasks}/${linkedTasks.length} tasks done` : "No linked tasks",
+  ];
+  values.forEach((text) => {
+    const item = document.createElement("span");
+    item.textContent = text;
+    container.appendChild(item);
+  });
+}
+
 function createSprintTopicCard(topic, sprint, options = {}) {
   normalizeTopic(topic);
   if (selectedProjectStatus && topic.status !== selectedProjectStatus) return null;
@@ -3754,6 +3872,7 @@ function createSprintTopicCard(topic, sprint, options = {}) {
     deliveryTag.classList.add("hidden");
   }
   node.querySelector(".topic-desc").textContent = topic.description || "No description";
+  renderTopicReleaseSummary(node.querySelector(".release-summary"), topic);
   node.querySelector(".topic-edit-btn").addEventListener("click", () => {
     openSprintTopicProjectModal(topic, sprint);
   });
@@ -3891,6 +4010,7 @@ function createSprintTopicCard(topic, sprint, options = {}) {
       currentText: { text: "", priority: "normal", blocked: false, blockedReason: "", areas: [] },
       currentNames: [],
       featureProjectKey: topic.projectKey || "",
+      featureReleaseId: topic.releaseId || "",
       currentStatus: deriveTaskStatus({}, topic),
       onSave: ({ text, responsibles, priority, blocked, blockedReason, featureName, status, areas }) => {
         topic.items.push({
@@ -3994,6 +4114,7 @@ function openTopicTaskEditor(topic, item) {
     currentNames: item.responsibles || [],
     currentFeatureName: item.featureName || "",
     featureProjectKey: topic.projectKey || "",
+    featureReleaseId: topic.releaseId || "",
     currentStatus: deriveTaskStatus(item, topic),
     currentAreas: normalizeTaskAreas(item.areas || item.area),
     onDelete: () => {
@@ -4049,7 +4170,122 @@ function collectProjectDeliveryItems({ projectFilter = selectedProjectKey } = {}
   return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title));
 }
 
+function renderReleaseTaskboard() {
+  el.boardTitle.textContent = "Release Taskboard";
+  el.boardMeta.textContent = selectedProjectKey
+    ? `Releases for ${selectedProjectKey}, grouped by release status.`
+    : "All releases, grouped by release status.";
+  const columns = PROJECT_STATUS_OPTIONS.map((status) => ({ id: status, title: status, releases: [] }));
+  const columnMap = Object.fromEntries(columns.map((column) => [column.id, column]));
+  const filtersActive = Boolean(taskSearchText || selectedArea);
+
+  visibleSprints().forEach((sprint) => {
+    (sprint.topics || []).forEach((topic) => {
+      normalizeTopic(topic);
+      const projectKey = normalizeProjectKey(topic.projectKey);
+      if (!projectKey) return;
+      if (selectedProjectKey && projectKey !== selectedProjectKey) return;
+      const status = normalizeProjectStatus(topic.status);
+      if (selectedProjectStatus && status !== selectedProjectStatus) return;
+      const entries = (topic.items || [])
+        .filter((item) => taskMatchesSearch(item, topic, sprint))
+        .filter((item) => !selectedArea || normalizeTaskAreas(item.areas || item.area).includes(selectedArea));
+      if (filtersActive && !entries.length) return;
+
+      const features = new Map();
+      entries.forEach((item) => {
+        const label = String(item.featureName || "").trim() || "Outros";
+        const feature = features.get(label) || { label, entries: [] };
+        feature.entries.push({ sprint, topic, item });
+        features.set(label, feature);
+      });
+      const release = {
+        topic,
+        sprint,
+        projectKey,
+        projectName: projectLabel(projectKey),
+        title: topic.title || projectLabel(projectKey),
+        status,
+        description: topic.description || "",
+        features,
+      };
+      columnMap[status]?.releases.push(release);
+    });
+  });
+
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.remove("delivery-grid", "workload-grid");
+  el.topicsGrid.classList.add("taskboard-grid", "project-taskboard-grid");
+
+  const totalReleases = columns.reduce((total, column) => total + column.releases.length, 0);
+  if (!totalReleases) {
+    const msg = document.createElement("p");
+    msg.className = "muted";
+    msg.textContent = "No releases found with the current filters.";
+    el.topicsGrid.appendChild(msg);
+    return;
+  }
+
+  columns.forEach((column) => {
+    const section = document.createElement("section");
+    section.className = `taskboard-column taskboard-column-${column.id || "none"}`;
+    section.innerHTML = `
+      <div class="taskboard-column-head">
+        <h4></h4>
+        <span class="taskboard-count"></span>
+      </div>
+      <div class="taskboard-list"></div>
+    `;
+    section.querySelector("h4").textContent = column.title;
+    section.querySelector(".taskboard-count").textContent = column.releases.length;
+    const list = section.querySelector(".taskboard-list");
+
+    if (!column.releases.length) {
+      const empty = document.createElement("div");
+      empty.className = "item-empty-hint";
+      empty.textContent = "No releases";
+      list.appendChild(empty);
+    }
+
+    column.releases
+      .sort((left, right) => left.title.localeCompare(right.title) || left.sprint.name.localeCompare(right.sprint.name))
+      .forEach((release) => {
+        const card = document.createElement("article");
+        card.className = "taskboard-task project-taskboard-card";
+        card.innerHTML = `
+          <div class="taskboard-task-head">
+            <span class="taskboard-project"></span>
+            <button type="button" class="btn-link btn-link-neutral taskboard-edit" aria-label="Edit release" title="Edit release">✎</button>
+          </div>
+          <p class="project-taskboard-desc muted"></p>
+          <ul class="items-list project-taskboard-features"></ul>
+        `;
+        card.querySelector(".taskboard-project").textContent = release.title;
+        card.querySelector(".project-taskboard-desc").textContent = `${release.projectName} · Sprint ${release.sprint.name}${release.description ? ` · ${release.description}` : ""}`;
+        const featuresList = card.querySelector(".project-taskboard-features");
+        if (release.features.size) {
+          appendProjectFeatureItems(featuresList, release);
+        } else {
+          const empty = document.createElement("li");
+          empty.className = "muted";
+          empty.textContent = "No tasks in this release.";
+          featuresList.appendChild(empty);
+        }
+        card.querySelector(".taskboard-edit").addEventListener("click", (event) => {
+          event.stopPropagation();
+          const plannedRelease = (releaseCatalog[release.projectKey] || []).find((entry) => entry.id === release.topic.releaseId);
+          if (plannedRelease) openReleaseEditor(release.projectKey, plannedRelease);
+          else openSprintTopicProjectModal(release.topic, release.sprint);
+        });
+        card.addEventListener("dblclick", () => openSprintTopicProjectModal(release.topic, release.sprint));
+        list.appendChild(card);
+      });
+    el.topicsGrid.appendChild(section);
+  });
+}
+
 function renderProjectTaskboard() {
+  return renderReleaseTaskboard();
   el.boardTitle.textContent = "Project Taskboard";
   el.boardMeta.textContent = "All projects grouped by current project status.";
   const columns = PROJECT_STATUS_OPTIONS.map((status) => ({ id: status, title: status, projects: [] }));
@@ -4364,7 +4600,147 @@ function moveDraggedTaskToTaskboardColumn(columnId) {
   return true;
 }
 
+function findTopicForReleaseId(releaseId) {
+  const id = String(releaseId || "").trim();
+  if (!id) return null;
+  for (const sprint of [...state.sprints].reverse()) {
+    const topic = (sprint.topics || []).find((entry) => String(entry.releaseId || "").trim() === id);
+    if (topic) return { sprint, topic };
+  }
+  return null;
+}
+
+function collectPlannedReleaseDeliveries({ projectFilter = selectedProjectKey, statusFilter = selectedProjectStatus } = {}) {
+  scheduleFeaturesByCapacity(releaseCatalog);
+  const query = normalizeSearchText(taskSearchText);
+  const records = [];
+  Object.entries(releaseCatalog).forEach(([projectKey, releases]) => {
+    if (projectFilter && projectKey !== projectFilter) return;
+    const projectStatus = getProjectCurrentStatus(projectKey);
+    if (statusFilter && projectStatus !== statusFilter) return;
+    (releases || []).forEach((release) => {
+      const features = (release.features || []).map((feature) => normalizeReleaseFeature(feature));
+      const linked = findTopicForReleaseId(release.id);
+      const tasks = linked?.topic?.items || [];
+      const startDate = features.reduce((earliest, feature) => {
+        const date = feature.scheduledStartDate || feature.startDate;
+        return !earliest || (date && date < earliest) ? date : earliest;
+      }, normalizeTopicStartDate(release.plannedStartDate));
+      const forecastDate = features.reduce((latest, feature) => {
+        const date = feature.scheduledEndDate;
+        return !latest || (date && date > latest) ? date : latest;
+      }, "");
+      const assignees = Array.from(new Set(features.map((feature) => feature.assignee).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+      const haystack = [projectKey, release.name, release.goal, assignees.join(" "), ...features.map((feature) => feature.name)].join(" ");
+      if (query && !searchHaystack([haystack]).includes(query)) return;
+      records.push({
+        projectKey,
+        projectStatus,
+        release,
+        features,
+        tasks,
+        startDate,
+        forecastDate,
+        targetDate: normalizeTopicDeliveryDate(release.targetReleaseDate),
+        assignees,
+        linked,
+      });
+    });
+  });
+  return records.sort((left, right) =>
+    left.projectKey.localeCompare(right.projectKey)
+    || String(left.startDate || "9999-99-99").localeCompare(String(right.startDate || "9999-99-99"))
+    || left.release.name.localeCompare(right.release.name)
+  );
+}
+
+function openPlannedReleaseDeliveryDetails(record) {
+  const taskCount = record.tasks.length;
+  const doneCount = record.tasks.filter((task) => task.done).length;
+  openDeliveryInfoModal({
+    title: `${record.release.name} — Delivery`,
+    subtitle: `${record.projectKey} · ${record.assignees.length ? record.assignees.join(", ") : "No responsible"}`,
+    groups: [
+      {
+        title: "Release dates",
+        meta: record.targetDate ? `Target: ${formatTopicDeliveryDate(record.targetDate)}` : "No target date",
+        items: [
+          `Start: ${formatTopicStartDate(record.startDate) || "Not scheduled"}`,
+          `Forecast: ${formatTopicDeliveryDate(record.forecastDate) || "Not available"}`,
+          `Tasks: ${doneCount}/${taskCount} done`,
+        ],
+      },
+      {
+        title: "Features",
+        meta: `${record.features.length} planned`,
+        items: record.features.length
+          ? record.features.map((feature) => `${feature.name} · ${feature.assignee || "No responsible"} · ${formatTopicStartDate(feature.scheduledStartDate)} → ${formatTopicDeliveryDate(feature.scheduledEndDate)}`)
+          : ["No planned features."],
+      },
+    ],
+  });
+}
+
+function renderPlannedReleaseDeliveryView() {
+  const records = collectPlannedReleaseDeliveries();
+  if (!records.length) return false;
+  el.boardTitle.textContent = "Delivery";
+  el.boardMeta.textContent = "Project and release roadmap based on planned feature capacity.";
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "workload-grid");
+  el.topicsGrid.classList.add("release-delivery-grid");
+
+  const byProject = new Map();
+  records.forEach((record) => {
+    const entries = byProject.get(record.projectKey) || [];
+    entries.push(record);
+    byProject.set(record.projectKey, entries);
+  });
+  byProject.forEach((entries, projectKey) => {
+    const section = document.createElement("section");
+    section.className = "release-delivery-project";
+    const head = document.createElement("div");
+    head.className = "release-delivery-project-head";
+    const title = document.createElement("h4");
+    title.textContent = projectKey;
+    const status = document.createElement("span");
+    status.textContent = entries[0].projectStatus || "No status";
+    head.append(title, status);
+    section.appendChild(head);
+
+    const list = document.createElement("div");
+    list.className = "release-delivery-list";
+    entries.forEach((record) => {
+      const doneCount = record.tasks.filter((task) => task.done).length;
+      const taskCount = record.tasks.length;
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "release-delivery-card";
+      card.innerHTML = `
+        <div class="release-delivery-card-head"><strong></strong><span></span></div>
+        <div class="release-delivery-dates"><span></span><span></span><span></span></div>
+        <div class="release-delivery-meta"><span></span><span></span></div>
+      `;
+      card.querySelector("strong").textContent = record.release.name;
+      card.querySelector(".release-delivery-card-head span").textContent = `${record.features.length} feature${record.features.length === 1 ? "" : "s"}`;
+      const dateNodes = card.querySelectorAll(".release-delivery-dates span");
+      dateNodes[0].textContent = `Start: ${formatTopicStartDate(record.startDate) || "—"}`;
+      dateNodes[1].textContent = `Forecast: ${formatTopicDeliveryDate(record.forecastDate) || "—"}`;
+      dateNodes[2].textContent = `Target: ${formatTopicDeliveryDate(record.targetDate) || "—"}`;
+      const metaNodes = card.querySelectorAll(".release-delivery-meta span");
+      metaNodes[0].textContent = record.assignees.length ? record.assignees.join(", ") : "No responsible";
+      metaNodes[1].textContent = `${doneCount}/${taskCount} tasks done`;
+      card.addEventListener("click", () => openPlannedReleaseDeliveryDetails(record));
+      list.appendChild(card);
+    });
+    section.appendChild(list);
+    el.topicsGrid.appendChild(section);
+  });
+  return true;
+}
+
 function renderDeliveryView() {
+  if (selectedProjectKey && renderPlannedReleaseDeliveryView()) return;
   el.boardTitle.textContent = "Delivery";
   el.boardMeta.textContent = selectedProjectKey
     ? `Delivery plan for ${selectedProjectKey} across sprints.`
@@ -4388,11 +4764,14 @@ function renderDeliveryView() {
       if (selectedProjectStatus && projectStatus !== selectedProjectStatus) return;
 
       const visibleItems = topic.items.filter((item) => taskMatchesSearch(item, topic, sprint));
-      if (!visibleItems.length) return;
+      if ((selectedProjectKey || taskSearchText) && !visibleItems.length) return;
 
-      const project = projects.get(projectKey) || {
+      const deliveryKey = selectedProjectKey
+        ? projectKey
+        : String(topic.releaseId || `${sprint.id}::${projectKey}::${topic.id}`);
+      const project = projects.get(deliveryKey) || {
         projectKey,
-        title: projectLabel(projectKey),
+        title: selectedProjectKey ? projectLabel(projectKey) : topic.title || projectLabel(projectKey),
         status: projectStatus,
         startDate: topic.startDate || "",
         deliveryDate: topic.deliveryDate || "",
@@ -4415,7 +4794,7 @@ function renderDeliveryView() {
       visibleItems.forEach((item) => sprintGroup.tasks.push({ sprint, topic, item }));
       project.sprints.set(sprint.id, sprintGroup);
       usedSprintIds.add(sprint.id);
-      projects.set(projectKey, project);
+      projects.set(deliveryKey, project);
     });
   });
 
@@ -4723,16 +5102,188 @@ function renderDeliveryView() {
   el.topicsGrid.appendChild(plan);
 }
 
+function buildDailyColumns(startIso, endIso) {
+  const start = dateFromIso(startIso);
+  const end = dateFromIso(endIso);
+  if (!start || !end || start.getTime() > end.getTime()) return [];
+  const columns = [];
+  for (let cursor = new Date(start.getTime()), index = 0; cursor.getTime() <= end.getTime(); cursor = addDaysToDate(cursor, 1), index += 1) {
+    columns.push({ index, date: new Date(cursor.getTime()), iso: isoFromDate(cursor) });
+  }
+  return columns;
+}
+
+function collectPlannedFeatureAssignments({ projectFilter = selectedProjectKey, statusFilter = selectedProjectStatus } = {}) {
+  scheduleFeaturesByCapacity(releaseCatalog);
+  const query = normalizeSearchText(taskSearchText);
+  const assignments = [];
+  Object.entries(releaseCatalog).forEach(([projectKey, releases]) => {
+    if (projectFilter && projectKey !== projectFilter) return;
+    const status = getProjectCurrentStatus(projectKey);
+    if (statusFilter && status !== statusFilter) return;
+    (releases || []).forEach((release) => {
+      (release.features || []).forEach((feature) => {
+        const normalized = normalizeReleaseFeature(feature);
+        if (!normalized.assignee || !normalized.scheduledAllocations.length) return;
+        const haystack = [projectKey, release.name, normalized.name, normalized.assignee, normalized.stack.join(" ")].join(" ");
+        if (query && !searchHaystack([haystack]).includes(query)) return;
+        assignments.push({
+          projectKey,
+          projectStatus: status,
+          release,
+          feature: normalized,
+          assignee: normalized.assignee,
+          allocations: normalized.scheduledAllocations,
+        });
+      });
+    });
+  });
+  return assignments.sort((left, right) =>
+    left.assignee.localeCompare(right.assignee)
+    || left.projectKey.localeCompare(right.projectKey)
+    || left.release.name.localeCompare(right.release.name)
+    || left.feature.name.localeCompare(right.feature.name)
+  );
+}
+
+function renderPlannedFeatureWorkloadView() {
+  const assignments = collectPlannedFeatureAssignments();
+  if (!assignments.length) return false;
+
+  const defaultStart = normalizeTopicStartDate(workloadStartDate) || getCurrentWeekStartIso();
+  const latestEnd = assignments.reduce((latest, assignment) => {
+    const end = assignment.feature.scheduledEndDate;
+    return !latest || (end && end > latest) ? end : latest;
+  }, "");
+  const rangeStart = defaultStart;
+  const rangeEnd = normalizeTopicDeliveryDate(workloadEndDate) || latestEnd;
+  const columns = buildDailyColumns(rangeStart, rangeEnd);
+  if (!columns.length) return false;
+  const columnIndex = new Map(columns.map((column) => [column.iso, column.index]));
+
+  const visibleAssignments = assignments
+    .map((assignment) => {
+      const allocations = assignment.allocations.filter((entry) => entry.date >= rangeStart && entry.date <= rangeEnd);
+      if (!allocations.length) return null;
+      const indexes = allocations.map((entry) => columnIndex.get(entry.date)).filter(Number.isInteger);
+      if (!indexes.length) return null;
+      return {
+        ...assignment,
+        allocations,
+        hours: allocations.reduce((total, entry) => total + entry.hours, 0),
+        startIndex: Math.min(...indexes),
+        endIndex: Math.max(...indexes),
+      };
+    })
+    .filter(Boolean);
+  if (!visibleAssignments.length) return false;
+
+  el.boardTitle.textContent = "Workload";
+  el.boardMeta.textContent = "Feature-level daily capacity. Each person has 6h available per business day.";
+  el.topicsGrid.innerHTML = "";
+  el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid");
+  el.topicsGrid.classList.add("workload-grid");
+
+  const members = Array.from(new Set([...getActiveAssignableMembers(), ...visibleAssignments.map((entry) => entry.assignee)])).sort((a, b) => a.localeCompare(b));
+  const assignmentsByMember = new Map(members.map((member) => [member, []]));
+  visibleAssignments.forEach((assignment) => assignmentsByMember.get(assignment.assignee)?.push(assignment));
+
+  const view = document.createElement("section");
+  view.className = "workload-view feature-workload-view";
+  view.style.setProperty("--workload-columns", String(columns.length));
+  const corner = document.createElement("div");
+  corner.className = "workload-corner";
+  corner.innerHTML = `<strong>Developer</strong><span>${visibleAssignments.length} planned feature${visibleAssignments.length === 1 ? "" : "s"}</span>`;
+  view.appendChild(corner);
+
+  const head = document.createElement("div");
+  head.className = "workload-head";
+  columns.forEach((column) => {
+    const day = column.date.getUTCDay();
+    const cell = document.createElement("div");
+    cell.className = "workload-day";
+    if (day === 0 || day === 6) cell.classList.add("is-weekend");
+    if (column.iso === localIsoToday()) cell.classList.add("is-today");
+    cell.innerHTML = `<strong>${formatTopicStartDate(column.iso)}</strong><span>${column.date.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" })}</span>`;
+    head.appendChild(cell);
+  });
+  view.appendChild(head);
+
+  members.forEach((member) => {
+    const memberAssignments = [...(assignmentsByMember.get(member) || [])].sort((left, right) =>
+      left.startIndex - right.startIndex || left.endIndex - right.endIndex || left.feature.name.localeCompare(right.feature.name)
+    );
+    const dailyHours = new Map();
+    memberAssignments.forEach((assignment) => assignment.allocations.forEach((entry) => {
+      dailyHours.set(entry.date, Number(dailyHours.get(entry.date) || 0) + entry.hours);
+    }));
+    const plannedHours = Array.from(dailyHours.values()).reduce((total, hours) => total + hours, 0);
+    const businessCapacity = columns.filter((column) => isBusinessIsoDate(column.iso)).length * RELEASE_DAILY_CAPACITY_HOURS;
+    const freeHours = Math.max(0, businessCapacity - plannedHours);
+    const laneEnds = [];
+    memberAssignments.forEach((assignment) => {
+      let laneIndex = laneEnds.findIndex((endIndex) => assignment.startIndex > endIndex);
+      if (laneIndex < 0) {
+        laneIndex = laneEnds.length;
+        laneEnds.push(assignment.endIndex);
+      } else {
+        laneEnds[laneIndex] = assignment.endIndex;
+      }
+      assignment.laneIndex = laneIndex;
+    });
+    const laneCount = Math.max(1, laneEnds.length);
+
+    const memberCell = document.createElement("div");
+    memberCell.className = "workload-member";
+    memberCell.innerHTML = `<strong>${member}</strong><span>${plannedHours}h planned · ${freeHours}h free</span>`;
+    view.appendChild(memberCell);
+
+    const lanes = document.createElement("div");
+    lanes.className = "workload-lanes feature-workload-lanes";
+    lanes.style.setProperty("--workload-lanes", String(laneCount));
+    columns.forEach((column) => {
+      const usedHours = Number(dailyHours.get(column.iso) || 0);
+      const cell = document.createElement("div");
+      cell.className = "workload-lane-cell feature-workload-cell";
+      cell.style.gridColumn = String(column.index + 1);
+      cell.style.gridRow = `1 / span ${laneCount}`;
+      if (!isBusinessIsoDate(column.iso)) cell.classList.add("is-weekend");
+      if (column.iso === localIsoToday()) cell.classList.add("is-today");
+      if (usedHours >= RELEASE_DAILY_CAPACITY_HOURS) cell.classList.add("is-full");
+      else if (usedHours > 0) cell.classList.add("is-partial");
+      cell.textContent = isBusinessIsoDate(column.iso) ? `${usedHours}/${RELEASE_DAILY_CAPACITY_HOURS}h` : "—";
+      cell.title = isBusinessIsoDate(column.iso)
+        ? `${member}: ${usedHours}h planned, ${Math.max(0, RELEASE_DAILY_CAPACITY_HOURS - usedHours)}h free`
+        : "Weekend";
+      lanes.appendChild(cell);
+    });
+    memberAssignments.forEach((assignment) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = `workload-assignment delivery-status-${normalizeStatusClass(assignment.projectStatus)}`;
+      card.style.gridColumn = `${assignment.startIndex + 1} / ${assignment.endIndex + 2}`;
+      card.style.gridRow = String((assignment.laneIndex || 0) + 1);
+      card.innerHTML = `<strong>${assignment.release.name} · ${assignment.feature.name}</strong><span>${assignment.projectKey} · ${assignment.hours}h</span>`;
+      card.title = `${assignment.projectKey} | ${assignment.release.name} | ${assignment.feature.name} | ${assignment.hours}h planned`;
+      lanes.appendChild(card);
+    });
+    view.appendChild(lanes);
+  });
+
+  el.topicsGrid.appendChild(view);
+  return true;
+}
+
 function renderWorkloadView() {
   el.boardTitle.textContent = "Workload";
   el.boardMeta.textContent = selectedProjectKey
-    ? `Weekly allocation view for ${selectedProjectKey}.`
-    : "Weekly allocation view to identify developer availability.";
+    ? `Weekly task-assignment view for ${selectedProjectKey}.`
+    : "Weekly task-assignment view based on tasks attributed in each sprint.";
   el.topicsGrid.innerHTML = "";
   el.topicsGrid.classList.remove("taskboard-grid", "project-taskboard-grid", "delivery-grid", "workload-grid");
   el.topicsGrid.classList.add("workload-grid");
 
-  const projects = collectWorkloadProjects();
+  const projects = collectWorkloadProjects({ allowUnassigned: true });
   if (!projects.length) {
     const msg = document.createElement("p");
     msg.className = "muted";
@@ -4754,19 +5305,12 @@ function renderWorkloadView() {
     return;
   }
 
-  const visibleProjects = projects
-    .map((project) => {
-      const activeIndexes = weekColumns
-        .filter((column) => timeColumnOverlapsRange(column, project.startDate, project.deliveryDate))
-        .map((column) => column.index);
-      if (!activeIndexes.length) return null;
-      return {
-        ...project,
-        startIndex: Math.min(...activeIndexes),
-        endIndex: Math.max(...activeIndexes),
-      };
-    })
-    .filter(Boolean);
+  const visibleProjects = projects.filter((project) => project.taskEntries.some(({ sprint }) => {
+    const sprintRange = sprintWeekRange(sprint?.name);
+    return sprintRange && weekColumns.some((column) =>
+      column.start.getTime() <= sprintRange.end.getTime() && column.end.getTime() >= sprintRange.start.getTime()
+    );
+  }));
 
   if (!visibleProjects.length) {
     const msg = document.createElement("p");
@@ -4776,25 +5320,26 @@ function renderWorkloadView() {
     return;
   }
 
-  const allMembers = Array.from(new Set([...getActiveAssignableMembers(), ...projects.flatMap((project) => project.responsibles)])).sort((a, b) =>
-    a.localeCompare(b)
-  );
+  const activeMembers = new Set(getActiveAssignableMembers());
+  const projectTaskResponsibles = (project) => Array.from(new Set(
+    project.taskEntries.flatMap(({ item }) => (item.responsibles || [])
+      .map((name) => String(name || "").trim())
+      .filter((name) => name && activeMembers.has(name))
+    )
+  ));
+  const allMembers = Array.from(new Set([
+    ...getActiveAssignableMembers(),
+    ...visibleProjects.flatMap((project) => projectTaskResponsibles(project)),
+  ])).sort((a, b) => a.localeCompare(b));
   const assignmentsByMember = new Map(allMembers.map((member) => [member, []]));
 
   visibleProjects.forEach((project) => {
-    project.responsibles.forEach((member) => {
-      const memberRange = deriveWorkloadMemberRange(project, member);
-      if (!memberRange) return;
-      const activeIndexes = weekColumns
-        .filter((column) => timeColumnOverlapsRange(column, memberRange.startIso, memberRange.endIso))
-        .map((column) => column.index);
-      if (!activeIndexes.length) return;
+    projectTaskResponsibles(project).forEach((member) => {
+      const memberWeekRanges = collectWorkloadMemberWeekRanges(project, member, weekColumns);
+      if (!memberWeekRanges.length) return;
       const items = assignmentsByMember.get(member) || [];
-      items.push({
-        member,
-        project,
-        startIndex: Math.min(...activeIndexes),
-        endIndex: Math.max(...activeIndexes),
+      memberWeekRanges.forEach(({ startIndex, endIndex }) => {
+        items.push({ member, project, startIndex, endIndex });
       });
       assignmentsByMember.set(member, items);
     });
@@ -5403,6 +5948,7 @@ function copySprintFromSource(source, sprintName) {
 
   const copiedTopics = source.topics.map((topic) => ({
     id: uid(),
+    releaseId: uid(),
     title: topic.title,
     projectKey: topic.projectKey || "",
     status: normalizeProjectStatus(topic.status),
@@ -5437,7 +5983,7 @@ function addTopic(e) {
   const description = el.topicDescInput.value.trim();
   if (!title) return;
 
-  sprint.topics.push({ id: uid(), title, projectKey, status, startDate: "", deliveryDate: "", description, items: [] });
+  sprint.topics.push({ id: uid(), releaseId: uid(), title, projectKey, status, startDate: "", deliveryDate: "", description, items: [] });
   el.topicTitleInput.value = "";
   el.topicProjectSelect.value = "";
   el.topicStatusSelect.value = "";
@@ -5782,16 +6328,12 @@ el.projectTimelineBtn.addEventListener("click", async () => {
   }
 });
 el.projectFeaturesBtn.addEventListener("click", async () => {
-  const selectedProjectKey = normalizeProjectKey(el.projectKeySelect.value);
-  if (!selectedProjectKey) {
-    window.alert("Select a project folder first.");
-    return;
-  }
+  if (!currentProjectModalTopic) return;
   try {
-    await openFeaturesModal(selectedProjectKey);
+    await openCardReleasePlan(currentProjectModalTopic);
     closeProjectModal();
   } catch (err) {
-    window.alert(`Failed to open features: ${err.message}`);
+    window.alert(`Failed to open release plan: ${err.message}`);
   }
 });
 el.projectDeleteBtn.addEventListener("click", () => {
@@ -6066,4 +6608,932 @@ el.cancelTopicBtn.addEventListener("click", () => {
 
 el.topicForm.addEventListener("submit", addTopic);
 
+const RELEASE_FILE_NAME = "releases.json";
+const RELEASE_FEATURE_TYPES = ["planning", "design", "development", "testing", "hypercare"];
+const RELEASE_FEATURE_TYPE_LABELS = {
+  planning: "Planejamento",
+  design: "Design",
+  development: "Desenvolvimento",
+  testing: "Testes",
+  hypercare: "Hypercare",
+};
+const RELEASE_DAILY_CAPACITY_HOURS = 6;
+let releaseCatalog = {};
+let releaseEditorCardTopic = null;
+let currentProjectModalTopic = null;
+let selectedReleaseProjectKey = "";
+let editingReleaseId = "";
+let releaseEditorFeatures = [];
+
+const releaseEl = {
+  modal: document.getElementById("releasesModal"),
+  closeBtn: document.getElementById("releasesCloseBtn"),
+  projectSelect: document.getElementById("releasesProjectSelect"),
+  list: document.getElementById("releasesList"),
+  newBtn: document.getElementById("releaseNewBtn"),
+  editorModal: document.getElementById("releaseEditorModal"),
+  editorCloseBtn: document.getElementById("releaseEditorCloseBtn"),
+  editorCancelBtn: document.getElementById("releaseEditorCancelBtn"),
+  editorSaveBtn: document.getElementById("releaseEditorSaveBtn"),
+  editorDeleteBtn: document.getElementById("releaseDeleteBtn"),
+  editorTitle: document.getElementById("releaseEditorTitle"),
+  editorForm: document.getElementById("releaseEditorForm"),
+  editorProjectSelect: document.getElementById("releaseEditorProjectSelect"),
+  editorOwnerSelect: document.getElementById("releaseEditorOwnerSelect"),
+  editorNameInput: document.getElementById("releaseEditorNameInput"),
+  editorStartInput: document.getElementById("releaseEditorStartInput"),
+  editorTargetInput: document.getElementById("releaseEditorTargetInput"),
+  editorGoalInput: document.getElementById("releaseEditorGoalInput"),
+  featureEditors: document.getElementById("releaseFeatureEditors"),
+  addFeatureBtn: document.getElementById("releaseAddFeatureBtn"),
+  waterfallModal: document.getElementById("releaseWaterfallModal"),
+  waterfallTitle: document.getElementById("releaseWaterfallTitle"),
+  waterfallSubtitle: document.getElementById("releaseWaterfallSubtitle"),
+  waterfallList: document.getElementById("releaseWaterfallList"),
+  waterfallCloseBtn: document.getElementById("releaseWaterfallCloseBtn"),
+};
+
+function normalizeReleaseFeature(feature = {}) {
+  const type = RELEASE_FEATURE_TYPES.includes(String(feature.type || "").trim())
+    ? String(feature.type).trim()
+    : "development";
+  const estimatedHours = Number(feature.estimatedHours);
+  return {
+    id: String(feature.id || uid()),
+    name: String(feature.name || RELEASE_FEATURE_TYPE_LABELS[type] || "Feature").trim(),
+    type,
+    status: String(feature.status || "open").trim() || "open",
+    description: String(feature.description || "").trim(),
+    assignee: String(feature.assignee || "").trim(),
+    stack: Array.isArray(feature.stack)
+      ? feature.stack.map((entry) => String(entry || "").trim()).filter(Boolean)
+      : String(feature.stack || "").split(",").map((entry) => entry.trim()).filter(Boolean),
+    startDate: normalizeTopicStartDate(feature.startDate),
+    estimatedHours: Number.isFinite(estimatedHours) && estimatedHours >= 0 ? estimatedHours : 0,
+    scheduledStartDate: normalizeTopicStartDate(feature.scheduledStartDate),
+    scheduledEndDate: normalizeTopicDeliveryDate(feature.scheduledEndDate),
+    scheduledAllocations: Array.isArray(feature.scheduledAllocations)
+      ? feature.scheduledAllocations
+          .map((entry) => ({
+            date: normalizeTopicStartDate(entry?.date),
+            hours: Number(entry?.hours),
+          }))
+          .filter((entry) => entry.date && Number.isFinite(entry.hours) && entry.hours > 0)
+      : [],
+    dependencies: Array.isArray(feature.dependencies)
+      ? feature.dependencies.map((entry) => String(entry || "").trim()).filter(Boolean)
+      : [],
+    tasks: Array.isArray(feature.tasks) ? feature.tasks : [],
+    required: Boolean(feature.required),
+  };
+}
+
+function requiredReleaseFeatures() {
+  return [
+    ["planning", "Planejamento", "Product Management"],
+    ["design", "Design", "UX/UI"],
+    ["testing", "Testes", "QA"],
+    ["hypercare", "Hypercare", "Support"],
+  ].map(([type, name, stack]) => normalizeReleaseFeature({ id: `required_${type}_${uid()}`, type, name, stack: [stack], required: true }));
+}
+
+function normalizeRelease(release = {}, projectKey = "") {
+  return {
+    id: String(release.id || uid()),
+    projectKey: normalizeProjectKey(release.projectKey || projectKey),
+    name: String(release.name || "").trim(),
+    goal: String(release.goal || "").trim(),
+    status: String(release.status || "planning").trim() || "planning",
+    owner: String(release.owner || "").trim(),
+    plannedStartDate: normalizeTopicStartDate(release.plannedStartDate),
+    targetReleaseDate: normalizeTopicDeliveryDate(release.targetReleaseDate),
+    features: (release.features || []).map((feature) => normalizeReleaseFeature(feature)),
+    createdAt: String(release.createdAt || new Date().toISOString()),
+    updatedAt: String(release.updatedAt || new Date().toISOString()),
+  };
+}
+
+function normalizeProjectReleases(payload, projectKey) {
+  const releases = Array.isArray(payload) ? payload : payload?.releases;
+  return (Array.isArray(releases) ? releases : [])
+    .map((release) => normalizeRelease(release, projectKey))
+    .filter((release) => release.name);
+}
+
+function isBusinessIsoDate(value) {
+  const date = dateFromIso(value);
+  if (!date) return false;
+  const weekday = date.getUTCDay();
+  return weekday > 0 && weekday < 6;
+}
+
+function nextIsoDate(value) {
+  const date = dateFromIso(value);
+  return date ? isoFromDate(addDaysToDate(date, 1)) : "";
+}
+
+function nextBusinessIsoDate(value) {
+  let cursor = nextIsoDate(value);
+  let guard = 0;
+  while (cursor && !isBusinessIsoDate(cursor) && guard < 7) {
+    cursor = nextIsoDate(cursor);
+    guard += 1;
+  }
+  return cursor;
+}
+
+function scheduleFeaturesByCapacity(catalog = releaseCatalog) {
+  const allFeatures = [];
+  Object.entries(catalog || {}).forEach(([projectKey, releases]) => {
+    (releases || []).forEach((release) => {
+      const normalized = normalizeRelease(release, projectKey);
+      Object.assign(release, normalized);
+      const nodesByType = {};
+      release.features.forEach((feature, featureIndex) => {
+        feature.scheduledStartDate = "";
+        feature.scheduledEndDate = "";
+        feature.scheduledAllocations = [];
+        const node = {
+          projectKey,
+          release,
+          feature,
+          featureIndex,
+          baseStartDate: normalizeTopicStartDate(feature.startDate || release.plannedStartDate),
+          dependencies: [],
+          processed: false,
+        };
+        allFeatures.push(node);
+        (nodesByType[feature.type] ||= []).push(node);
+      });
+
+      (nodesByType.design || []).forEach((node) => {
+        node.dependencies.push(...(nodesByType.planning || []));
+      });
+      (nodesByType.development || []).forEach((node) => {
+        node.dependencies.push(...(nodesByType.design || []));
+      });
+      (nodesByType.testing || []).forEach((node) => {
+        node.dependencies.push(...(nodesByType.development || []));
+      });
+      (nodesByType.hypercare || []).forEach((node) => {
+        node.dependencies.push(...(nodesByType.testing || []));
+      });
+    });
+  });
+
+  const allocations = new Map();
+  const pending = [...allFeatures];
+  const compareNodes = (left, right) =>
+    String(left.effectiveStartDate || "9999-99-99").localeCompare(String(right.effectiveStartDate || "9999-99-99"))
+    || left.projectKey.localeCompare(right.projectKey)
+    || left.release.name.localeCompare(right.release.name)
+    || left.featureIndex - right.featureIndex;
+
+  while (pending.length) {
+    const ready = [];
+    pending.forEach((node) => {
+      if (!node.dependencies.every((dependency) => dependency.processed)) return;
+      const dependencyEnds = node.dependencies.map((dependency) => dependency.feature.scheduledEndDate).filter(Boolean);
+      const hasUnscheduledDependency = node.dependencies.length && dependencyEnds.length !== node.dependencies.length;
+      if (hasUnscheduledDependency) {
+        node.feature.scheduledStartDate = "";
+        node.feature.scheduledEndDate = "";
+        node.processed = true;
+        return;
+      }
+      const latestDependencyEnd = dependencyEnds.sort()[dependencyEnds.length - 1];
+      const dependencyStart = dependencyEnds.length
+        ? nextBusinessIsoDate(latestDependencyEnd)
+        : "";
+      node.effectiveStartDate = isoMax(node.baseStartDate, dependencyStart);
+      ready.push(node);
+    });
+
+    for (let index = pending.length - 1; index >= 0; index -= 1) {
+      if (pending[index].processed) pending.splice(index, 1);
+    }
+    if (!pending.length) break;
+
+    if (!ready.length) {
+      pending.forEach((node) => {
+        node.feature.scheduledStartDate = "";
+        node.feature.scheduledEndDate = "";
+        node.processed = true;
+      });
+      pending.length = 0;
+      break;
+    }
+
+    ready.sort(compareNodes);
+    const node = ready[0];
+    const pendingIndex = pending.indexOf(node);
+    if (pendingIndex >= 0) pending.splice(pendingIndex, 1);
+    node.processed = true;
+
+    const { feature } = node;
+    if (!node.effectiveStartDate || !feature.estimatedHours) continue;
+
+    let remaining = Number(feature.estimatedHours);
+    let cursor = node.effectiveStartDate;
+    let guard = 0;
+    while (remaining > 0 && cursor && guard < 3660) {
+      guard += 1;
+      if (isBusinessIsoDate(cursor)) {
+        const allocationKey = feature.assignee
+          ? `${feature.assignee}::${cursor}`
+          : `unassigned::${node.projectKey}::${node.release.id}::${node.featureIndex}::${cursor}`;
+        const used = Number(allocations.get(allocationKey) || 0);
+        const available = Math.max(0, RELEASE_DAILY_CAPACITY_HOURS - used);
+        if (available > 0) {
+          const booked = Math.min(available, remaining);
+          allocations.set(allocationKey, used + booked);
+          if (!feature.scheduledStartDate) feature.scheduledStartDate = cursor;
+          feature.scheduledAllocations.push({ date: cursor, hours: booked });
+          remaining -= booked;
+          if (remaining <= 0) feature.scheduledEndDate = cursor;
+        }
+      }
+      if (remaining > 0) cursor = nextIsoDate(cursor);
+    }
+  }
+  return catalog;
+}
+
+async function loadProjectReleases(projectKey) {
+  const key = normalizeProjectKey(projectKey);
+  if (!key) return [];
+  if (dataMode === "local") {
+    state.releasesByProject = state.releasesByProject || {};
+    const releases = normalizeProjectReleases(state.releasesByProject[key], key);
+    state.releasesByProject[key] = releases;
+    releaseCatalog[key] = releases;
+    return releases;
+  }
+  try {
+    const payload = await fetchProjectFile(`${key}/${RELEASE_FILE_NAME}`);
+    const parsed = JSON.parse(payload.content || "{}");
+    const releases = normalizeProjectReleases(parsed, key);
+    releaseCatalog[key] = releases;
+    return releases;
+  } catch {
+    releaseCatalog[key] = [];
+    return [];
+  }
+}
+
+async function loadAllProjectReleases() {
+  if (dataMode === "local") {
+    state.releasesByProject = state.releasesByProject || {};
+    Object.keys(state.releasesByProject).forEach((key) => {
+      releaseCatalog[key] = normalizeProjectReleases(state.releasesByProject[key], key);
+    });
+    return;
+  }
+  await Promise.all(projectCatalog.map((key) => loadProjectReleases(key)));
+}
+
+async function persistProjectReleases(projectKey) {
+  const key = normalizeProjectKey(projectKey);
+  const releases = normalizeProjectReleases(releaseCatalog[key], key);
+  releaseCatalog[key] = releases;
+  if (dataMode === "local") {
+    state.releasesByProject = state.releasesByProject || {};
+    state.releasesByProject[key] = releases;
+    saveStateLocal();
+    return;
+  }
+  await saveProjectFile(
+    `${key}/${RELEASE_FILE_NAME}`,
+    `${JSON.stringify({ schemaVersion: 1, releases }, null, 2)}\n`
+  );
+}
+
+function renderReleaseProjectSelect(select, selectedKey) {
+  if (!select) return;
+  select.innerHTML = "";
+  projectCatalog.forEach((projectKey) => {
+    const option = document.createElement("option");
+    option.value = projectKey;
+    option.textContent = projectKey;
+    option.selected = projectKey === selectedKey;
+    select.appendChild(option);
+  });
+}
+
+function formatReleaseRange(release) {
+  const start = formatTopicStartDate(release.plannedStartDate);
+  const end = formatTopicDeliveryDate(release.targetReleaseDate);
+  return start || end ? `${start || "No start"} → ${end || "No target"}` : "Dates not planned";
+}
+
+function renderReleasesList() {
+  const projectKey = normalizeProjectKey(selectedReleaseProjectKey);
+  const releases = [...(releaseCatalog[projectKey] || [])].sort((left, right) =>
+    String(left.plannedStartDate || "9999-99-99").localeCompare(String(right.plannedStartDate || "9999-99-99"))
+    || left.name.localeCompare(right.name)
+  );
+  releaseEl.list.innerHTML = "";
+  if (!projectKey) {
+    releaseEl.list.innerHTML = '<div class="release-empty">Create a project folder before planning releases.</div>';
+    return;
+  }
+  if (!releases.length) {
+    releaseEl.list.innerHTML = '<div class="release-empty">No releases planned for this project yet.</div>';
+    return;
+  }
+  releases.forEach((release) => {
+    const card = document.createElement("article");
+    card.className = "release-card";
+    const content = document.createElement("div");
+    const title = document.createElement("h4");
+    title.textContent = release.name;
+    const meta = document.createElement("div");
+    meta.className = "release-meta";
+    [
+      formatReleaseRange(release),
+      release.owner ? `Owner: ${release.owner}` : "No owner",
+      `${release.features.length} feature${release.features.length === 1 ? "" : "s"}`,
+    ].forEach((text) => {
+      const span = document.createElement("span");
+      span.textContent = text;
+      meta.appendChild(span);
+    });
+    content.append(title, meta);
+    if (release.goal) {
+      const goal = document.createElement("p");
+      goal.className = "release-goal";
+      goal.textContent = release.goal;
+      content.appendChild(goal);
+    }
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "btn btn-ghost";
+    edit.textContent = "Edit";
+    edit.addEventListener("click", () => openReleaseEditor(projectKey, release));
+    card.append(content, edit);
+    releaseEl.list.appendChild(card);
+  });
+}
+
+function setReleaseEditorOwnerOptions(selected) {
+  releaseEl.editorOwnerSelect.innerHTML = '<option value="">No owner</option>';
+  getActiveAssignableMembers().forEach((member) => {
+    const option = document.createElement("option");
+    option.value = member;
+    option.textContent = member;
+    option.selected = member === selected;
+    releaseEl.editorOwnerSelect.appendChild(option);
+  });
+}
+
+function syncReleaseFeatureFromNode(feature, node) {
+  feature.name = node.querySelector('[data-field="name"]').value.trim();
+  feature.type = node.querySelector('[data-field="type"]').value;
+  feature.assignee = node.querySelector('[data-field="assignee"]').value;
+  feature.stack = node.querySelector('[data-field="stack"]').value.split(",").map((value) => value.trim()).filter(Boolean);
+  feature.startDate = normalizeTopicStartDate(node.querySelector('[data-field="startDate"]').value);
+  const hours = Number(node.querySelector('[data-field="estimatedHours"]').value);
+  feature.estimatedHours = Number.isFinite(hours) && hours >= 0 ? hours : 0;
+}
+
+function openReleaseFeatureTasksModal(feature) {
+  const topic = releaseEditorCardTopic;
+  const featureName = String(feature?.name || "").trim();
+  if (!topic || !featureName) return;
+  const tasks = (topic.items || []).filter(
+    (item) => String(item?.featureName || "").trim().toLocaleLowerCase() === featureName.toLocaleLowerCase()
+  );
+  const items = tasks.length
+    ? tasks.map((item) => ({
+        text: `${taskStatusLabel(deriveTaskStatus(item, topic))} · ${item.text} · ${item.responsibles?.length ? item.responsibles.join(", ") : "No responsible"}`,
+        onClick: () => openTopicTaskEditor(topic, item),
+      }))
+    : ["No tasks are currently linked to this feature."];
+  openDeliveryInfoModal({
+    title: `${featureName} — Tasks`,
+    subtitle: `Release: ${topic.title} · Project: ${projectLabel(topic.projectKey)}`,
+    groups: [{
+      title: "Tasks",
+      meta: `${tasks.length} linked`,
+      items,
+    }],
+  });
+}
+
+function getScheduledReleaseEditorDraft() {
+  const projectKey = normalizeProjectKey(releaseEl.editorProjectSelect.value);
+  if (!projectKey) return null;
+  const draftRelease = normalizeRelease({
+    id: editingReleaseId || "draft",
+    projectKey,
+    name: releaseEl.editorNameInput.value.trim() || "New release",
+    plannedStartDate: normalizeTopicStartDate(releaseEl.editorStartInput.value),
+    targetReleaseDate: normalizeTopicDeliveryDate(releaseEl.editorTargetInput.value),
+    features: releaseEditorFeatures,
+  }, projectKey);
+  const draftCatalog = {
+    ...releaseCatalog,
+    [projectKey]: [
+      ...(releaseCatalog[projectKey] || []).filter((release) => release.id !== editingReleaseId),
+      draftRelease,
+    ],
+  };
+  scheduleFeaturesByCapacity(draftCatalog);
+  return draftCatalog[projectKey].find((release) => release.id === draftRelease.id) || draftRelease;
+}
+
+function createReleaseWaterfallTimeline(release) {
+  const features = Array.isArray(release.features) ? release.features : [];
+  const scheduledFeatures = features.filter(
+    (feature) => feature.scheduledStartDate && feature.scheduledEndDate
+  );
+
+  const stages = RELEASE_FEATURE_TYPES.map((type) => {
+    const stageFeatures = features.filter((feature) => feature.type === type);
+    const scheduledStageFeatures = stageFeatures.filter(
+      (feature) => feature.scheduledStartDate && feature.scheduledEndDate
+    );
+    const startDate = scheduledStageFeatures.reduce(
+      (first, feature) => !first || feature.scheduledStartDate < first ? feature.scheduledStartDate : first,
+      ""
+    );
+    const endDate = scheduledStageFeatures.reduce(
+      (last, feature) => !last || feature.scheduledEndDate > last ? feature.scheduledEndDate : last,
+      ""
+    );
+    const assignees = [...new Set(stageFeatures.map((feature) => feature.assignee).filter(Boolean))];
+    return { type, features: stageFeatures, scheduledFeatures: scheduledStageFeatures, startDate, endDate, assignees };
+  });
+  const calculatedFirstDate = scheduledFeatures.reduce(
+    (first, feature) => !first || feature.scheduledStartDate < first ? feature.scheduledStartDate : first,
+    ""
+  );
+  const calculatedLastDate = scheduledFeatures.reduce(
+    (last, feature) => !last || feature.scheduledEndDate > last ? feature.scheduledEndDate : last,
+    ""
+  );
+  const releaseStartDate = normalizeTopicStartDate(release.plannedStartDate);
+  const releaseEndDate = normalizeTopicDeliveryDate(release.targetReleaseDate);
+  const firstDate = calculatedFirstDate || releaseStartDate;
+  let lastDate = calculatedLastDate || releaseEndDate || firstDate;
+  if (!firstDate) return null;
+  if (lastDate < firstDate) lastDate = firstDate;
+  const weeks = buildWeeklyColumns(firstDate, lastDate);
+  if (!weeks.length) return null;
+
+  const timeline = document.createElement("section");
+  timeline.className = "release-waterfall-timeline";
+  timeline.style.setProperty("--waterfall-week-count", String(weeks.length));
+  const heading = document.createElement("div");
+  heading.className = "release-waterfall-timeline-heading";
+  const title = document.createElement("strong");
+  title.textContent = "Schedule by stage and week";
+  const description = document.createElement("small");
+  description.textContent = scheduledFeatures.length
+    ? "Excel-style schedule: stages on the rows, weeks in the columns, and colored cells for the calculated duration."
+    : "Excel-style schedule: stages on the rows and weeks in the columns. Dates are based on the release start and delivery target until the features receive calculated dates.";
+  heading.append(title, description);
+  timeline.appendChild(heading);
+
+  const scroll = document.createElement("div");
+  scroll.className = "release-waterfall-timeline-scroll";
+  const grid = document.createElement("div");
+  grid.className = "release-waterfall-timeline-grid";
+
+  const header = document.createElement("div");
+  header.className = "release-waterfall-timeline-row release-waterfall-timeline-header";
+  const headerLabel = document.createElement("div");
+  headerLabel.className = "release-waterfall-timeline-label";
+  headerLabel.textContent = "Stage / responsibilities";
+  header.appendChild(headerLabel);
+  weeks.forEach((week) => {
+    const cell = document.createElement("div");
+    cell.className = "release-waterfall-week";
+    const label = document.createElement("strong");
+    label.textContent = formatWeekColumnLabel(week);
+    const dates = document.createElement("small");
+    dates.textContent = formatWeekColumnMeta(week);
+    cell.append(label, dates);
+    header.appendChild(cell);
+  });
+  grid.appendChild(header);
+
+  stages.forEach((stage) => {
+    const row = document.createElement("div");
+    row.className = "release-waterfall-timeline-row";
+    const label = document.createElement("div");
+    label.className = "release-waterfall-timeline-label";
+    const stageTag = document.createElement("span");
+    stageTag.className = `release-waterfall-timeline-stage release-waterfall-timeline-stage-${stage.type}`;
+    stageTag.textContent = RELEASE_FEATURE_TYPE_LABELS[stage.type];
+    const stageName = document.createElement("strong");
+    stageName.textContent = `${stage.features.length} ${stage.features.length === 1 ? "feature" : "features"}`;
+    const assignees = document.createElement("small");
+    assignees.textContent = stage.features.length
+      ? stage.assignees.length ? stage.assignees.join(", ") : "No responsible"
+      : "No feature planned";
+    label.title = stage.features.map((feature) => `${feature.name} · ${feature.assignee || "No responsible"}`).join("\n");
+    label.append(stageTag, stageName, assignees);
+    row.appendChild(label);
+
+    weeks.forEach(() => {
+      const cell = document.createElement("div");
+      cell.className = "release-waterfall-week-slot";
+      row.appendChild(cell);
+    });
+    if (stage.scheduledFeatures.length) {
+      let firstWeekIndex = -1;
+      let lastWeekIndex = -1;
+      weeks.forEach((week, index) => {
+        if (!timeColumnOverlapsRange(week, stage.startDate, stage.endDate)) return;
+        if (firstWeekIndex < 0) firstWeekIndex = index;
+        lastWeekIndex = index;
+      });
+      if (firstWeekIndex >= 0) {
+        const bar = document.createElement("div");
+        bar.className = `release-waterfall-week-bar release-waterfall-week-bar-${stage.type}`;
+        bar.style.gridColumn = `${firstWeekIndex + 2} / ${lastWeekIndex + 3}`;
+        bar.title = stage.features.map((feature) => `${feature.name} · ${feature.assignee || "No responsible"} · ${formatTopicStartDate(feature.scheduledStartDate)} – ${formatTopicDeliveryDate(feature.scheduledEndDate)}`).join("\n");
+        const barText = document.createElement("span");
+        barText.textContent = `${formatTopicStartDate(stage.startDate)} – ${formatTopicDeliveryDate(stage.endDate)}`;
+        bar.appendChild(barText);
+        row.appendChild(bar);
+      }
+    }
+    grid.appendChild(row);
+  });
+
+  scroll.appendChild(grid);
+  timeline.appendChild(scroll);
+  return timeline;
+}
+
+function openReleaseWaterfallModal() {
+  const release = getScheduledReleaseEditorDraft();
+  if (!release) return;
+  releaseEl.waterfallTitle.textContent = `Waterfall — ${release.name}`;
+  releaseEl.waterfallSubtitle.textContent = `Project: ${release.projectKey} · Weekly timeline, dates and responsibilities follow the calculated release schedule.`;
+  releaseEl.waterfallList.innerHTML = "";
+  const weeklyTimeline = createReleaseWaterfallTimeline(release);
+  if (weeklyTimeline) releaseEl.waterfallList.appendChild(weeklyTimeline);
+  RELEASE_FEATURE_TYPES.forEach((type, index) => {
+    const stage = document.createElement("section");
+    stage.className = `release-waterfall-stage release-waterfall-stage-${type}`;
+    const head = document.createElement("div");
+    head.className = "release-waterfall-stage-head";
+    const label = document.createElement("span");
+    label.textContent = `${index + 1}. ${RELEASE_FEATURE_TYPE_LABELS[type]}`;
+    const note = document.createElement("small");
+    const stageNotes = {
+      design: "After all planning features",
+      development: "After all design features",
+      testing: "After all development features",
+      hypercare: "After testing",
+    };
+    note.textContent = stageNotes[type] || "";
+    head.append(label, note);
+    stage.appendChild(head);
+
+    const features = (release.features || []).filter((feature) => feature.type === type);
+    if (!features.length) {
+      const empty = document.createElement("p");
+      empty.className = "release-waterfall-empty";
+      empty.textContent = "No feature planned for this stage.";
+      stage.appendChild(empty);
+    }
+    features.forEach((feature) => {
+      const item = document.createElement("article");
+      item.className = "release-waterfall-item";
+      const title = document.createElement("strong");
+      title.textContent = feature.name;
+      const details = document.createElement("div");
+      details.className = "release-waterfall-item-details";
+      [
+        feature.assignee ? `Responsible: ${feature.assignee}` : "No responsible",
+        feature.scheduledStartDate ? `Start: ${formatTopicStartDate(feature.scheduledStartDate)}` : "Start not calculated",
+        feature.scheduledEndDate ? `End: ${formatTopicDeliveryDate(feature.scheduledEndDate)}` : "End not calculated",
+        feature.estimatedHours ? `${feature.estimatedHours}h` : "No estimate",
+      ].forEach((text) => {
+        const detail = document.createElement("span");
+        detail.textContent = text;
+        details.appendChild(detail);
+      });
+      item.append(title, details);
+      stage.appendChild(item);
+    });
+    releaseEl.waterfallList.appendChild(stage);
+    if (index < RELEASE_FEATURE_TYPES.length - 1) {
+      const arrow = document.createElement("div");
+      arrow.className = "release-waterfall-arrow";
+      arrow.textContent = "↓";
+      releaseEl.waterfallList.appendChild(arrow);
+    }
+  });
+  releaseEl.waterfallModal.classList.remove("hidden");
+}
+
+function closeReleaseWaterfallModal() {
+  releaseEl.waterfallModal.classList.add("hidden");
+  releaseEl.waterfallList.innerHTML = "";
+}
+
+function renderReleaseFeatureEditors() {
+  releaseEl.featureEditors.innerHTML = "";
+  const previewProjectKey = normalizeProjectKey(releaseEl.editorProjectSelect.value);
+  const draftRelease = {
+    id: editingReleaseId || "draft",
+    projectKey: previewProjectKey,
+    name: releaseEl.editorNameInput.value.trim() || "New release",
+    plannedStartDate: normalizeTopicStartDate(releaseEl.editorStartInput.value),
+    targetReleaseDate: normalizeTopicDeliveryDate(releaseEl.editorTargetInput.value),
+    features: releaseEditorFeatures,
+  };
+  const draftCatalog = { ...releaseCatalog, [previewProjectKey]: [
+    ...(releaseCatalog[previewProjectKey] || []).filter((release) => release.id !== editingReleaseId),
+    draftRelease,
+  ] };
+  scheduleFeaturesByCapacity(draftCatalog);
+
+  releaseEditorFeatures.forEach((feature, index) => {
+    const card = document.createElement("article");
+    card.className = "release-feature-editor";
+    card.innerHTML = `
+      <div class="release-feature-editor-head">
+        <h5></h5>
+        <div class="release-feature-editor-actions">
+          <button type="button" class="btn btn-ghost" data-action="tasks">Tasks</button>
+          <button type="button" class="btn-link btn-link-neutral" data-action="remove">Remove</button>
+        </div>
+      </div>
+      <div class="release-feature-grid">
+        <label class="field-block"><span class="field-label">Feature</span><input data-field="name" type="text" /></label>
+        <label class="field-block"><span class="field-label">Tipo</span><select data-field="type"></select></label>
+        <label class="field-block"><span class="field-label">Responsável</span><select data-field="assignee"></select></label>
+        <label class="field-block"><span class="field-label">Stack / disciplina</span><input data-field="stack" type="text" placeholder="React, Node.js" /></label>
+        <label class="field-block"><span class="field-label">Início</span><input data-field="startDate" type="date" /></label>
+        <label class="field-block"><span class="field-label">Estimativa (h)</span><input data-field="estimatedHours" type="number" min="0" step="0.5" /></label>
+      </div>
+      <p class="release-feature-schedule"></p>
+    `;
+    const title = card.querySelector("h5");
+    title.textContent = feature.name || `Feature ${index + 1}`;
+    const nameInput = card.querySelector('[data-field="name"]');
+    const typeSelect = card.querySelector('[data-field="type"]');
+    const assigneeSelect = card.querySelector('[data-field="assignee"]');
+    const stackInput = card.querySelector('[data-field="stack"]');
+    const startInput = card.querySelector('[data-field="startDate"]');
+    const hoursInput = card.querySelector('[data-field="estimatedHours"]');
+    nameInput.value = feature.name;
+    RELEASE_FEATURE_TYPES.forEach((type) => {
+      const option = document.createElement("option");
+      option.value = type;
+      option.textContent = RELEASE_FEATURE_TYPE_LABELS[type];
+      option.selected = type === feature.type;
+      typeSelect.appendChild(option);
+    });
+    assigneeSelect.innerHTML = '<option value="">No responsible</option>';
+    getActiveAssignableMembers().forEach((member) => {
+      const option = document.createElement("option");
+      option.value = member;
+      option.textContent = member;
+      option.selected = member === feature.assignee;
+      assigneeSelect.appendChild(option);
+    });
+    stackInput.value = feature.stack.join(", ");
+    startInput.value = feature.startDate || draftRelease.plannedStartDate;
+    hoursInput.value = feature.estimatedHours || "";
+    const computed = draftCatalog[previewProjectKey].find((release) => release.id === draftRelease.id)?.features[index] || feature;
+    const schedule = card.querySelector(".release-feature-schedule");
+    const dependencyNotes = {
+      design: "Design inicia após todas as features de planejamento.",
+      development: "Desenvolvimento inicia após todas as features de design.",
+      testing: "Testes inicia após todas as features de desenvolvimento.",
+      hypercare: "Hypercare inicia após a conclusão dos testes.",
+    };
+    const dependencyNote = dependencyNotes[feature.type] || "";
+    const allocationNote = feature.assignee ? "" : " · Sem responsável: não reserva horas na Workload.";
+    schedule.textContent = computed.scheduledEndDate
+      ? `Agenda calculada: ${formatTopicStartDate(computed.scheduledStartDate)} → ${formatTopicDeliveryDate(computed.scheduledEndDate)} (${RELEASE_DAILY_CAPACITY_HOURS}h úteis/dia)${dependencyNote ? ` · ${dependencyNote}` : ""}${allocationNote}`
+      : `${dependencyNote ? `${dependencyNote} ` : ""}Informe início e horas para calcular a previsão.`;
+    const tasksButton = card.querySelector('[data-action="tasks"]');
+    tasksButton.disabled = !releaseEditorCardTopic || !String(feature.name || "").trim();
+    tasksButton.addEventListener("click", () => openReleaseFeatureTasksModal(feature));
+    const remove = card.querySelector('[data-action="remove"]');
+    remove.classList.toggle("hidden", feature.required);
+    remove.addEventListener("click", () => {
+      releaseEditorFeatures.splice(index, 1);
+      renderReleaseFeatureEditors();
+    });
+    [nameInput, typeSelect, assigneeSelect, stackInput, startInput, hoursInput].forEach((input) => {
+      input.addEventListener("change", () => {
+        syncReleaseFeatureFromNode(feature, card);
+        if (feature.required && !feature.name) feature.name = RELEASE_FEATURE_TYPE_LABELS[feature.type];
+        renderReleaseFeatureEditors();
+      });
+    });
+    releaseEl.featureEditors.appendChild(card);
+  });
+}
+
+function openReleaseEditor(projectKey, release = null) {
+  const source = release ? normalizeRelease(release, projectKey) : normalizeRelease({
+    projectKey,
+    plannedStartDate: localIsoToday(),
+    features: requiredReleaseFeatures(),
+  }, projectKey);
+  editingReleaseId = release ? source.id : "";
+  releaseEditorFeatures = source.features;
+  releaseEl.editorTitle.textContent = release ? "Edit Release" : "New Release";
+  renderReleaseProjectSelect(releaseEl.editorProjectSelect, source.projectKey || projectKey);
+  setReleaseEditorOwnerOptions(source.owner);
+  releaseEl.editorNameInput.value = source.name;
+  releaseEl.editorStartInput.value = source.plannedStartDate;
+  releaseEl.editorTargetInput.value = source.targetReleaseDate;
+  releaseEl.editorGoalInput.value = source.goal;
+  releaseEl.editorDeleteBtn.classList.toggle("hidden", !release);
+  renderReleaseFeatureEditors();
+  releaseEl.editorModal.classList.remove("hidden");
+  releaseEl.editorNameInput.focus();
+}
+
+function closeReleaseEditor() {
+  closeReleaseWaterfallModal();
+  releaseEl.editorModal.classList.add("hidden");
+  [
+    releaseEl.editorProjectSelect,
+    releaseEl.editorNameInput,
+    releaseEl.editorStartInput,
+    releaseEl.editorTargetInput,
+    releaseEl.editorGoalInput,
+    releaseEl.editorOwnerSelect,
+  ].forEach((field) => { field.disabled = false; });
+  releaseEditorCardTopic = null;
+  editingReleaseId = "";
+  releaseEditorFeatures = [];
+}
+
+async function saveReleaseEditor() {
+  const projectKey = normalizeProjectKey(releaseEl.editorProjectSelect.value);
+  const name = releaseEl.editorNameInput.value.trim();
+  if (!projectKey || !name) {
+    window.alert("Project and release name are required.");
+    return;
+  }
+  const previous = (releaseCatalog[projectKey] || []).find((release) => release.id === editingReleaseId);
+  const release = normalizeRelease({
+    ...previous,
+    id: editingReleaseId || uid(),
+    projectKey,
+    name,
+    goal: releaseEl.editorGoalInput.value.trim(),
+    owner: releaseEl.editorOwnerSelect.value,
+    plannedStartDate: releaseEl.editorStartInput.value,
+    targetReleaseDate: releaseEl.editorTargetInput.value,
+    features: releaseEditorFeatures,
+    updatedAt: new Date().toISOString(),
+  }, projectKey);
+  const existing = (releaseCatalog[projectKey] || []).filter((entry) => entry.id !== editingReleaseId);
+  releaseCatalog[projectKey] = [...existing, release];
+  scheduleFeaturesByCapacity(releaseCatalog);
+  try {
+    const shouldRefreshCard = Boolean(releaseEditorCardTopic);
+    await persistProjectReleases(projectKey);
+    if (shouldRefreshCard) persistState();
+    selectedReleaseProjectKey = projectKey;
+    renderReleaseProjectSelect(releaseEl.projectSelect, projectKey);
+    renderReleasesList();
+    closeReleaseEditor();
+    if (shouldRefreshCard) render();
+    setStatus(`releases updated (${projectKey})`);
+  } catch (error) {
+    window.alert(`Failed to save release: ${error.message}`);
+  }
+}
+
+async function openReleasesModal() {
+  await loadAllProjectReleases();
+  scheduleFeaturesByCapacity(releaseCatalog);
+  const preferred = normalizeProjectKey(selectedReleaseProjectKey) || projectCatalog[0] || "";
+  selectedReleaseProjectKey = preferred;
+  renderReleaseProjectSelect(releaseEl.projectSelect, preferred);
+  renderReleasesList();
+  releaseEl.modal.classList.remove("hidden");
+}
+
+function closeReleasesModal() {
+  releaseEl.modal.classList.add("hidden");
+}
+
+function importLegacyFeaturesIntoRelease(topic, release) {
+  const projectKey = normalizeProjectKey(topic?.projectKey);
+  const existing = (release.features || []).map((feature) => normalizeReleaseFeature(feature));
+  const knownNames = new Set(existing.map((feature) => feature.name.toLocaleLowerCase()));
+  const requiredTypes = new Set(existing.filter((feature) => feature.required).map((feature) => feature.type));
+
+  requiredReleaseFeatures().forEach((feature) => {
+    if (requiredTypes.has(feature.type)) return;
+    existing.push(feature);
+    knownNames.add(feature.name.toLocaleLowerCase());
+  });
+
+  const catalogByName = new Map(
+    (projectFeaturesCatalog[projectKey] || []).map((entry) => [
+      String(entry?.name || "").trim().toLocaleLowerCase(),
+      entry,
+    ])
+  );
+  const taskFeatureNames = Array.from(
+    new Set(
+      (topic.items || [])
+        .map((item) => String(item?.featureName || "").trim())
+        .filter(Boolean)
+    )
+  );
+
+  taskFeatureNames.forEach((name) => {
+    const key = name.toLocaleLowerCase();
+    if (knownNames.has(key)) return;
+    const catalogFeature = catalogByName.get(key);
+    existing.push(normalizeReleaseFeature({
+      id: uid(),
+      name,
+      type: "development",
+      description: String(catalogFeature?.description || "").trim(),
+      required: false,
+    }));
+    knownNames.add(key);
+  });
+
+  release.features = existing;
+  return release;
+}
+
+async function openCardReleasePlan(topic) {
+  normalizeTopic(topic);
+  const projectKey = normalizeProjectKey(topic.projectKey);
+  if (!projectKey) {
+    window.alert("Associate this release card with a project folder first.");
+    return;
+  }
+
+  await loadAllProjectReleases();
+  const releases = releaseCatalog[projectKey] || [];
+  let release = releases.find((entry) => entry.id === topic.releaseId);
+  if (!release) {
+    release = normalizeRelease({
+      id: topic.releaseId,
+      projectKey,
+      name: topic.title,
+      goal: topic.description,
+      plannedStartDate: topic.startDate,
+      targetReleaseDate: topic.deliveryDate,
+      features: requiredReleaseFeatures(),
+    }, projectKey);
+    releaseCatalog[projectKey] = [...releases, release];
+  } else {
+    release.projectKey = projectKey;
+    release.name = topic.title;
+    release.goal = topic.description;
+    release.plannedStartDate = topic.startDate;
+    release.targetReleaseDate = topic.deliveryDate;
+  }
+
+  importLegacyFeaturesIntoRelease(topic, release);
+  scheduleFeaturesByCapacity(releaseCatalog);
+  releaseEditorCardTopic = topic;
+  openReleaseEditor(projectKey, release);
+  releaseEl.editorTitle.textContent = `Feature Plan — ${topic.title}`;
+  [
+    releaseEl.editorProjectSelect,
+    releaseEl.editorNameInput,
+    releaseEl.editorStartInput,
+    releaseEl.editorTargetInput,
+    releaseEl.editorGoalInput,
+    releaseEl.editorOwnerSelect,
+  ].forEach((field) => { field.disabled = true; });
+  releaseEl.editorDeleteBtn.classList.add("hidden");
+}
+
+function initializeReleaseManagement() {
+  if (!releaseEl.editorModal) return;
+  const waterfallBtn = document.createElement("button");
+  waterfallBtn.type = "button";
+  waterfallBtn.className = "btn btn-ghost";
+  waterfallBtn.textContent = "Waterfall";
+  releaseEl.addFeatureBtn.parentElement?.insertBefore(waterfallBtn, releaseEl.addFeatureBtn);
+  waterfallBtn.addEventListener("click", openReleaseWaterfallModal);
+  releaseEl.waterfallCloseBtn.addEventListener("click", closeReleaseWaterfallModal);
+  releaseEl.editorCloseBtn.addEventListener("click", closeReleaseEditor);
+  releaseEl.editorCancelBtn.addEventListener("click", closeReleaseEditor);
+  releaseEl.editorProjectSelect.addEventListener("change", () => renderReleaseFeatureEditors());
+  releaseEl.addFeatureBtn.addEventListener("click", () => {
+    releaseEditorFeatures.push(normalizeReleaseFeature({ id: uid(), name: "", type: "development", required: false }));
+    renderReleaseFeatureEditors();
+  });
+  releaseEl.editorSaveBtn.addEventListener("click", saveReleaseEditor);
+  bindBackdropClose(releaseEl.editorModal, closeReleaseEditor);
+  bindBackdropClose(releaseEl.waterfallModal, closeReleaseWaterfallModal);
+}
+
+initializeReleaseManagement();
 loadFromFiles();

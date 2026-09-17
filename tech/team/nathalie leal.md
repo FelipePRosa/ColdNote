@@ -1,13 +1,13 @@
-# Hary Bernhardt
+# Nathalie Leal
 
-Nickname: Hary
-Area: Front
+Nickname: Nat
+Area: QA
 Ativo: Sim
 
 Placar Tech Innovation
-Qualidade de Código: 4
+Qualidade de Código: 3
 Contribuição Técnica: 3
 Organização: 3
-Autonomia: 4
-Colaboração: 4
+Autonomia: 3
+Colaboração: 3
 Representação: 3

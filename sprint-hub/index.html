@@ -52,13 +52,13 @@
               <button id="editSprintBtn" class="icon-btn" type="button" aria-label="Edit sprint" title="Edit sprint">
                 <span aria-hidden="true">✎</span>
               </button>
-              <button id="projectCardsViewBtn" class="btn btn-ghost" type="button">Project Cards</button>
+              <button id="projectCardsViewBtn" class="btn btn-ghost" type="button">Release Cards</button>
               <button id="taskboardViewBtn" class="btn btn-ghost" type="button">Taskboard</button>
               <button id="memberViewBtn" class="btn btn-ghost" type="button">Members</button>
               <button id="deliveryViewBtn" class="btn btn-ghost" type="button">Delivery</button>
               <button id="workloadViewBtn" class="btn btn-ghost" type="button">Workload</button>
               <button id="projectWorkloadViewBtn" class="btn btn-ghost" type="button">Project Load</button>
-              <button id="newTopicBtn" class="btn btn-secondary">New Project</button>
+              <button id="newTopicBtn" class="btn btn-secondary">New Release</button>
             </div>
           </div>
           <div class="board-actions">
@@ -86,7 +86,7 @@
         </div>
 
         <form id="topicForm" class="inline-form hidden">
-          <input id="topicTitleInput" type="text" placeholder="Project name (e.g., Web Assessor)" required />
+          <input id="topicTitleInput" type="text" placeholder="Release name (e.g., Acordo Partner)" required />
           <select id="topicProjectSelect" aria-label="Project">
             <option value="">No project</option>
           </select>
@@ -94,7 +94,7 @@
             <option value="">No status</option>
           </select>
           <input id="topicDescInput" type="text" placeholder="Short description (optional)" />
-          <button type="submit" class="btn btn-primary">Add Project</button>
+          <button type="submit" class="btn btn-primary">Add Release</button>
           <button type="button" id="cancelTopicBtn" class="btn btn-ghost">Cancel</button>
         </form>
 
@@ -131,6 +131,7 @@
             <span class="topic-delivery-tag hidden"></span>
           </div>
           <p class="topic-desc muted"></p>
+          <div class="release-summary hidden"></div>
         </div>
         <button type="button" class="btn btn-mini topic-edit-btn" aria-label="Edit project" title="Edit project">✎</button>
       </div>
@@ -198,12 +199,12 @@
 
   <div id="projectModal" class="modal hidden">
     <div class="modal-card">
-      <h3>Edit Project</h3>
-      <p class="muted">Update project title and description.</p>
+      <h3>Edit Release</h3>
+      <p class="muted">Update release name, dates and project link.</p>
       <div class="project-modal-form">
         <label class="field-block">
-          <span class="field-label">Title</span>
-          <input id="projectTitleInput" type="text" placeholder="Project title" />
+          <span class="field-label">Release name</span>
+          <input id="projectTitleInput" type="text" placeholder="Release name" />
         </label>
         <div class="project-modal-row">
           <label class="field-block project-folder-field">
@@ -236,7 +237,7 @@
       </div>
       <div class="modal-actions">
         <button id="projectDeliveryBtn" class="btn btn-ghost" type="button">Delivery</button>
-        <button id="projectFeaturesBtn" class="btn btn-ghost" type="button">Features</button>
+        <button id="projectFeaturesBtn" class="btn btn-ghost" type="button">Feature Plan</button>
         <button id="projectTimelineBtn" class="btn btn-ghost" type="button">Timeline</button>
         <button id="projectCopyBtn" class="btn btn-ghost modal-action-left" type="button">Copy to Sprint</button>
         <button id="projectDeleteBtn" class="btn btn-danger" type="button">Remove</button>
@@ -475,6 +476,96 @@
         <button id="featureEditorCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
         <button id="featureEditorSaveBtn" class="btn btn-primary" type="button">Add Feature</button>
       </div>
+    </div>
+  </div>
+
+  <div id="releasesModal" class="modal hidden">
+    <div class="modal-card releases-modal-card">
+      <div class="panel-head">
+        <div>
+          <h3>Releases</h3>
+          <p class="muted">Planeje entregas, responsáveis e capacidade por projeto.</p>
+        </div>
+        <button id="releasesCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+      <div class="release-toolbar">
+        <label class="field-block">
+          <span class="field-label">Projeto</span>
+          <select id="releasesProjectSelect" aria-label="Projeto das releases"></select>
+        </label>
+        <button id="releaseNewBtn" class="btn btn-primary" type="button">New Release</button>
+      </div>
+      <div id="releasesList" class="releases-list"></div>
+    </div>
+  </div>
+
+  <div id="releaseEditorModal" class="modal hidden">
+    <div class="modal-card release-editor-modal-card">
+      <div class="panel-head">
+        <div>
+          <h3 id="releaseEditorTitle">New Release</h3>
+          <p class="muted">Toda release começa com Planejamento, Design, Testes e Hypercare.</p>
+        </div>
+        <button id="releaseEditorCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+      <form id="releaseEditorForm" class="project-modal-form">
+        <div class="project-modal-row">
+          <label class="field-block">
+            <span class="field-label">Projeto</span>
+            <select id="releaseEditorProjectSelect" required aria-label="Projeto da release"></select>
+          </label>
+          <label class="field-block">
+            <span class="field-label">Responsável pela release</span>
+            <select id="releaseEditorOwnerSelect" aria-label="Responsável pela release"></select>
+          </label>
+        </div>
+        <label class="field-block">
+          <span class="field-label">Nome da release</span>
+          <input id="releaseEditorNameInput" type="text" placeholder="Ex.: v2.4 — Onboarding digital" required />
+        </label>
+        <div class="project-modal-row project-dates-row">
+          <label class="field-block">
+            <span class="field-label">Início planejado</span>
+            <input id="releaseEditorStartInput" type="date" />
+          </label>
+          <label class="field-block">
+            <span class="field-label">Entrega alvo</span>
+            <input id="releaseEditorTargetInput" type="date" />
+          </label>
+        </div>
+        <label class="field-block">
+          <span class="field-label">Objetivo</span>
+          <textarea id="releaseEditorGoalInput" rows="3" placeholder="Resultado esperado desta entrega"></textarea>
+        </label>
+      </form>
+      <section class="release-features-section" aria-labelledby="releaseFeaturesTitle">
+        <div class="panel-head">
+          <div>
+            <h4 id="releaseFeaturesTitle">Features</h4>
+            <p class="muted">A capacidade considera até 6h úteis por dia para cada responsável.</p>
+          </div>
+          <button id="releaseAddFeatureBtn" class="btn btn-ghost" type="button">Add Development Feature</button>
+        </div>
+        <div id="releaseFeatureEditors" class="release-feature-editors"></div>
+      </section>
+      <div class="modal-actions">
+        <button id="releaseDeleteBtn" class="btn btn-danger modal-action-left hidden" type="button">Remove</button>
+        <button id="releaseEditorCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="releaseEditorSaveBtn" class="btn btn-primary" type="button">Save Release</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="releaseWaterfallModal" class="modal hidden">
+    <div class="modal-card release-waterfall-modal-card">
+      <div class="panel-head">
+        <div>
+          <h3 id="releaseWaterfallTitle">Release Waterfall</h3>
+          <p id="releaseWaterfallSubtitle" class="muted"></p>
+        </div>
+        <button id="releaseWaterfallCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+      <div id="releaseWaterfallList" class="release-waterfall-list"></div>
     </div>
   </div>
 

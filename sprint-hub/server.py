@@ -150,12 +150,10 @@ def sprint_sort_key(name: str):
 
 def parse_topic_heading(raw_heading: str):
   raw = str(raw_heading or "").strip()
-  m = re.match(r"^(.*?)\s*\[project:([^\]]+)\]\s*$", raw, flags=re.IGNORECASE)
-  if not m:
-    return (raw, "")
-  title = (m.group(1) or "").strip() or raw
-  project_key = (m.group(2) or "").strip()
-  return (title, project_key)
+  project_match = re.search(r"\[project:([^\]]+)\]", raw, flags=re.IGNORECASE)
+  title = re.sub(r"\s*\[(?:project|release):[^\]]+\]", "", raw, flags=re.IGNORECASE).strip()
+  project_key = (project_match.group(1) or "").strip() if project_match else ""
+  return (title or raw, project_key)
 
 
 def parse_project_tasks_from_sprint_markdown(content: str):

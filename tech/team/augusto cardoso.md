@@ -9,5 +9,5 @@ Qualidade de Código: 4
 Contribuição Técnica: 3
 Organização: 3
 Autonomia: 3
-Colaboração: 2
+Colaboração: 3
 Representação: 3

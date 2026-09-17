@@ -8,6 +8,6 @@ Placar Tech Innovation
 Qualidade de Código: 5
 Contribuição Técnica: 4
 Organização: 4
-Autonomia: 3
+Autonomia: 4
 Colaboração: 5
 Representação: 4

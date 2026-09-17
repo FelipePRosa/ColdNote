@@ -2,43 +2,4 @@
 
 Regra: inclui apenas sprints depois de 26-01.
 
-## Sprint 26-19
-
-### Forecasting
-- [x] Forecasting Geral (Brunin)
-- [x] Previsão de comportamento de cliente (Brunin)
-
-## Sprint 26-20
-
-### Forecasting
-- [x] Forecasting Geral (Brunin)
-- [x] Previsão de comportamento de cliente (Brunin)
-
-## Sprint 26-21
-
-### Forecasting
-- [ ] Forecasting Geral (Brunin) [FOLLOWED]
-- [ ] Previsão de comportamento de cliente (Brunin) [FOLLOWED]
-
-## Sprint 26-22
-
-### Forecasting
-- [ ] Forecasting Geral (Brunin) [HIGH] [FOLLOWED]
-- [ ] Previsão de comportamento de cliente (Brunin) [FOLLOWED]
-
-## Sprint 26-23
-
-### Forecasting
-- [ ] Forecasting Geral (Brunin) [HIGH] [FOLLOWED]
-- [ ] Previsão de comportamento de cliente (Brunin) [HIGH] [FOLLOWED]
-
-## Sprint 26-24
-
-### Forecasting
-- [x] Forecasting Geral (Brunin) [HIGH] [FOLLOWED]
-- [x] Previsão de comportamento de cliente (Brunin) [HIGH] [FOLLOWED]
-
-## Sprint 26-25
-
-### Forecasting
-- [ ] Aplicação no Genia App (Brunin + Nu + Vicco) [STATUS: Testing] [AREA: QA] [FOLLOWED]
+_Sem tasks vinculadas neste periodo._

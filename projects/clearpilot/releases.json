@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "id": "mthm1jxj_i4y8nx",
+      "projectKey": "clearpilot",
+      "name": "ClearPilot",
+      "goal": "",
+      "status": "planning",
+      "owner": "",
+      "plannedStartDate": "2026-06-08",
+      "targetReleaseDate": "2026-06-26",
+      "features": [
+        {
+          "id": "required_planning_mthm3j28_62j94k",
+          "name": "Planejamento",
+          "type": "planning",
+          "status": "open",
+          "description": "",
+          "assignee": "Fel",
+          "stack": [
+            "Product Management"
+          ],
+          "startDate": "2026-08-17",
+          "estimatedHours": 6,
+          "scheduledStartDate": "2026-08-17",
+          "scheduledEndDate": "2026-08-17",
+          "scheduledAllocations": [
+            {
+              "date": "2026-08-17",
+              "hours": 6
+            }
+          ],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_design_mthm3j28_cz14iu",
+          "name": "Design",
+          "type": "design",
+          "status": "open",
+          "description": "",
+          "assignee": "Bruf",
+          "stack": [
+            "UX/UI"
+          ],
+          "startDate": "2026-08-26",
+          "estimatedHours": 6,
+          "scheduledStartDate": "2026-08-26",
+          "scheduledEndDate": "2026-08-26",
+          "scheduledAllocations": [
+            {
+              "date": "2026-08-26",
+              "hours": 6
+            }
+          ],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_testing_mthm3j28_hz3r0t",
+          "name": "Testes",
+          "type": "testing",
+          "status": "open",
+          "description": "",
+          "assignee": "Nu",
+          "stack": [
+            "QA"
+          ],
+          "startDate": "2026-09-07",
+          "estimatedHours": 6,
+          "scheduledStartDate": "2026-09-07",
+          "scheduledEndDate": "2026-09-07",
+          "scheduledAllocations": [
+            {
+              "date": "2026-09-07",
+              "hours": 6
+            }
+          ],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "required_hypercare_mthm3j28_vtv4fd",
+          "name": "Hypercare",
+          "type": "hypercare",
+          "status": "open",
+          "description": "",
+          "assignee": "Bruf",
+          "stack": [
+            "Support"
+          ],
+          "startDate": "2026-09-14",
+          "estimatedHours": 6,
+          "scheduledStartDate": "2026-09-14",
+          "scheduledEndDate": "2026-09-14",
+          "scheduledAllocations": [
+            {
+              "date": "2026-09-14",
+              "hours": 6
+            }
+          ],
+          "dependencies": [],
+          "tasks": [],
+          "required": true
+        },
+        {
+          "id": "mthm3kg7_636ssw",
+          "name": "Records Upload",
+          "type": "development",
+          "status": "open",
+          "description": "",
+          "assignee": "Bruf",
+          "stack": [],
+          "startDate": "2026-08-31",
+          "estimatedHours": 6,
+          "scheduledStartDate": "2026-08-31",
+          "scheduledEndDate": "2026-08-31",
+          "scheduledAllocations": [
+            {
+              "date": "2026-08-31",
+              "hours": 6
+            }
+          ],
+          "dependencies": [],
+          "tasks": [],
+          "required": false
+        },
+        {
+          "id": "mthm41l6_rzpgwu",
+          "name": "Ceph Analysis",
+          "type": "development",
+          "status": "open",
+          "description": "",
+          "assignee": "Bruf",
+          "stack": [],
+          "startDate": "2026-08-31",
+          "estimatedHours": 6,
+          "scheduledStartDate": "2026-09-01",
+          "scheduledEndDate": "2026-09-01",
+          "scheduledAllocations": [
+            {
+              "date": "2026-09-01",
+              "hours": 6
+            }
+          ],
+          "dependencies": [],
+          "tasks": [],
+          "required": false
+        }
+      ],
+      "createdAt": "2026-08-31T19:08:59.072Z",
+      "updatedAt": "2026-08-31T20:30:48.708Z"
+    }
+  ]
+}

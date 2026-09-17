@@ -10,4 +10,4 @@ Contribuição Técnica: 4
 Organização: 4
 Autonomia: 5
 Colaboração: 4
-Representação: 2
+Representação: 3
